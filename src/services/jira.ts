@@ -19,7 +19,7 @@ export const Author = T.type({
   name: T.string,
 });
 
-export const TicketComment = T.type({
+export const IssueComment = T.type({
   id: T.string,
   author: Author,
   body: T.string,
@@ -43,7 +43,7 @@ export const ChangeLog = T.type({
   ),
 });
 
-export const Ticket = T.type({
+export const Issue = T.type({
   key: T.string,
   self: T.string,
   fields: T.intersection([
@@ -96,7 +96,7 @@ export const Ticket = T.type({
         }),
       }),
       comment: T.type({
-        comments: T.readonlyArray(TicketComment),
+        comments: T.readonlyArray(IssueComment),
       }),
     }),
     T.partial({
@@ -120,11 +120,11 @@ export const Ticket = T.type({
   ),
 });
 
-export type Ticket = T.TypeOf<typeof Ticket>;
+export type Issue = T.TypeOf<typeof Issue>;
 
-export type TicketComment = T.TypeOf<typeof TicketComment>;
+export type IssueComment = T.TypeOf<typeof IssueComment>;
 
-export type TicketChangeLog = T.TypeOf<typeof ChangeLog>;
+export type IssueChangeLog = T.TypeOf<typeof ChangeLog>;
 
 export const BoardColumn = T.type({
   name: T.string,
@@ -156,53 +156,53 @@ export const BoardSummary = T.type({
 
 export type BoardSummary = T.TypeOf<typeof BoardSummary>;
 
-export type EnhancedTicket = Ticket & {
+export type EnhancedIssue = Issue & {
   readonly board?: Board;
   readonly inProgress: boolean;
   readonly stalled: boolean;
   readonly released: boolean;
   readonly column?: string;
-  readonly mostRecentComment?: TicketComment;
-  readonly mostRecentTransition?: TicketChangeLog;
+  readonly mostRecentComment?: IssueComment;
+  readonly mostRecentTransition?: IssueChangeLog;
   readonly viewLink: string;
 };
 
-const columnForTicket = (
-  ticket: Ticket,
+const columnForIssue = (
+  issue: Issue,
   board: Board
 ): BoardColumn | undefined => {
   return board.columnConfig.columns.find((column) =>
-    column.statuses.some((status) => status.id === ticket.fields.status.id)
+    column.statuses.some((status) => status.id === issue.fields.status.id)
   );
 };
 
-const ticketInProgress = (ticket: Ticket, board?: Board): boolean => {
+const issueInProgress = (issue: Issue, board?: Board): boolean => {
   return board !== undefined
-    ? columnForTicket(ticket, board)?.name.toLowerCase() === "in progress"
-    : ticket.fields.status.name.toLowerCase() === "in progress";
+    ? columnForIssue(issue, board)?.name.toLowerCase() === "in progress"
+    : issue.fields.status.name.toLowerCase() === "in progress";
 };
 
-const ticketStalled = (ticket: Ticket, board?: Board): boolean => {
+const issueStalled = (issue: Issue, board?: Board): boolean => {
   return board !== undefined
-    ? (columnForTicket(ticket, board)?.name ?? "")
+    ? (columnForIssue(issue, board)?.name ?? "")
         .toLowerCase()
         .startsWith("stalled")
-    : ticket.fields.status.name.toLowerCase().startsWith("stalled");
+    : issue.fields.status.name.toLowerCase().startsWith("stalled");
 };
 
-export const enhancedTicket = (
-  ticket: Ticket,
+export const enhancedIssue = (
+  issue: Issue,
   viewLink: string,
   board?: Board
-): EnhancedTicket => {
-  const comments: readonly TicketComment[] = [
-    ...ticket.fields.comment.comments,
+): EnhancedIssue => {
+  const comments: readonly IssueComment[] = [
+    ...issue.fields.comment.comments,
   ].sort((a, b) => compareDesc(a.created, b.created));
 
   const mostRecentComment = comments[0];
 
-  const changelogs: readonly TicketChangeLog[] = [
-    ...ticket.changelog.histories,
+  const changelogs: readonly IssueChangeLog[] = [
+    ...issue.changelog.histories,
   ].sort((a, b) => compareDesc(a.created, b.created));
 
   const mostRecentTransition = changelogs.find((changelog) =>
@@ -211,16 +211,14 @@ export const enhancedTicket = (
     )
   );
 
-  const released = ticket.fields.fixVersions.some(
-    (version) => version.released
-  );
+  const released = issue.fields.fixVersions.some((version) => version.released);
 
   return {
-    ...ticket,
-    inProgress: ticketInProgress(ticket, board),
-    stalled: ticketStalled(ticket, board),
+    ...issue,
+    inProgress: issueInProgress(issue, board),
+    stalled: issueStalled(issue, board),
     column:
-      board !== undefined ? columnForTicket(ticket, board)?.name : undefined,
+      board !== undefined ? columnForIssue(issue, board)?.name : undefined,
     mostRecentComment: mostRecentComment,
     mostRecentTransition: mostRecentTransition,
     released: released,

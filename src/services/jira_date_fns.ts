@@ -1,7 +1,13 @@
 import { intervalToDuration } from "date-fns";
 import { ReadonlyDate } from "readonly-types";
 
-export const formatJiraDuration = (duration: Duration): string => {
+/**
+ * Formats a duration in a manner somewhat reminiscent of Jira.
+ *
+ * @param duration duration to be formatted
+ * @returns  duration in a Jira-like format.
+ */
+export const jiraFormattedDuration = (duration: Duration): string => {
   const formatPart = (value: number | undefined, unit: string): string =>
     (value ?? 0) > 0 ? `${value ?? 0}${unit} ` : "";
 
@@ -24,7 +30,14 @@ export const formatJiraDuration = (duration: Duration): string => {
       )}${formatPart(duration.minutes, "m")}`.trim();
 };
 
-export const formatSecondsLikeJira = (seconds: number): string => {
+/**
+ * Formats a raw number of seconds in a manner like Jira. In particular,
+ * the rollup of hours to days is different, it treats 7h as 1d.
+ *
+ * @param seconds seconds to be formatted as a Jira like duration.
+ * @returns duration in a Jira-like format.
+ */
+export const jiraFormattedSeconds = (seconds: number): string => {
   const units = (seconds: number, unit: number): readonly [number, number] => {
     const units = Math.floor(seconds / unit);
     const remainder = seconds - units * unit;
@@ -52,10 +65,17 @@ export const formatSecondsLikeJira = (seconds: number): string => {
     secondsAfterMinutes,
   };
 
-  return formatJiraDuration(duration);
+  return jiraFormattedDuration(duration);
 };
 
-export const formatJiraDistance = (
+/**
+ * Formats the difference between two dates (an interval) in a way somewhat like Jira.
+ *
+ * @param from date at the start of the interval.
+ * @param to date at the end of the interval.
+ * @returns duration in a Jira-like format.
+ */
+export const jiraFormattedDistance = (
   from: ReadonlyDate,
   to: ReadonlyDate
 ): string => {
@@ -63,5 +83,5 @@ export const formatJiraDistance = (
     start: from.getTime(),
     end: to.getTime(),
   });
-  return formatJiraDuration(duration);
+  return jiraFormattedDuration(duration);
 };

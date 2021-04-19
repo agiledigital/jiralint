@@ -1,13 +1,13 @@
 import { Argv } from "yargs";
 import { RootCommand } from "..";
-import { EnhancedTicket } from "../services/jira";
-import { searchTickets } from "../services/jira_api";
-import { ticketActionRequired } from "../services/issue_checks";
+import { EnhancedIssue } from "../services/jira";
+import { searchIssues } from "../services/jira_api";
+import { issueActionRequired } from "../services/issue_checks";
 import { isLeft } from "fp-ts/lib/Either";
 import { readonlyDate } from "readonly-types/dist";
 import {
-  formatJiraDistance,
-  formatSecondsLikeJira,
+  jiraFormattedDistance,
+  jiraFormattedSeconds,
 } from "../services/jira_date_fns";
 import stringLength from "string-length";
 
@@ -17,7 +17,7 @@ import * as clc from "cli-color";
 require("cli-color");
 
 // eslint-disable-next-line functional/no-return-void
-const render = (tickets: ReadonlyArray<EnhancedTicket>): void => {
+const render = (issues: ReadonlyArray<EnhancedIssue>): void => {
   const tableHeaders: ReadonlyArray<string> = [
     "Action",
     "Key",
@@ -50,18 +50,18 @@ const render = (tickets: ReadonlyArray<EnhancedTicket>): void => {
 
   const data: ReadonlyArray<
     ReadonlyArray<readonly [string, ReadonlyArray<clc.Format>]>
-  > = tickets.map((ticket) => {
-    const ticketAction = ticketActionRequired(ticket, now);
+  > = issues.map((issue) => {
+    const issueAction = issueActionRequired(issue, now);
 
-    const reasons: readonly unknown[] = ticketAction.checks.flatMap((check) =>
+    const reasons: readonly unknown[] = issueAction.checks.flatMap((check) =>
       check.outcome === "warn" || check.outcome === "fail" ? check.reasons : []
     );
 
     const originalEstimateSeconds =
-      ticket.fields.timetracking.originalEstimateSeconds ?? 0;
-    const timeSpentSeconds = ticket.fields.timetracking.timeSpentSeconds ?? 0;
+      issue.fields.timetracking.originalEstimateSeconds ?? 0;
+    const timeSpentSeconds = issue.fields.timetracking.timeSpentSeconds ?? 0;
     const timeRemainingSeconds =
-      ticket.fields.timetracking.remainingEstimateSeconds ?? 0;
+      issue.fields.timetracking.remainingEstimateSeconds ?? 0;
 
     const progressGauge = CLUI.Gauge(
       timeSpentSeconds,
@@ -72,31 +72,29 @@ const render = (tickets: ReadonlyArray<EnhancedTicket>): void => {
     );
 
     const timeSinceLastTransition =
-      ticket.mostRecentTransition !== undefined
-        ? formatJiraDistance(now, ticket.mostRecentTransition.created)
+      issue.mostRecentTransition !== undefined
+        ? jiraFormattedDistance(now, issue.mostRecentTransition.created)
         : "";
 
     const noFormat: ReadonlyArray<clc.Format> = [clc.white];
 
     return [
       [
-        ticketAction.actionRequired === "inspect"
+        issueAction.actionRequired === "inspect"
           ? alarm[reasons.length] ?? "E"
           : "",
         noFormat,
       ],
-      [ticket.key, noFormat],
-      [ticket.fields.issuetype.name, noFormat],
-      [ticket.fields.summary, noFormat],
-      [ticket.column ?? "", noFormat],
-      [ticket.fields.status.name, noFormat],
+      [issue.key, noFormat],
+      [issue.fields.issuetype.name, noFormat],
+      [issue.fields.summary, noFormat],
+      [issue.column ?? "", noFormat],
+      [issue.fields.status.name, noFormat],
       [timeSinceLastTransition, noFormat],
-      [ticket.fields.assignee.name, noFormat],
+      [issue.fields.assignee.name, noFormat],
       [progressGauge, noFormat],
       [
-        `${formatSecondsLikeJira(
-          ticket.fields.aggregateprogress.progress ?? 0
-        )}`,
+        `${jiraFormattedSeconds(issue.fields.aggregateprogress.progress ?? 0)}`,
         noFormat,
       ],
       [reasons.join(","), noFormat],
@@ -137,13 +135,13 @@ const search = async (jql: string): Promise<void> => {
   // eslint-disable-next-line functional/no-expression-statement
   countdown.start();
 
-  const tickets = await searchTickets(jql);
+  const issues = await searchIssues(jql);
 
   // eslint-disable-next-line functional/no-expression-statement
   countdown.stop();
 
   // eslint-disable-next-line functional/no-expression-statement
-  isLeft(tickets) ? console.error(tickets) : render(tickets.right);
+  isLeft(issues) ? console.error(issues) : render(issues.right);
 };
 
 export default ({ command }: RootCommand): Argv<unknown> =>

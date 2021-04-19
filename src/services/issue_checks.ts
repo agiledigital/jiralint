@@ -1,5 +1,5 @@
 /* eslint-disable functional/functional-parameters */
-import { EnhancedTicket } from "./jira";
+import { EnhancedIssue as EnhancedIssue } from "./jira";
 import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import { match, __, when, not } from "ts-pattern";
 import { ReadonlyDate } from "readonly-types";
@@ -19,7 +19,7 @@ export type CheckResult = {
 
 export type Action = "none" | "inspect";
 
-export type TicketAction = {
+export type IssueAction = {
   readonly actionRequired: Action;
   readonly checks: ReadonlyArray<CheckResult>;
 };
@@ -48,13 +48,13 @@ const cantApply = (check: string, reason: string): CheckResult => ({
   reasons: [reason],
 });
 
-const validateInProgressHasEstimate = (ticket: EnhancedTicket): CheckResult => {
-  const check = "In Progress tickets have estimates";
+const validateInProgressHasEstimate = (issue: EnhancedIssue): CheckResult => {
+  const check = "In Progress issues have estimates";
   const originalEstimateSeconds =
-    ticket.fields.aggregatetimeoriginalestimate ?? 0;
+    issue.fields.aggregatetimeoriginalestimate ?? 0;
 
   return match<readonly [boolean, number]>([
-    ticket.inProgress,
+    issue.inProgress,
     originalEstimateSeconds,
   ])
     .with([false, __], () => na(check, "not in progress"))
@@ -65,13 +65,13 @@ const validateInProgressHasEstimate = (ticket: EnhancedTicket): CheckResult => {
 };
 
 const validateNotStalledForTooLong = (at: ReadonlyDate) => (
-  ticket: EnhancedTicket
+  issue: EnhancedIssue
 ): CheckResult => {
-  const check = "tickets not stalled for too long";
+  const check = "issues not stalled for too long";
 
   return match<readonly [boolean, ReadonlyDate | undefined]>([
-    ticket.stalled,
-    ticket.mostRecentTransition?.created,
+    issue.stalled,
+    issue.mostRecentTransition?.created,
   ])
     .with([false, __], () => na(check, "not stalled"))
     .with([true, undefined], () =>
@@ -87,17 +87,14 @@ const validateNotStalledForTooLong = (at: ReadonlyDate) => (
 };
 
 const validateInProgressNotCloseToEstimate = (
-  ticket: EnhancedTicket
+  issue: EnhancedIssue
 ): CheckResult => {
   const check = "time spent within acceptable ratio of original estimate";
   const originalEstimateSeconds =
-    ticket.fields.aggregatetimeoriginalestimate ?? 0;
-  const timeSpentSeconds = ticket.fields.aggregatetimespent ?? 0;
+    issue.fields.aggregatetimeoriginalestimate ?? 0;
+  const timeSpentSeconds = issue.fields.aggregatetimespent ?? 0;
 
-  return match<readonly [boolean, number]>([
-    ticket.inProgress,
-    timeSpentSeconds,
-  ])
+  return match<readonly [boolean, number]>([issue.inProgress, timeSpentSeconds])
     .with([false, __], () => na(check, "not in progress"))
     .with([__, when((spent) => spent > originalEstimateSeconds * 0.8)], () =>
       fail(check, "time spent > 0.8 of original while in progress")
@@ -109,21 +106,21 @@ const validateInProgressNotCloseToEstimate = (
 
 // TODO check sub-tasks for comments?
 const validateComment = (at: ReadonlyDate) => (
-  ticket: EnhancedTicket
+  issue: EnhancedIssue
 ): CheckResult => {
-  const check = "tickets that have been worked have comments";
+  const check = "issues that have been worked have comments";
 
   const lastBusinessDay = subBusinessDays(at.getDate(), 1);
 
-  const timeOfMostRecentComment = ticket.mostRecentComment?.created.getTime();
-  const loggedTime = ticket.fields.aggregatetimespent ?? 0;
+  const timeOfMostRecentComment = issue.mostRecentComment?.created.getTime();
+  const loggedTime = issue.fields.aggregatetimespent ?? 0;
 
   // FIXME this needs to use the aggregated times
-  // FIXME check ticket age
+  // FIXME check issue age
 
   return match<readonly [number | undefined, boolean, number]>([
     timeOfMostRecentComment,
-    ticket.inProgress,
+    issue.inProgress,
     loggedTime,
   ])
     .with([undefined, false, 0], () =>
@@ -147,36 +144,43 @@ const validateComment = (at: ReadonlyDate) => (
 };
 
 const check = (
-  ticket: EnhancedTicket,
-  checks: ReadonlyArray<(t: EnhancedTicket) => CheckResult>
-): TicketAction => {
-  const noAction: TicketAction = {
+  issue: EnhancedIssue,
+  checks: ReadonlyArray<(t: EnhancedIssue) => CheckResult>
+): IssueAction => {
+  const noAction: IssueAction = {
     actionRequired: "none",
     checks: [],
   };
 
-  return checks.reduceRight((ticketAction, check) => {
-    const result = check(ticket);
+  return checks.reduceRight((issueAction, check) => {
+    const result = check(issue);
 
     const actionRequired: Action = match<readonly [CheckResult], Action>([
       result,
     ])
       .with([{ outcome: "warn" }], () => "inspect")
       .with([{ outcome: "fail" }], () => "inspect")
-      .otherwise(() => ticketAction.actionRequired);
+      .otherwise(() => issueAction.actionRequired);
 
     return {
       actionRequired,
-      checks: ticketAction.checks.concat(result),
+      checks: issueAction.checks.concat(result),
     };
   }, noAction);
 };
 
-export const ticketActionRequired = (
-  ticket: EnhancedTicket,
+/**
+ * Checks whether the issue requires action.
+ *
+ * @param issue issue to be checked.
+ * @param now date to take as now (used for checks such as how long it has been since a comment was made).
+ * @returns whether action is required, and the checks that were run to form that recommendation.
+ */
+export const issueActionRequired = (
+  issue: EnhancedIssue,
   now: ReadonlyDate
-): TicketAction => {
-  return check(ticket, [
+): IssueAction => {
+  return check(issue, [
     validateComment(now),
     validateInProgressHasEstimate,
     validateInProgressNotCloseToEstimate,

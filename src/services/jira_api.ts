@@ -3,12 +3,12 @@ import { Either } from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import JiraApi from "jira-client";
 import {
-  Ticket,
+  Issue,
   Board,
   BoardSummary,
-  enhancedTicket,
+  enhancedIssue,
   AccountField,
-  EnhancedTicket,
+  EnhancedIssue,
 } from "./jira";
 import * as T from "io-ts";
 import { ReadonlyRecord } from "readonly-types";
@@ -89,10 +89,10 @@ const boardsForProject = (
 };
 
 const boardsByProject = (
-  tickets: ReadonlyArray<Ticket>
+  issues: ReadonlyArray<Issue>
 ): TE.TaskEither<string, ReadonlyRecord<string, ReadonlyArray<Board>>> => {
-  const projectKeys: readonly string[] = tickets
-    .map((ticket) => ticket.fields.project.key)
+  const projectKeys: readonly string[] = issues
+    .map((issue) => issue.fields.project.key)
     .filter((value, index, self) => self.indexOf(value) === index);
   const boards: TE.TaskEither<
     string,
@@ -111,12 +111,23 @@ const boardsByProject = (
   )(boards);
 };
 
-const ticketLink = (ticket: Ticket): string =>
-  `${jiraConfig.protocol}://${jiraConfig.host}/browse/${ticket.key}`;
+const issueLink = (issue: Issue): string =>
+  `${jiraConfig.protocol}://${jiraConfig.host}/browse/${issue.key}`;
 
-export const searchTickets = async (
+/**
+ * Searches for issues that match the provided JQL statement and performs some simple
+ * augmentation to add useful information (e.g whether they are - given the board configuration - in progress).
+ *
+ * Note: this function does not return *all* matching issues. It makes no
+ * effort to pull additional search results if they original request is
+ * truncated.
+ *
+ * @param jql query statement used to search for issues.
+ * @returns either an error or the enhanced issues.
+ */
+export const searchIssues = async (
   jql: string
-): Promise<Either<string, ReadonlyArray<EnhancedTicket>>> => {
+): Promise<Either<string, ReadonlyArray<EnhancedIssue>>> => {
   const fetchIssues = TE.tryCatch(
     () =>
       jira.searchJira(jql, {
@@ -147,18 +158,18 @@ export const searchTickets = async (
 
   const parsed = (
     searchResult: JiraApi.JsonResponse
-  ): TE.TaskEither<string, ReadonlyArray<Ticket>> => {
+  ): TE.TaskEither<string, ReadonlyArray<Issue>> => {
     return pipe(
-      TE.fromEither(T.readonly(T.array(Ticket)).decode(searchResult["issues"])),
+      TE.fromEither(T.readonly(T.array(Issue)).decode(searchResult["issues"])),
       TE.mapLeft((errors: Errors) => JSON.stringify(errors))
     );
   };
 
-  const enhancedTickets = (
-    tickets: ReadonlyArray<Ticket>
-  ): TE.TaskEither<string, ReadonlyArray<EnhancedTicket>> => {
+  const enhancedIssues = (
+    issues: ReadonlyArray<Issue>
+  ): TE.TaskEither<string, ReadonlyArray<EnhancedIssue>> => {
     return TE.map((boards: ReadonlyRecord<string, ReadonlyArray<Board>>) => {
-      return tickets.map((issue) => {
+      return issues.map((issue) => {
         const issueBoards = boards[issue.fields.project.key] ?? [];
         const boardByStatus = issueBoards.find((board) =>
           board.columnConfig.columns.some((column) =>
@@ -167,10 +178,10 @@ export const searchTickets = async (
             )
           )
         );
-        return enhancedTicket(issue, ticketLink(issue), boardByStatus);
+        return enhancedIssue(issue, issueLink(issue), boardByStatus);
       });
-    })(boardsByProject(tickets));
+    })(boardsByProject(issues));
   };
 
-  return pipe(fetchIssues, TE.chain(parsed), TE.chain(enhancedTickets))();
+  return pipe(fetchIssues, TE.chain(parsed), TE.chain(enhancedIssues))();
 };
