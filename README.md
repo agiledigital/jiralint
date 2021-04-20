@@ -22,7 +22,7 @@ npm run build
 ```
 4. Export environment variables:
 ```
-export JIRA_USERNAME=[your username]
+export JIRA_USER_NAME=[your username]
 ```
 5. Run:
 ```
