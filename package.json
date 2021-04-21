@@ -26,6 +26,8 @@
 		"io-ts": "^2.2.15",
 		"io-ts-types": "^0.5.15",
 		"jira-client": "^6.21.1",
+		"monocle-ts": "^2.3.9",
+		"newtype-ts": "^0.3.4",
 		"readonly-types": "^2.0.0",
 		"ts-pattern": "^3.1.2",
 		"yargs": "^16.2.0"
