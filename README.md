@@ -4,8 +4,8 @@ Contains simple issue checks that can be applied to individual issues and a bare
 
 ## Build
 
-`npm` is used to manage dependencies and build the code. To build:
-### Dependencies:
+`npm` is used to manage dependencies and build the code.
+### Tooling Dependencies
 
 [npm](https://www.npmjs.com/get-npm) for building and testing.
 
