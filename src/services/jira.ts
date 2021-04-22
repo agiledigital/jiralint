@@ -167,6 +167,14 @@ export type EnhancedIssue = Issue & {
   readonly viewLink: string;
 };
 
+export const User = T.type({
+  name: T.string,
+  emailAddress: T.string,
+  displayName: T.string,
+});
+
+export type User = T.TypeOf<typeof User>;
+
 const columnForIssue = (
   issue: Issue,
   board: Board

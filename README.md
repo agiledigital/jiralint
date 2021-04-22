@@ -20,11 +20,12 @@ npm install
 ```
 npm run build
 ```
-4. Export environment variables:
+4. Get your access token.
 ```
-export JIRA_USER_NAME=[your username]
+dist/jiralint auth
 ```
-5. Run:
+5. Follow the instructions to authorise Jira Lint then take a note of the access token and access secret.
+6. Run:
 ```
-JIRA_PASSWORD=[your password] dist/jiralint search -j "project=MF order by created"
+JIRA_PASSWORD=[your password] dist/jiralint search -j "project=MF order by created" -t [ACCESS TOKEN] -s [ACCESS SECRET]
 ```

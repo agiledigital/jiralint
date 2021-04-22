@@ -1,7 +1,7 @@
 import { Argv } from "yargs";
 import { RootCommand } from "..";
 import { EnhancedIssue } from "../services/jira";
-import { searchIssues } from "../services/jira_api";
+import { searchIssues, jiraApiClient } from "../services/jira_api";
 import { issueActionRequired } from "../services/issue_checks";
 import { isLeft } from "fp-ts/lib/Either";
 import { readonlyDate } from "readonly-types/dist";
@@ -130,12 +130,18 @@ const render = (issues: ReadonlyArray<EnhancedIssue>): void => {
   outputBuffer.output();
 };
 
-const search = async (jql: string): Promise<void> => {
+const search = async (
+  jql: string,
+  accessToken: string,
+  accessSecret: string
+): Promise<void> => {
   const countdown = new CLUI.Spinner("Searching the things...  ");
   // eslint-disable-next-line functional/no-expression-statement
   countdown.start();
 
-  const issues = await searchIssues(jql);
+  const jiraClient = jiraApiClient(accessToken, accessSecret);
+
+  const issues = await searchIssues(jql, jiraClient);
 
   // eslint-disable-next-line functional/no-expression-statement
   countdown.stop();
@@ -155,9 +161,20 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           type: "string",
           describe: "jsql to search by",
         })
-        .demandOption(["jql"]),
+        .option("accessToken", {
+          alias: "t",
+          type: "string",
+          describe: "access token",
+        })
+        .option("accessSecret", {
+          alias: "s",
+          type: "string",
+          describe: "access secret",
+        })
+        .group(["accessToken", "accessSecret"], "Auth")
+        .demandOption(["jql", "accessToken", "accessSecret"]),
     (args) => {
       // eslint-disable-next-line functional/no-expression-statement
-      void search(args.jql);
+      void search(args.jql, args.accessToken, args.accessSecret);
     }
   );
