@@ -10,7 +10,8 @@
     "build": "NODE_ENV=production rollup -c --environment BUILD:production",
     "start": "NODE_ENV=development rollup -c",
     "watch": "npm run start -- -w",
-    "lint": "eslint src --ext .ts,.tsx && npx type-coverage",
+    "lint": "eslint src --ext .ts,.tsx",
+    "coverage": "npx type-coverage",
     "format": "prettier --write 'src/**/*.{ts,tsx}'",
     "test": "echo add a test"
   },

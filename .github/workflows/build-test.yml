@@ -26,6 +26,8 @@ jobs:
         run: npm install
       - name: Run Unit Test
         run: npm run test --passWithNoTests
+      - name: Run Coverage
+        run: npm run coverage
       - name: Run Lint
         run: npm run lint
       # Make sure the code base can be built.
