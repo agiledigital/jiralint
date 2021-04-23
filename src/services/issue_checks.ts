@@ -176,7 +176,6 @@ const check = (
  * @param now date to take as now (used for checks such as how long it has been since a comment was made).
  * @returns whether action is required, and the checks that were run to form that recommendation.
  */
-
 export const issueActionRequired = (
   issue: EnhancedIssue,
   now: ReadonlyDate
