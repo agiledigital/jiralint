@@ -1,6 +1,6 @@
 /* eslint-disable functional/functional-parameters */
 /* eslint-disable functional/no-expression-statement */
-import * as I from "./issue_checks";
+import { validateInProgressHasEstimate } from "./issue_checks";
 import { EnhancedIssue, Issue } from "./jira";
 
 const issue: Issue = {
@@ -50,58 +50,24 @@ const enhancedIssue: EnhancedIssue = {
   viewLink: "viewlink",
 };
 
-describe("checking in progress tickets have estimates", () => {
-  test("fails if an inprogress issue has no estimate", () => {
-    const issueWithNoEstimateButInProgress = {
+describe("checking that in progress tickets have estimates", () => {
+  it.each([
+    [true, 0, { outcome: "fail", reasons: ["has no estimate"] }],
+    [true, 10, { outcome: "ok", reasons: ["has an estimate"] }],
+    [false, 0, { outcome: "not applied", reasons: ["not in progress"] }],
+    [false, 10, { outcome: "not applied", reasons: ["not in progress"] }],
+  ])("checks as expected", (inProgress, estimate, expected) => {
+    const input = {
       ...enhancedIssue,
-      inProgress: true,
+      inProgress,
       fields: {
         ...enhancedIssue.fields,
-        aggregatetimeoriginalestimate: 0,
+        aggregatetimeoriginalestimate: estimate,
       },
     };
 
-    const actual = I.validateInProgressHasEstimate(
-      issueWithNoEstimateButInProgress
-    );
+    const actual = validateInProgressHasEstimate(input);
 
-    expect(actual.outcome).toStrictEqual("fail");
-    expect(actual.reasons).toStrictEqual(["has no estimate"]);
-  });
-
-  test("passes if an inprogress issue has an estimate", () => {
-    const issueWithNoEstimateButInProgress = {
-      ...enhancedIssue,
-      inProgress: true,
-      fields: {
-        ...enhancedIssue.fields,
-        aggregatetimeoriginalestimate: 10,
-      },
-    };
-
-    const actual = I.validateInProgressHasEstimate(
-      issueWithNoEstimateButInProgress
-    );
-
-    expect(actual.outcome).toStrictEqual("ok");
-    expect(actual.reasons).toStrictEqual(["has an estimate"]);
-  });
-
-  test("isn't applied if the ticket isn't in progress", () => {
-    const issueWithNoEstimateButInProgress = {
-      ...enhancedIssue,
-      inProgress: false,
-      fields: {
-        ...enhancedIssue.fields,
-        aggregatetimeoriginalestimate: 0,
-      },
-    };
-
-    const actual = I.validateInProgressHasEstimate(
-      issueWithNoEstimateButInProgress
-    );
-
-    expect(actual.outcome).toStrictEqual("not applied");
-    expect(actual.reasons).toStrictEqual(["not in progress"]);
+    expect(actual).toEqual(expect.objectContaining(expected));
   });
 });
