@@ -3,7 +3,7 @@ import { join } from "path";
 import yargs from "yargs";
 
 /**
- * Dynamic type for global arguments. This needs to be it's own as we use a
+ * Dynamic type for global arguments. This needs to be its own as we use a
  * require below to import all the commands
  */
 export type RootCommand = typeof rootCommand;
@@ -16,7 +16,7 @@ const directorySearch = (localDirectory: string): ReadonlyArray<string> =>
   readdirSync(join(__dirname, localDirectory), { withFileTypes: true })
     .map(({ name }) => name)
     .filter((value) => javaScriptFileMatch.test(value))
-    // Weirdness with string concat as path resolves the the ./ and drops it
+    // Weirdness with string concat as path resolves the ./ and drops it
     // from the final string
     .map((name) => `./${join(localDirectory, name)}`);
 
