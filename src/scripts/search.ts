@@ -159,7 +159,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
         .option("jql", {
           alias: "j",
           type: "string",
-          describe: "jsql to search by",
+          describe: "jql to search by",
         })
         .option("accessToken", {
           alias: "t",
