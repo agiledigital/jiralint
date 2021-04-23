@@ -63,7 +63,7 @@ const renderTable = (issues: ReadonlyArray<EnhancedIssue>): void => {
     "Sign",
   ];
 
-  const alarm: ReadonlyArray<string> = ["Z", "E", "B", "E"];
+  const alarm = ["Z", "E", "B", "E"] as const;
 
   const tableHeaderWidths: ReadonlyArray<number> = tableHeaders.map(
     (header) => stringLength(header) + 1
