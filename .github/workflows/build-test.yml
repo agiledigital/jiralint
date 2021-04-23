@@ -1,0 +1,35 @@
+name: Build, test, and lint JiraLint
+on: [push]
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Cache npm modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-npm-modules
+        with:
+          # yarn cache files are stored in `~/.cache` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Install Dependencies
+        run: npm install
+      - name: Run Unit Test
+        run: npm run test --passWithNoTests
+      - name: Run Coverage
+        run: npm run coverage
+      - name: Run Lint
+        run: npm run lint
+      # Make sure the code base can be built.
+      - name: build Artifact
+        run: npm run build
