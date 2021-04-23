@@ -18,17 +18,13 @@ const auth = async (): Promise<void> => {
   // eslint-disable-next-line functional/no-expression-statement
   console.log(`Request Token Secret: ${requested.requestToken}`);
 
-  const answer = await inquirer.prompt({
+  const answer = await inquirer.prompt<{ readonly secret: string }>({
     type: "input",
     name: "secret",
     message: `Follow this link [${requested.requestUrl}] then enter your access secret:`,
   });
 
-  const authorised = await getAccessToken(
-    requested,
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    answer.secret as string
-  );
+  const authorised = await getAccessToken(requested, answer.secret);
 
   // eslint-disable-next-line functional/no-expression-statement
   console.log(`Access token:  ${authorised.accessToken}`);
