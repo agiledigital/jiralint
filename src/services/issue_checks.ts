@@ -48,7 +48,9 @@ const cantApply = (check: string, reason: string): CheckResult => ({
   reasons: [reason],
 });
 
-const validateInProgressHasEstimate = (issue: EnhancedIssue): CheckResult => {
+export const validateInProgressHasEstimate = (
+  issue: EnhancedIssue
+): CheckResult => {
   const check = "In Progress issues have estimates";
   const originalEstimateSeconds =
     issue.fields.aggregatetimeoriginalestimate ?? 0;
@@ -59,7 +61,7 @@ const validateInProgressHasEstimate = (issue: EnhancedIssue): CheckResult => {
   ])
     .with([false, __], () => na(check, "not in progress"))
     .with([true, when((estimate) => estimate > 0)], () =>
-      ok(check, "as an estimate")
+      ok(check, "has an estimate")
     )
     .otherwise(() => fail(check, "has no estimate"));
 };

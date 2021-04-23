@@ -2,7 +2,7 @@ import { Argv } from "yargs";
 import { RootCommand } from "..";
 import { EnhancedIssue } from "../services/jira";
 import { searchIssues, jiraApiClient } from "../services/jira_api";
-import { issueActionRequired } from "../services/issue_checks";
+import { issueActionRequired, IssueAction } from "../services/issue_checks";
 import { isLeft } from "fp-ts/lib/Either";
 import { readonlyDate } from "readonly-types/dist";
 import {
@@ -16,8 +16,39 @@ import * as clc from "cli-color";
 // eslint-disable-next-line functional/no-expression-statement
 require("cli-color");
 
+const checkedIssues = (
+  issues: ReadonlyArray<EnhancedIssue>
+): ReadonlyArray<
+  EnhancedIssue & {
+    readonly action: IssueAction;
+    readonly reasons: ReadonlyArray<string>;
+  }
+> => {
+  // eslint-disable-next-line no-restricted-globals
+  const now = readonlyDate(new Date());
+  return issues.map((issue) => {
+    const issueAction = issueActionRequired(issue, now);
+    const reasons: readonly string[] = issueAction.checks.flatMap((check) =>
+      check.outcome === "warn" || check.outcome === "fail" ? check.reasons : []
+    );
+    return {
+      ...issue,
+      action: issueAction,
+      reasons,
+    };
+  });
+};
+
 // eslint-disable-next-line functional/no-return-void
-const render = (issues: ReadonlyArray<EnhancedIssue>): void => {
+const renderJson = (issues: ReadonlyArray<EnhancedIssue>): void => {
+  // eslint-disable-next-line functional/no-expression-statement
+  checkedIssues(issues).forEach((issue) =>
+    console.log(JSON.stringify(issue, null, 2))
+  );
+};
+
+// eslint-disable-next-line functional/no-return-void
+const renderTable = (issues: ReadonlyArray<EnhancedIssue>): void => {
   const tableHeaders: ReadonlyArray<string> = [
     "Action",
     "Key",
@@ -50,13 +81,7 @@ const render = (issues: ReadonlyArray<EnhancedIssue>): void => {
 
   const data: ReadonlyArray<
     ReadonlyArray<readonly [string, ReadonlyArray<clc.Format>]>
-  > = issues.map((issue) => {
-    const issueAction = issueActionRequired(issue, now);
-
-    const reasons: readonly unknown[] = issueAction.checks.flatMap((check) =>
-      check.outcome === "warn" || check.outcome === "fail" ? check.reasons : []
-    );
-
+  > = checkedIssues(issues).map((issue) => {
     const originalEstimateSeconds =
       issue.fields.timetracking.originalEstimateSeconds ?? 0;
     const timeSpentSeconds = issue.fields.timetracking.timeSpentSeconds ?? 0;
@@ -80,8 +105,8 @@ const render = (issues: ReadonlyArray<EnhancedIssue>): void => {
 
     return [
       [
-        issueAction.actionRequired === "inspect"
-          ? alarm[reasons.length] ?? "E"
+        issue.action.actionRequired === "inspect"
+          ? alarm[issue.reasons.length] ?? "E"
           : "",
         noFormat,
       ],
@@ -97,7 +122,7 @@ const render = (issues: ReadonlyArray<EnhancedIssue>): void => {
         `${jiraFormattedSeconds(issue.fields.aggregateprogress.progress ?? 0)}`,
         noFormat,
       ],
-      [reasons.join(","), noFormat],
+      [issue.reasons.join(","), noFormat],
     ];
   });
 
@@ -133,7 +158,8 @@ const render = (issues: ReadonlyArray<EnhancedIssue>): void => {
 const search = async (
   jql: string,
   accessToken: string,
-  accessSecret: string
+  accessSecret: string,
+  output: string
 ): Promise<void> => {
   const countdown = new CLUI.Spinner("Searching the things...  ");
   // eslint-disable-next-line functional/no-expression-statement
@@ -145,6 +171,8 @@ const search = async (
 
   // eslint-disable-next-line functional/no-expression-statement
   countdown.stop();
+
+  const render = output === "table" ? renderTable : renderJson;
 
   // eslint-disable-next-line functional/no-expression-statement
   isLeft(issues) ? console.error(issues) : render(issues.right);
@@ -161,6 +189,13 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           type: "string",
           describe: "jql to search by",
         })
+        .option("output", {
+          alias: "o",
+          type: "string",
+          choices: ["json", "table"],
+          default: "table",
+          description: "output format for results",
+        })
         .option("accessToken", {
           alias: "t",
           type: "string",
@@ -175,6 +210,6 @@ export default ({ command }: RootCommand): Argv<unknown> =>
         .demandOption(["jql", "accessToken", "accessSecret"]),
     (args) => {
       // eslint-disable-next-line functional/no-expression-statement
-      void search(args.jql, args.accessToken, args.accessSecret);
+      void search(args.jql, args.accessToken, args.accessSecret, args.output);
     }
   );
