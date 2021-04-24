@@ -1,7 +1,7 @@
 {
   "name": "jiralint",
   "version": "0.0.0",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "bin": "dist/cli.js",
   "engines": {
     "node": ">=10"
@@ -13,7 +13,7 @@
     "lint": "eslint src --ext .ts,.tsx",
     "coverage": "npx type-coverage",
     "format": "prettier --write 'src/**/*.{ts,tsx}'",
-    "test": "echo add a test"
+    "test": "jest"
   },
   "files": [
     "dist/cli.js"
@@ -39,6 +39,7 @@
     "@types/clear": "^0.1.1",
     "@types/clui": "^0.3.0",
     "@types/inquirer": "^7.3.1",
+    "@types/jest": "^26.0.22",
     "@types/jira-client": "^6.21.0",
     "@types/oauth": "^0.9.1",
     "@typescript-eslint/eslint-plugin": "^4.21.0",
@@ -59,6 +60,7 @@
     "rollup-plugin-execute": "^1.1.1",
     "rollup-plugin-typescript2": "^0.30.0",
     "string-length": "^4.0.2",
+    "ts-jest": "^26.5.5",
     "tsconfig-paths-webpack-plugin": "^3.5.1",
     "type-coverage": "^2.17.2",
     "typescript": "^4.2.4"
