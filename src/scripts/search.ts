@@ -63,6 +63,9 @@ const renderTable = (issues: ReadonlyArray<EnhancedIssue>): void => {
     "Sign",
   ];
 
+  // Simple visual representation of the degree of alarm a viewer should feel.
+  // More whimsical emoji (e.g. 👀) raise some issues with rendering of wide
+  // unicode characters.
   const alarm = ["⠀", "⠁", "⠉", "⠋", "⠛", "⣿"] as const;
 
   const tableHeaderWidths: ReadonlyArray<number> = tableHeaders.map(
@@ -180,6 +183,8 @@ const search = async (
 
 type OutputMode = "json" | "table";
 
+const DEFAULT_OUTPUT_MODE: OutputMode = "table";
+
 export default ({ command }: RootCommand): Argv<unknown> =>
   command(
     "search",
@@ -194,8 +199,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
         .option("output", {
           alias: "o",
           choices: ["json", "table"],
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          default: "table" as OutputMode,
+          default: DEFAULT_OUTPUT_MODE,
           description: "output format for results",
         })
         .option("accessToken", {
