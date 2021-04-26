@@ -188,11 +188,11 @@ const decode = <I, O>(
     mapValidationError,
     E.mapLeft(
       (error) =>
-        `Failed to decode ${name} [${JSON.stringify(
+        `Failed to decode ${name} [${error}] [${JSON.stringify(
           input,
           null,
           2
-        )}] [${error}].`
+        )}].`
     )
   );
 
@@ -326,6 +326,7 @@ export const searchIssues = async (
           "aggregatetimeestimate",
           "aggregatetimeoriginalestimate",
           "aggregatetimespent",
+          "created",
           AccountField,
         ],
         expand: ["changelog"],

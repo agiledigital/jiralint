@@ -49,6 +49,8 @@ export const Issue = T.type({
   fields: T.intersection([
     T.type({
       summary: T.string,
+      description: T.string,
+      created: ITT.DateFromISOString,
       project: T.type({
         key: T.string,
       }),

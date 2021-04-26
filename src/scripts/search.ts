@@ -63,7 +63,10 @@ const renderTable = (issues: ReadonlyArray<EnhancedIssue>): void => {
     "Sign",
   ];
 
-  const alarm = ["Z", "E", "B", "E"] as const;
+  // Simple visual representation of the degree of alarm a viewer should feel.
+  // More whimsical emoji (e.g. 👀) raise some issues with rendering of wide
+  // unicode characters.
+  const alarm = ["⠀", "⠁", "⠉", "⠋", "⠛", "⣿"] as const;
 
   const tableHeaderWidths: ReadonlyArray<number> = tableHeaders.map(
     (header) => stringLength(header) + 1
@@ -159,7 +162,7 @@ const search = async (
   jql: string,
   accessToken: string,
   accessSecret: string,
-  output: string
+  output: OutputMode
 ): Promise<void> => {
   const countdown = new CLUI.Spinner("Searching the things...  ");
   // eslint-disable-next-line functional/no-expression-statement
@@ -178,6 +181,10 @@ const search = async (
   isLeft(issues) ? console.error(issues) : render(issues.right);
 };
 
+type OutputMode = "json" | "table";
+
+const DEFAULT_OUTPUT_MODE: OutputMode = "table";
+
 export default ({ command }: RootCommand): Argv<unknown> =>
   command(
     "search",
@@ -191,9 +198,8 @@ export default ({ command }: RootCommand): Argv<unknown> =>
         })
         .option("output", {
           alias: "o",
-          type: "string",
           choices: ["json", "table"],
-          default: "table",
+          default: DEFAULT_OUTPUT_MODE,
           description: "output format for results",
         })
         .option("accessToken", {

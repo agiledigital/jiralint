@@ -1,6 +1,9 @@
 /* eslint-disable functional/functional-parameters */
 /* eslint-disable functional/no-expression-statement */
-import { validateInProgressHasEstimate } from "./issue_checks";
+import {
+  validateInProgressHasEstimate,
+  validateDescription,
+} from "./issue_checks";
 import { EnhancedIssue, Issue } from "./jira";
 
 const issue: Issue = {
@@ -8,6 +11,9 @@ const issue: Issue = {
   self: "self",
   fields: {
     summary: "summary",
+    description: "description",
+    // eslint-disable-next-line no-restricted-globals
+    created: new Date("2020-01-01"),
     project: {
       key: "project",
     },
@@ -67,6 +73,25 @@ describe("checking that in progress tickets have estimates", () => {
     };
 
     const actual = validateInProgressHasEstimate(input);
+
+    expect(actual).toEqual(expect.objectContaining(expected));
+  });
+});
+
+describe("checking that tickets have a description", () => {
+  it.each([
+    ["", { outcome: "fail", reasons: ["description is empty"] }],
+    ["description", { outcome: "ok", reasons: ["description isn't empty"] }],
+  ])("checks as expected", (description, expected) => {
+    const input = {
+      ...enhancedIssue,
+      fields: {
+        ...enhancedIssue.fields,
+        description,
+      },
+    };
+
+    const actual = validateDescription(input);
 
     expect(actual).toEqual(expect.objectContaining(expected));
   });

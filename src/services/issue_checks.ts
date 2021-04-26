@@ -66,6 +66,15 @@ export const validateInProgressHasEstimate = (
     .otherwise(() => fail(check, "has no estimate"));
 };
 
+// TODO check whether the description is a template and fail if it is.
+export const validateDescription = (issue: EnhancedIssue): CheckResult => {
+  const check = "Tickets have a description";
+
+  return issue.fields.description.trim().length > 0
+    ? ok(check, "description isn't empty")
+    : fail(check, "description is empty");
+};
+
 const validateNotStalledForTooLong = (at: ReadonlyDate) => (
   issue: EnhancedIssue
 ): CheckResult => {
@@ -172,6 +181,23 @@ const check = (
 };
 
 /**
+ * Determines whether an issue is newly created and should still be in the grace period.
+ *
+ * @param issue the issue to check.
+ * @param now date to take as now.
+ * @returns true if the issue deserves some grace, otherwise false.
+ */
+export const issueDeservesGrace = (
+  issue: EnhancedIssue,
+  now: ReadonlyDate
+): boolean => {
+  const age = differenceInBusinessDays(issue.fields.created, now.getDate());
+  const timeSpent = issue.fields.aggregatetimespent ?? 0;
+
+  return !issue.inProgress && timeSpent === 0 && age < 2;
+};
+
+/**
  * Checks whether the issue requires action.
  *
  * @param issue issue to be checked.
@@ -182,10 +208,16 @@ export const issueActionRequired = (
   issue: EnhancedIssue,
   now: ReadonlyDate
 ): IssueAction => {
-  return check(issue, [
-    validateComment(now),
-    validateInProgressHasEstimate,
-    validateInProgressNotCloseToEstimate,
-    validateNotStalledForTooLong(now),
-  ]);
+  return issueDeservesGrace(issue, now)
+    ? {
+        actionRequired: "none",
+        checks: [],
+      }
+    : check(issue, [
+        validateComment(now),
+        validateInProgressHasEstimate,
+        validateInProgressNotCloseToEstimate,
+        validateNotStalledForTooLong(now),
+        validateDescription,
+      ]);
 };
