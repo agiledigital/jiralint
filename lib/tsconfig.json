@@ -74,5 +74,9 @@
   },
   "include": [
     "src/**/*"
+  ],
+  "exclude": [
+    "src/**/test_data/*",
+    "src/**/*.test.ts",
   ]
 }
