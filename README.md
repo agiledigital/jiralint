@@ -1,5 +1,7 @@
 # jiralint
 
+![CI Status](https://github.com/agiledigital-labs/jiralint/actions/workflows/build-test.yml/badge.svg)
+
 Contains simple issue checks that can be applied to individual issues and a bare-bones CLI tool for applying them.
 
 ## Build
