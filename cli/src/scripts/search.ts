@@ -1,14 +1,11 @@
 import { Argv } from "yargs";
 import { RootCommand } from "..";
-import { EnhancedIssue } from "../services/jira";
-import { searchIssues, jiraApiClient } from "../services/jira_api";
-import { issueActionRequired, IssueAction } from "../services/issue_checks";
+import { EnhancedIssue } from "lib";
+import { searchIssues, jiraApiClient } from "lib";
+import { issueActionRequired, IssueAction } from "lib";
 import { isLeft } from "fp-ts/lib/Either";
 import { readonlyDate } from "readonly-types/dist";
-import {
-  jiraFormattedDistance,
-  jiraFormattedSeconds,
-} from "../services/jira_date_fns";
+import { jiraFormattedDistance, jiraFormattedSeconds } from "lib";
 import stringLength from "string-length";
 
 import * as CLUI from "clui";
