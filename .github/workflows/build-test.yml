@@ -24,12 +24,12 @@ jobs:
             ${{ runner.os }}-
       - name: Install Dependencies
         run: npm install
+      # Make sure the code base can be built.
+      - name: build Artifact
+        run: npm run build
       - name: Run Unit Test
         run: npm run test
       - name: Run Coverage
         run: npm run coverage
       - name: Run Lint
         run: npm run lint
-      # Make sure the code base can be built.
-      - name: build Artifact
-        run: npm run build
