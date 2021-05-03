@@ -81,6 +81,7 @@ describe("checking that in progress tickets have estimates", () => {
 describe("checking that tickets have a description", () => {
   it.each([
     ["", { outcome: "fail", reasons: ["description is empty"] }],
+    [undefined, { outcome: "fail", reasons: ["description is empty"] }],
     ["description", { outcome: "ok", reasons: ["description isn't empty"] }],
   ])("checks as expected", (description, expected) => {
     const input = {
