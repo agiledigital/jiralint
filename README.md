@@ -10,7 +10,8 @@ Contains simple issue checks that can be applied to individual issues and a bare
 `npm` is used to manage dependencies and build the code.
 ### Tooling Dependencies
 
-[npm](https://www.npmjs.com/get-npm) for building and testing.
+* [npm](https://www.npmjs.com/get-npm) for building and testing.
+* [nvm](https://github.com/nvm-sh/nvm#deeper-shell-integration) for automatic node version switching (optional).
 
 ### Step-by-step instructions
 
