@@ -16,6 +16,10 @@
     "lint": "npm run lint --workspaces",
     "coverage": "npm run coverage --workspaces",
     "format": "npm run format --workspaces",
-    "test": "npm run test --workspaces"
+    "test": "npm run test --workspaces",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "husky": "^6.0.0"
   }
 }
