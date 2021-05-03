@@ -91,7 +91,7 @@ const validateNotStalledForTooLong = (at: ReadonlyDate) => (
     )
     .with(
       [true, not(undefined)],
-      ([_b, transition]) =>
+      ([, transition]) =>
         differenceInBusinessDays(at.getDate(), transition.getDate()) > 0,
       () => fail(check, "stalled for more than 1 day")
     )
