@@ -64,7 +64,7 @@ const plugins = [
 const scriptConfiguration = (filePath) => ({
   input: filePath,
   output: {
-    file: `dist${filePath.replace('src', '').replace('.ts', '.js')}`,
+    file: `dist${filePath.replace('src', '').replace(/\.ts$/, '.js')}`,
     format: 'cjs',
     exports: 'auto',
   },
