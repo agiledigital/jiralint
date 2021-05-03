@@ -1,15 +1,4 @@
 // {
-// 	"extends": "@sindresorhus/tsconfig",
-// 	"compilerOptions": {
-// 		"jsx": "react",
-// 		"esModuleInterop": true,
-// 		"outDir": "dist",
-// 		"noImplicitReturns": true,
-// 		"noUnusedLocals": true,
-// 		"strict": true,
-// 		"noImplicitAny": true
-// 	}
-// }
 {
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
