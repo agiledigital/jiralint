@@ -177,6 +177,17 @@ export const User = T.type({
 
 export type User = T.TypeOf<typeof User>;
 
+export const JiraError = T.type({
+  name: T.string,
+  statusCode: T.number,
+  message: T.string,
+  error: T.type({
+    errors: T.UnknownRecord,
+  }),
+});
+
+export type JiraError = T.TypeOf<typeof JiraError>;
+
 const columnForIssue = (
   issue: Issue,
   board: Board

@@ -3,7 +3,7 @@ import { Either } from "fp-ts/lib/Either";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import { OAuth } from "oauth";
-import JiraApi from "jira-client";
+import JiraApi, { JsonResponse } from "jira-client";
 import {
   Issue,
   Board,
@@ -12,11 +12,13 @@ import {
   AccountField,
   EnhancedIssue,
   User,
+  JiraError,
 } from "./jira";
 import * as T from "io-ts";
 import { ReadonlyRecord } from "readonly-types";
 import { pipe, flow } from "fp-ts/lib/function";
 import { PathReporter } from "io-ts/PathReporter";
+import { isLeft } from "fp-ts/lib/These";
 
 const privKey = `-----BEGIN PRIVATE KEY-----
 MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAN2x/ovMRTUt3qIy
@@ -292,6 +294,61 @@ const boardsByProject = (
 const issueLink = (issue: Issue): string =>
   `${jiraHost}://${jiraProtocol}/browse/${issue.key}`;
 
+export type FieldNotEditable = {
+  readonly fields: ReadonlyArray<string>;
+};
+
+/**
+ * Updates the rated quality of an issue.
+ *
+ * @param key key that identifies the issue.
+ * @param quality rated quality to be recorded.
+ * @param jiraApi API used to effect the update.
+ * @returns the result of doing the update
+ */
+export const updateIssueQuality = async (
+  key: string,
+  quality: string,
+  jiraApi: JiraApi
+): Promise<Either<string | FieldNotEditable | JiraError, JsonResponse>> => {
+  const updateIssue = TE.tryCatch(
+    () =>
+      jiraApi.updateIssue(key, {
+        fields: {
+          customfield_12410: quality,
+        },
+      }),
+    (error: unknown) => {
+      // eslint-disable-next-line functional/no-expression-statement
+      console.log(`Got error [${JSON.stringify(error, null, 2)}].`);
+      const jiraError = JiraError.decode(error);
+      return isLeft(jiraError)
+        ? `Unexpected error from Jira when updating quality of [${key}] to [${quality}] - [${JSON.stringify(
+            error,
+            null,
+            2
+          )}]`
+        : jiraError.right;
+    }
+  );
+
+  const mapError = TE.mapLeft((error: string | JiraError) => {
+    return typeof error === "string"
+      ? error
+      : error.error.errors["customfield_12410"] !== undefined &&
+        typeof error.error.errors["customfield_12410"] === "string" &&
+        error.error.errors["customfield_12410"].indexOf(
+          "cannot be set. It is not on the appropriate screen"
+        ) > -1
+      ? {
+          fields: ["customfield_12410"],
+        }
+      : error;
+  });
+
+  return pipe(updateIssue, mapError)();
+};
+
 /**
  * Searches for issues that match the provided JQL statement and performs some simple
  * augmentation to add useful information (e.g whether they are - given the board configuration - in progress).
@@ -328,6 +385,7 @@ export const searchIssues = async (
           "aggregatetimespent",
           "created",
           AccountField,
+          "customfield_12410",
         ],
         expand: ["changelog"],
       }),
