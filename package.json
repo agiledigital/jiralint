@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "license": "UNLICENSED",
   "private": true,
+  "repository": {
+    "url": "https://github.com/agiledigital-labs/jiralint.git",
+    "type": "git"
+  },
   "engines": {
     "node": ">=10"
   },
