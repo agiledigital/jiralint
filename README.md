@@ -17,19 +17,19 @@ Contains simple issue checks that can be applied to individual issues and a bare
 
 1. Install all tooling dependencies.
 2. Install code dependencies:
-```
+```sh
 npm install
 ```
 3. Build:
-```
+```sh
 npm run build
 ```
 4. Get your access token.
-```
+```sh
 cli/dist/jiralint auth
 ```
 5. Follow the instructions to authorise Jira Lint then take a note of the access token and access secret.
 6. Run:
-```
+```sh
 cli/dist/jiralint search -j "project=MF order by created" -t [ACCESS TOKEN] -s [ACCESS SECRET]
 ```
