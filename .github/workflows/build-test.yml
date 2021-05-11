@@ -24,7 +24,7 @@ jobs:
             ${{ runner.os }}-
       - name: Install Dependencies
         # Skip post-install scripts here, as a malicious script could steal env vars
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
       # Make sure the code base can be built.
       - name: build Artifact
         run: npm run build
