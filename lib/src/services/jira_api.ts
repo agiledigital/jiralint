@@ -85,8 +85,6 @@ export const startSignIn = async (): Promise<Requested> =>
           reject(`Failed to get request token [${JSON.stringify(err)}].`);
         } else {
           const requestUrl = `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/authorize?oauth_token=${requestToken}`;
-          // eslint-disable-next-line functional/no-expression-statement
-          console.log(requestToken, requestSecret);
 
           // eslint-disable-next-line functional/no-expression-statement
           resolve({
@@ -293,7 +291,7 @@ const boardsByProject = (
 };
 
 const issueLink = (issue: Issue): string =>
-  `${jiraHost}://${jiraProtocol}/browse/${issue.key}`;
+  `${jiraHost}://${jiraProtocol}/browse/${encodeURIComponent(issue.key)}`;
 
 export type FieldNotEditable = {
   readonly fields: ReadonlyArray<string>;
