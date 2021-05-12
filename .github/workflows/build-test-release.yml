@@ -37,3 +37,6 @@ jobs:
         run: npm run lint
       - name: Run Semantic Release
         run: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
