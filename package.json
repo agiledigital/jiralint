@@ -21,9 +21,21 @@
     "coverage": "npm run coverage --workspaces",
     "format": "npm run format --workspaces",
     "test": "npm run test --workspaces",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "commit": "git-cz",
+    "release": "npm run release --workspace=lib"
   },
   "devDependencies": {
+    "commitizen": "^4.2.4",
+    "cz-conventional-changelog": "^3.2.0",
     "husky": "^6.0.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "dependencies": {
+    "semantic-release": "^17.4.2"
   }
 }
