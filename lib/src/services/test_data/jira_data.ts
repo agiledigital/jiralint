@@ -36,8 +36,7 @@ export const nullDescription = {
           "https://jira.agiledigital.com.au/secure/projectavatar?size=medium&pid=12080&avatarId=10011",
       },
       projectCategory: {
-        self:
-          "https://jira.agiledigital.com.au/rest/api/2/projectCategory/10011",
+        self: "https://jira.agiledigital.com.au/rest/api/2/projectCategory/10011",
         id: "10011",
         description:
           "Projects that are now inactive, will be excluded from all reporting.",
@@ -155,8 +154,7 @@ export const regular = {
           "https://jira.agiledigital.com.au/secure/projectavatar?size=medium&pid=12080&avatarId=10011",
       },
       projectCategory: {
-        self:
-          "https://jira.agiledigital.com.au/rest/api/2/projectCategory/10011",
+        self: "https://jira.agiledigital.com.au/rest/api/2/projectCategory/10011",
         id: "10011",
         description:
           "Projects that are now inactive, will be excluded from all reporting.",
