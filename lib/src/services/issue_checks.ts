@@ -76,27 +76,27 @@ export const validateDescription = (issue: EnhancedIssue): CheckResult => {
     : fail(check, "description is empty");
 };
 
-const validateNotStalledForTooLong =
-  (at: ReadonlyDate) =>
-  (issue: EnhancedIssue): CheckResult => {
-    const check = "issues not stalled for too long";
+const validateNotStalledForTooLong = (at: ReadonlyDate) => (
+  issue: EnhancedIssue
+): CheckResult => {
+  const check = "issues not stalled for too long";
 
-    return match<readonly [boolean, ReadonlyDate | undefined]>([
-      issue.stalled,
-      issue.mostRecentTransition?.created,
-    ])
-      .with([false, __], () => na(check, "not stalled"))
-      .with([true, undefined], () =>
-        cantApply(check, "can not determine transition date")
-      )
-      .with(
-        [true, not(undefined)],
-        ([, transition]) =>
-          differenceInBusinessDays(at.getDate(), transition.getDate()) > 0,
-        () => fail(check, "stalled for more than 1 day")
-      )
-      .otherwise(() => ok(check, "stalled for less than on day"));
-  };
+  return match<readonly [boolean, ReadonlyDate | undefined]>([
+    issue.stalled,
+    issue.mostRecentTransition?.created,
+  ])
+    .with([false, __], () => na(check, "not stalled"))
+    .with([true, undefined], () =>
+      cantApply(check, "can not determine transition date")
+    )
+    .with(
+      [true, not(undefined)],
+      ([, transition]) =>
+        differenceInBusinessDays(at.getDate(), transition.getDate()) > 0,
+      () => fail(check, "stalled for more than 1 day")
+    )
+    .otherwise(() => ok(check, "stalled for less than on day"));
+};
 
 const validateInProgressNotCloseToEstimate = (
   issue: EnhancedIssue
@@ -117,45 +117,43 @@ const validateInProgressNotCloseToEstimate = (
 };
 
 // TODO check sub-tasks for comments?
-const validateComment =
-  (at: ReadonlyDate) =>
-  (issue: EnhancedIssue): CheckResult => {
-    const check = "issues that have been worked have comments";
+const validateComment = (at: ReadonlyDate) => (
+  issue: EnhancedIssue
+): CheckResult => {
+  const check = "issues that have been worked have comments";
 
-    const lastBusinessDay = subBusinessDays(at.getDate(), 1);
+  const lastBusinessDay = subBusinessDays(at.getDate(), 1);
 
-    const timeOfMostRecentComment = issue.mostRecentComment?.created.getTime();
-    const loggedTime = issue.fields.aggregatetimespent ?? 0;
+  const timeOfMostRecentComment = issue.mostRecentComment?.created.getTime();
+  const loggedTime = issue.fields.aggregatetimespent ?? 0;
 
-    // FIXME this needs to use the aggregated times
-    // FIXME check issue age
+  // FIXME this needs to use the aggregated times
+  // FIXME check issue age
 
-    return match<readonly [number | undefined, boolean, number]>([
-      timeOfMostRecentComment,
-      issue.inProgress,
-      loggedTime,
-    ])
-      .with([undefined, false, 0], () =>
-        na(check, "not in progress and no time logged")
-      )
-      .with([undefined, __, __], () => fail(check, "no comments, time logged"))
-      .with([undefined, true, __], () =>
-        fail(check, "no comments, in progress")
-      )
-      .with(
-        [not(undefined), true, __],
-        ([recentCommentTime]) =>
-          isBefore(recentCommentTime, lastBusinessDay.getTime()),
-        ([recentCommentTime]) => {
-          const commentAge = formatDistanceToNow(recentCommentTime);
-          return fail(
-            check,
-            `last comment was ${commentAge} since last business day, which is longer than allowed`
-          );
-        }
-      )
-      .otherwise(() => ok(check, "has recent comments"));
-  };
+  return match<readonly [number | undefined, boolean, number]>([
+    timeOfMostRecentComment,
+    issue.inProgress,
+    loggedTime,
+  ])
+    .with([undefined, false, 0], () =>
+      na(check, "not in progress and no time logged")
+    )
+    .with([undefined, __, __], () => fail(check, "no comments, time logged"))
+    .with([undefined, true, __], () => fail(check, "no comments, in progress"))
+    .with(
+      [not(undefined), true, __],
+      ([recentCommentTime]) =>
+        isBefore(recentCommentTime, lastBusinessDay.getTime()),
+      ([recentCommentTime]) => {
+        const commentAge = formatDistanceToNow(recentCommentTime);
+        return fail(
+          check,
+          `last comment was ${commentAge} since last business day, which is longer than allowed`
+        );
+      }
+    )
+    .otherwise(() => ok(check, "has recent comments"));
+};
 
 const check = (
   issue: EnhancedIssue,

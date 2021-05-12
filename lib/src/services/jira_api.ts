@@ -199,76 +199,74 @@ const decode = <I, O>(
     )
   );
 
-const boardDetails =
-  (jiraApi: JiraApi) =>
-  (id: number): TE.TaskEither<string, Board> => {
-    const fetch = (id: number): TE.TaskEither<string, JiraApi.JsonResponse> =>
-      TE.tryCatch(
-        () => jiraApi.getConfiguration(id.toString()),
-        (reason: unknown) =>
-          `Failed to fetch board [${id}] for [${JSON.stringify(reason)}].`
-      );
-
-    const parsed = (
-      response: JiraApi.JsonResponse
-    ): TE.TaskEither<string, Board> =>
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      TE.fromEither(decode("board", response, Board.decode));
-
-    return flow(fetch, TE.chain(parsed))(id);
-  };
-
-const boardsForProject =
-  (jiraApi: JiraApi) =>
-  (
-    projectKey: string
-  ): TE.TaskEither<string, ReadonlyRecord<string, ReadonlyArray<Board>>> => {
-    const fetch = TE.tryCatch(
-      () =>
-        jiraApi.getAllBoards(
-          undefined,
-          undefined,
-          "kanban",
-          undefined,
-          projectKey
-        ),
+const boardDetails = (jiraApi: JiraApi) => (
+  id: number
+): TE.TaskEither<string, Board> => {
+  const fetch = (id: number): TE.TaskEither<string, JiraApi.JsonResponse> =>
+    TE.tryCatch(
+      () => jiraApi.getConfiguration(id.toString()),
       (reason: unknown) =>
-        `Failed to fetch board for project [${projectKey}] for [${JSON.stringify(
-          reason
-        )}].`
+        `Failed to fetch board [${id}] for [${JSON.stringify(reason)}].`
     );
 
-    const parsed = (
-      response: JiraApi.JsonResponse
-    ): TE.TaskEither<string, ReadonlyArray<BoardSummary>> =>
-      TE.fromEither(
-        decode(
-          "board summaries",
-          response["values"],
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          T.array(BoardSummary).decode
-        )
-      );
+  const parsed = (
+    response: JiraApi.JsonResponse
+  ): TE.TaskEither<string, Board> =>
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    TE.fromEither(decode("board", response, Board.decode));
 
-    const boardIds = (
-      boards: ReadonlyArray<BoardSummary>
-    ): TE.TaskEither<string, ReadonlyArray<number>> => {
-      const ids: ReadonlyArray<number> = boards
-        .filter((board) => !board.name.toLowerCase().startsWith("copy of"))
-        .map((board) => board.id);
-      return TE.right(ids);
-    };
+  return flow(fetch, TE.chain(parsed))(id);
+};
 
-    return pipe(
-      fetch,
-      TE.chain(parsed),
-      TE.chain(boardIds),
-      TE.chain(TE.traverseSeqArray(boardDetails(jiraApi))),
-      TE.map((boards) => ({
-        [projectKey]: boards,
-      }))
+const boardsForProject = (jiraApi: JiraApi) => (
+  projectKey: string
+): TE.TaskEither<string, ReadonlyRecord<string, ReadonlyArray<Board>>> => {
+  const fetch = TE.tryCatch(
+    () =>
+      jiraApi.getAllBoards(
+        undefined,
+        undefined,
+        "kanban",
+        undefined,
+        projectKey
+      ),
+    (reason: unknown) =>
+      `Failed to fetch board for project [${projectKey}] for [${JSON.stringify(
+        reason
+      )}].`
+  );
+
+  const parsed = (
+    response: JiraApi.JsonResponse
+  ): TE.TaskEither<string, ReadonlyArray<BoardSummary>> =>
+    TE.fromEither(
+      decode(
+        "board summaries",
+        response["values"],
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        T.array(BoardSummary).decode
+      )
     );
+
+  const boardIds = (
+    boards: ReadonlyArray<BoardSummary>
+  ): TE.TaskEither<string, ReadonlyArray<number>> => {
+    const ids: ReadonlyArray<number> = boards
+      .filter((board) => !board.name.toLowerCase().startsWith("copy of"))
+      .map((board) => board.id);
+    return TE.right(ids);
   };
+
+  return pipe(
+    fetch,
+    TE.chain(parsed),
+    TE.chain(boardIds),
+    TE.chain(TE.traverseSeqArray(boardDetails(jiraApi))),
+    TE.map((boards) => ({
+      [projectKey]: boards,
+    }))
+  );
+};
 
 const boardsByProject = (
   issues: ReadonlyArray<Issue>,
