@@ -13,6 +13,7 @@ import {
   EnhancedIssue,
   User,
   JiraError,
+  QualityField,
 } from "./jira";
 import * as T from "io-ts";
 import { ReadonlyRecord } from "readonly-types";
@@ -315,12 +316,10 @@ export const updateIssueQuality = async (
     () =>
       jiraApi.updateIssue(key, {
         fields: {
-          customfield_12410: quality,
+          [QualityField]: quality,
         },
       }),
     (error: unknown) => {
-      // eslint-disable-next-line functional/no-expression-statement
-      console.log(`Got error [${JSON.stringify(error, null, 2)}].`);
       const jiraError = JiraError.decode(error);
       return isLeft(jiraError)
         ? `Unexpected error from Jira when updating quality of [${key}] to [${quality}] - [${JSON.stringify(
@@ -333,15 +332,22 @@ export const updateIssueQuality = async (
   );
 
   const mapError = TE.mapLeft((error: string | JiraError) => {
+    const fieldNotSettableError = (
+      jiraError: JiraError,
+      fieldName: string
+    ): boolean => {
+      const field = jiraError.error.errors[fieldName];
+      return typeof field === "string"
+        ? field.indexOf("cannot be set. It is not on the appropriate screen") >
+            -1
+        : false;
+    };
+
     return typeof error === "string"
       ? error
-      : error.error.errors["customfield_12410"] !== undefined &&
-        typeof error.error.errors["customfield_12410"] === "string" &&
-        error.error.errors["customfield_12410"].indexOf(
-          "cannot be set. It is not on the appropriate screen"
-        ) > -1
+      : fieldNotSettableError(error, QualityField)
       ? {
-          fields: ["customfield_12410"],
+          fields: [QualityField],
         }
       : error;
   });
@@ -385,7 +391,7 @@ export const searchIssues = async (
           "aggregatetimespent",
           "created",
           AccountField,
-          "customfield_12410",
+          QualityField,
         ],
         expand: ["changelog"],
       }),
