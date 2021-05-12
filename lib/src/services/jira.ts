@@ -15,6 +15,8 @@ const nullOrMissingToUndefined = <P>(
 
 export const AccountField = "customfield_11410 "; // FIXME should be configurable.
 
+export const QualityField = "customfield_12410"; // FIXME should be configurable.
+
 export const Author = T.type({
   name: T.string,
 });
@@ -110,6 +112,7 @@ export const Issue = T.type({
       aggregatetimeestimate: nullOrMissingToUndefined(T.number),
       aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
       aggregatetimespent: nullOrMissingToUndefined(T.number),
+      [QualityField]: nullOrMissingToUndefined(T.string),
     }),
   ]),
   changelog: ITT.fromNullable(
@@ -176,6 +179,22 @@ export const User = T.type({
 });
 
 export type User = T.TypeOf<typeof User>;
+
+/**
+ * Error type returned by the Jira API.
+ *
+ * When updating an issue, `errors` may contain per-field errors.
+ */
+export const JiraError = T.type({
+  name: T.string,
+  statusCode: T.number,
+  message: T.string,
+  error: T.type({
+    errors: T.UnknownRecord,
+  }),
+});
+
+export type JiraError = T.TypeOf<typeof JiraError>;
 
 const columnForIssue = (
   issue: Issue,

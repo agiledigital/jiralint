@@ -1,6 +1,6 @@
 import { Argv } from "yargs";
 import { RootCommand } from "..";
-import { EnhancedIssue } from "lib";
+import { EnhancedIssue, QualityField } from "lib";
 import { searchIssues, jiraApiClient } from "lib";
 import { issueActionRequired, IssueAction } from "lib";
 import { isLeft } from "fp-ts/lib/Either";
@@ -48,6 +48,7 @@ const renderJson = (issues: ReadonlyArray<EnhancedIssue>): void => {
 const renderTable = (issues: ReadonlyArray<EnhancedIssue>): void => {
   const tableHeaders: ReadonlyArray<string> = [
     "Action",
+    "Quality",
     "Key",
     "Type",
     "Summary",
@@ -110,6 +111,7 @@ const renderTable = (issues: ReadonlyArray<EnhancedIssue>): void => {
           : "",
         noFormat,
       ],
+      [issue.fields[QualityField] ?? "-", noFormat],
       [issue.key, noFormat],
       [issue.fields.issuetype.name, noFormat],
       [issue.fields.summary, noFormat],
