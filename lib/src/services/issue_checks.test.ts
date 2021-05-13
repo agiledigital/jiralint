@@ -1,8 +1,12 @@
+/* eslint-disable sonarjs/no-duplicate-string */
+/* eslint-disable no-restricted-globals */
 /* eslint-disable functional/functional-parameters */
 /* eslint-disable functional/no-expression-statement */
 import {
   validateInProgressHasEstimate,
   validateDescription,
+  validateComment,
+  validateTooLongInBacklog,
 } from "./issue_checks";
 import { EnhancedIssue, Issue } from "./jira";
 
@@ -12,7 +16,6 @@ const issue: Issue = {
   fields: {
     summary: "summary",
     description: "description",
-    // eslint-disable-next-line no-restricted-globals
     created: new Date("2020-01-01"),
     project: {
       key: "project",
@@ -53,6 +56,7 @@ const enhancedIssue: EnhancedIssue = {
   ...issue,
   inProgress: true,
   stalled: false,
+  closed: false,
   released: false,
   viewLink: "viewlink",
 };
@@ -94,6 +98,150 @@ describe("checking that tickets have a description", () => {
     };
 
     const actual = validateDescription(input);
+
+    expect(actual).toEqual(expect.objectContaining(expected));
+  });
+});
+
+describe("checking comments", () => {
+  it.each([
+    [
+      "a recent comment",
+      new Date("2020/12/1"),
+      true,
+      false,
+      0,
+      new Date("2020/12/1"),
+      { outcome: "ok", reasons: ["has recent comments"] },
+    ],
+    [
+      "an old comment, in progress",
+      new Date("2019/10/1"),
+      true,
+      false,
+      0,
+      new Date("2020/12/1"),
+      {
+        outcome: "fail",
+        reasons: [
+          "last comment was about 1 year since last business day, which is longer than allowed",
+        ],
+      },
+    ],
+    [
+      "an old comment, time logged",
+      new Date("2019/10/1"),
+      false,
+      false,
+      10000000,
+      new Date("2020/12/1"),
+      {
+        outcome: "fail",
+        reasons: [
+          "last comment was about 1 year since last business day, which is longer than allowed",
+        ],
+      },
+    ],
+    [
+      "an old comment, time logged, closed",
+      new Date("2019/10/1"),
+      false,
+      true,
+      10000000,
+      new Date("2020/12/1"),
+      {
+        outcome: "not applied",
+        reasons: ["closed"],
+      },
+    ],
+    [
+      undefined,
+      new Date("2020/10/1"),
+      true,
+      false,
+      0,
+      new Date("2020/12/1"),
+      { outcome: "fail", reasons: ["no comments, in progress"] },
+    ],
+  ])(
+    "checks as expected",
+    (
+      commentText,
+      date,
+      inProgress,
+      closed,
+      aggregatetimespent,
+      now,
+      expected
+    ) => {
+      const mostRecentComment =
+        commentText !== undefined
+          ? {
+              id: "id",
+              author: {
+                name: "some guy",
+              },
+              body: commentText,
+              created: date,
+              updated: date,
+            }
+          : undefined;
+
+      const input = {
+        ...enhancedIssue,
+        fields: {
+          ...enhancedIssue.fields,
+          aggregatetimespent,
+        },
+        mostRecentComment,
+        inProgress,
+        closed,
+      };
+
+      const actual = validateComment(now)(input);
+
+      expect(actual).toEqual(expect.objectContaining(expected));
+    }
+  );
+});
+
+describe("checking for tickets languishing in the backlog", () => {
+  it.each([
+    [
+      new Date("2020/11/1"),
+      "backlog",
+      new Date("2020/12/1"),
+      { outcome: "ok", reasons: ["not too long in backlog"] },
+    ],
+    [
+      new Date("2019/06/1"),
+      "backlog",
+      new Date("2020/12/1"),
+      {
+        outcome: "fail",
+        reasons: ["in backlog for too long [18 months]"],
+      },
+    ],
+    [
+      new Date("2019/10/1"),
+      "not backlog",
+      new Date("2020/12/1"),
+      {
+        outcome: "not applied",
+        reasons: ["not on the backlog"],
+      },
+    ],
+  ])("checks as expected", (created, column, now, expected) => {
+    const input = {
+      ...enhancedIssue,
+      fields: {
+        ...enhancedIssue.fields,
+        created,
+      },
+      column,
+    };
+
+    const actual = validateTooLongInBacklog(now)(input);
 
     expect(actual).toEqual(expect.objectContaining(expected));
   });
