@@ -26,6 +26,7 @@ const issue: Issue = {
     },
     issuetype: {
       name: "issue name",
+      subtask: false,
     },
     assignee: {
       name: "assignee",
