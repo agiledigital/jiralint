@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 export const nullDescription = {
   expand:
     "operations,versionedRepresentations,editmeta,changelog,renderedFields",
@@ -233,5 +234,187 @@ export const regular = {
     maxResults: 5,
     total: 5,
     histories: [],
+  },
+};
+
+export const withParent = {
+  expand:
+    "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+  id: "121666",
+  self: "https://jira.agiledigital.com.au/rest/api/2/issue/121666",
+  key: "MF-433",
+  fields: {
+    summary: "Implement fetch /v1/current-user/flics API in cinefly-backend.",
+    issuetype: {
+      self: "https://jira.agiledigital.com.au/rest/api/2/issuetype/5",
+      id: "5",
+      description: "The sub-task of the issue",
+      iconUrl:
+        "https://jira.agiledigital.com.au/secure/viewavatar?size=xsmall&avatarId=11606&avatarType=issuetype",
+      name: "Sub-task",
+      subtask: true,
+      avatarId: 11606,
+    },
+    parent: {
+      id: "121082",
+      key: "MF-398",
+      self: "https://jira.agiledigital.com.au/rest/api/2/issue/121082",
+      fields: {
+        summary: "Cinefly APIs are proxied through AWS API Gateway and Lambda.",
+        status: {
+          self: "https://jira.agiledigital.com.au/rest/api/2/status/3",
+          description:
+            "This issue is being actively worked on at the moment by the assignee.",
+          iconUrl:
+            "https://jira.agiledigital.com.au/images/icons/statuses/inprogress.png",
+          name: "In Progress",
+          id: "3",
+          statusCategory: {
+            self:
+              "https://jira.agiledigital.com.au/rest/api/2/statuscategory/4",
+            id: 4,
+            key: "indeterminate",
+            colorName: "yellow",
+            name: "In Progress",
+          },
+        },
+        priority: {
+          self: "https://jira.agiledigital.com.au/rest/api/2/priority/8",
+          iconUrl:
+            "https://jira.agiledigital.com.au/images/icons/priorities/trivial.svg",
+          name: "None",
+          id: "8",
+        },
+        issuetype: {
+          self: "https://jira.agiledigital.com.au/rest/api/2/issuetype/4",
+          id: "4",
+          description:
+            "An improvement or enhancement to an existing feature or task.",
+          iconUrl:
+            "https://jira.agiledigital.com.au/secure/viewavatar?size=xsmall&avatarId=11600&avatarType=issuetype",
+          name: "Improvement",
+          subtask: false,
+          avatarId: 11600,
+        },
+      },
+    },
+    subtasks: [],
+    created: "2021-05-03T15:13:44.000+1000",
+    description: null,
+    project: {
+      self: "https://jira.agiledigital.com.au/rest/api/2/project/12080",
+      id: "12080",
+      key: "MF",
+      name: "Cinefly Mobflic (Ref: CIN-SFM-20210322CIN)",
+      projectTypeKey: "software",
+      avatarUrls: {
+        "48x48":
+          "https://jira.agiledigital.com.au/secure/projectavatar?pid=12080&avatarId=10011",
+        "24x24":
+          "https://jira.agiledigital.com.au/secure/projectavatar?size=small&pid=12080&avatarId=10011",
+        "16x16":
+          "https://jira.agiledigital.com.au/secure/projectavatar?size=xsmall&pid=12080&avatarId=10011",
+        "32x32":
+          "https://jira.agiledigital.com.au/secure/projectavatar?size=medium&pid=12080&avatarId=10011",
+      },
+      projectCategory: {
+        self:
+          "https://jira.agiledigital.com.au/rest/api/2/projectCategory/10011",
+        id: "10011",
+        description:
+          "Projects that are now inactive, will be excluded from all reporting.",
+        name: "9 inActive",
+      },
+    },
+    fixVersions: [],
+    aggregateprogress: { progress: 17700, total: 17700, percent: 100 },
+    aggregatetimespent: 17700,
+    timetracking: {
+      originalEstimate: "4h",
+      remainingEstimate: "0m",
+      timeSpent: "4h 55m",
+      originalEstimateSeconds: 14400,
+      remainingEstimateSeconds: 0,
+      timeSpentSeconds: 17700,
+    },
+    aggregatetimeoriginalestimate: 14400,
+    aggregatetimeestimate: 0,
+    comment: { comments: [], maxResults: 0, total: 0, startAt: 0 },
+    assignee: {
+      self: "https://jira.agiledigital.com.au/rest/api/2/user?username=sxguy",
+      name: "sxguy",
+      key: "sxguy",
+      emailAddress: "sxguy@agiledigital.com.au",
+      avatarUrls: {
+        "48x48":
+          "https://jira.agiledigital.com.au/secure/useravatar?ownerId=sxguy&avatarId=12391",
+        "24x24":
+          "https://jira.agiledigital.com.au/secure/useravatar?size=small&ownerId=sxguy&avatarId=12391",
+        "16x16":
+          "https://jira.agiledigital.com.au/secure/useravatar?size=xsmall&ownerId=sxguy&avatarId=12391",
+        "32x32":
+          "https://jira.agiledigital.com.au/secure/useravatar?size=medium&ownerId=sxguy&avatarId=12391",
+      },
+      displayName: "Some Guy",
+      active: true,
+      timeZone: "Australia/Sydney",
+    },
+    status: {
+      self: "https://jira.agiledigital.com.au/rest/api/2/status/5",
+      description:
+        "A resolution has been taken, and it is awaiting verification by reporter. From here issues are either reopened, or are closed.",
+      iconUrl:
+        "https://jira.agiledigital.com.au/images/icons/statuses/resolved.png",
+      name: "Resolved",
+      id: "5",
+      statusCategory: {
+        self: "https://jira.agiledigital.com.au/rest/api/2/statuscategory/2",
+        id: 2,
+        key: "new",
+        colorName: "blue-gray",
+        name: "To Do",
+      },
+    },
+  },
+  changelog: {
+    startAt: 0,
+    maxResults: 7,
+    total: 7,
+    histories: [
+      {
+        id: "555096",
+        author: {
+          self:
+            "https://jira.agiledigital.com.au/rest/api/2/user?username=sxguy",
+          name: "sxguy",
+          key: "sxguy",
+          emailAddress: "sxguy@agiledigital.com.au",
+          avatarUrls: {
+            "48x48":
+              "https://jira.agiledigital.com.au/secure/useravatar?ownerId=sxguy&avatarId=12391",
+            "24x24":
+              "https://jira.agiledigital.com.au/secure/useravatar?size=small&ownerId=sxguy&avatarId=12391",
+            "16x16":
+              "https://jira.agiledigital.com.au/secure/useravatar?size=xsmall&ownerId=sxguy&avatarId=12391",
+            "32x32":
+              "https://jira.agiledigital.com.au/secure/useravatar?size=medium&ownerId=sxguy&avatarId=12391",
+          },
+          displayName: "Some Guy",
+          active: true,
+          timeZone: "Australia/Sydney",
+        },
+        created: "2021-05-12T15:27:34.654+1000",
+        items: [
+          {
+            field: "status",
+            fieldtype: "jira",
+            from: "1",
+            fromString: "Open",
+            to: "3",
+            toString: "In Progress",
+          },
+        ],
+      },
+    ],
   },
 };

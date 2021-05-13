@@ -86,6 +86,7 @@ export const Issue = T.type({
       }),
       issuetype: T.type({
         name: T.string,
+        subtask: T.boolean,
       }),
       assignee: T.type({
         name: T.string,
@@ -113,6 +114,10 @@ export const Issue = T.type({
       aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
       aggregatetimespent: nullOrMissingToUndefined(T.number),
       [QualityField]: nullOrMissingToUndefined(T.string),
+      parent: T.type({
+        id: T.string,
+        key: T.string,
+      }),
     }),
   ]),
   changelog: ITT.fromNullable(

@@ -14,6 +14,7 @@ describe("decoding well-formed tickets", () => {
   it.each([
     [TestData.regular, TestData.regular.key],
     [TestData.nullDescription, TestData.nullDescription.key],
+    [TestData.withParent, TestData.withParent.key],
   ])("decodes as expected", (data, expectedKey) => {
     // Given a well-formed bit of data.
 
