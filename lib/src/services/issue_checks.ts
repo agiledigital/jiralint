@@ -7,8 +7,9 @@ import { ReadonlyDate } from "readonly-types";
 import {
   subBusinessDays,
   isBefore,
-  formatDistanceToNow,
+  formatDistance,
   differenceInBusinessDays,
+  differenceInCalendarMonths,
 } from "date-fns";
 
 export type CheckResult = {
@@ -92,7 +93,7 @@ const validateNotStalledForTooLong = (at: ReadonlyDate) => (
     .with(
       [true, not(undefined)],
       ([, transition]) =>
-        differenceInBusinessDays(at.getDate(), transition.getDate()) > 0,
+        differenceInBusinessDays(at.valueOf(), transition.valueOf()) > 0,
       () => fail(check, "stalled for more than 1 day")
     )
     .otherwise(() => ok(check, "stalled for less than on day"));
@@ -116,36 +117,68 @@ const validateInProgressNotCloseToEstimate = (
     );
 };
 
+/**
+ * Checks that issues haven't been languishing in the backlog for too long.
+ */
+export const validateTooLongInBacklog = (at: ReadonlyDate) => (
+  issue: EnhancedIssue
+): CheckResult => {
+  const check = "issues don't stay in the backlog for too long";
+  const ageInMonths = differenceInCalendarMonths(
+    at.valueOf(),
+    issue.fields.created
+  );
+
+  return match<readonly [string | undefined, number]>([
+    issue.column?.toLocaleLowerCase(),
+    ageInMonths,
+  ])
+    .with([not("backlog"), __], () => na(check, "not on the backlog"))
+    .with(
+      ["backlog", __],
+      ([, age]) => age > 3,
+      () => fail(check, `in backlog for too long [${ageInMonths} months]`)
+    )
+    .otherwise(() => ok(check, "not too long in backlog"));
+};
+
 // TODO check sub-tasks for comments?
-const validateComment = (at: ReadonlyDate) => (
+export const validateComment = (at: ReadonlyDate) => (
   issue: EnhancedIssue
 ): CheckResult => {
   const check = "issues that have been worked have comments";
 
-  const lastBusinessDay = subBusinessDays(at.getDate(), 1);
+  const lastBusinessDay = subBusinessDays(at.valueOf(), 1);
 
-  const timeOfMostRecentComment = issue.mostRecentComment?.created.getTime();
+  const timeOfMostRecentComment = issue.mostRecentComment?.created.valueOf();
   const loggedTime = issue.fields.aggregatetimespent ?? 0;
 
   // FIXME this needs to use the aggregated times
   // FIXME check issue age
 
-  return match<readonly [number | undefined, boolean, number]>([
+  return match<readonly [number | undefined, boolean, boolean, number]>([
     timeOfMostRecentComment,
     issue.inProgress,
+    issue.closed,
     loggedTime,
   ])
-    .with([undefined, false, 0], () =>
+    .with([undefined, false, __, 0], () =>
       na(check, "not in progress and no time logged")
     )
-    .with([undefined, __, __], () => fail(check, "no comments, time logged"))
-    .with([undefined, true, __], () => fail(check, "no comments, in progress"))
+    .with([__, __, true, __], () => na(check, "closed"))
+    .with([undefined, true, false, __], () =>
+      fail(check, "no comments, in progress")
+    )
+    .with([undefined, __, false, __], () =>
+      fail(check, "no comments, time logged")
+    )
     .with(
-      [not(undefined), true, __],
-      ([recentCommentTime]) =>
-        isBefore(recentCommentTime, lastBusinessDay.getTime()),
+      [not(undefined), __, false, __],
+      ([recentCommentTime, inProgress, , loggedTime]) =>
+        isBefore(recentCommentTime, lastBusinessDay) &&
+        (inProgress || loggedTime > 0),
       ([recentCommentTime]) => {
-        const commentAge = formatDistanceToNow(recentCommentTime);
+        const commentAge = formatDistance(recentCommentTime, at.valueOf());
         return fail(
           check,
           `last comment was ${commentAge} since last business day, which is longer than allowed`
@@ -192,7 +225,7 @@ export const issueDeservesGrace = (
   issue: EnhancedIssue,
   now: ReadonlyDate
 ): boolean => {
-  const age = differenceInBusinessDays(issue.fields.created, now.getDate());
+  const age = differenceInBusinessDays(issue.fields.created, now.valueOf());
   const timeSpent = issue.fields.aggregatetimespent ?? 0;
 
   return !issue.inProgress && timeSpent === 0 && age < 2;
@@ -220,5 +253,6 @@ export const issueActionRequired = (
         validateInProgressNotCloseToEstimate,
         validateNotStalledForTooLong(now),
         validateDescription,
+        validateTooLongInBacklog(now),
       ]);
 };

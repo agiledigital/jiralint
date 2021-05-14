@@ -170,6 +170,7 @@ export type EnhancedIssue = Issue & {
   readonly board?: Board;
   readonly inProgress: boolean;
   readonly stalled: boolean;
+  readonly closed: boolean;
   readonly released: boolean;
   readonly column?: string;
   readonly mostRecentComment?: IssueComment;
@@ -224,6 +225,12 @@ const issueStalled = (issue: Issue, board?: Board): boolean => {
     : issue.fields.status.name.toLowerCase().startsWith("stalled");
 };
 
+const issueClosed = (issue: Issue, board?: Board): boolean => {
+  return board !== undefined
+    ? columnForIssue(issue, board)?.name.toLowerCase() === "release ready"
+    : issue.fields.status.statusCategory.name?.toLowerCase() === "done";
+};
+
 export const enhancedIssue = (
   issue: Issue,
   viewLink: string,
@@ -251,6 +258,7 @@ export const enhancedIssue = (
     ...issue,
     inProgress: issueInProgress(issue, board),
     stalled: issueStalled(issue, board),
+    closed: issueClosed(issue, board),
     column:
       board !== undefined ? columnForIssue(issue, board)?.name : undefined,
     mostRecentComment: mostRecentComment,

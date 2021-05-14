@@ -1,6 +1,6 @@
 import { Argv } from "yargs";
 import { RootCommand } from "..";
-import { EnhancedIssue, QualityField } from "lib";
+import { EnhancedIssue, quality, QualityField } from "lib";
 import { searchIssues, jiraApiClient } from "lib";
 import { issueActionRequired, IssueAction } from "lib";
 import { isLeft } from "fp-ts/lib/Either";
@@ -19,12 +19,16 @@ const checkedIssues = (
   EnhancedIssue & {
     readonly action: IssueAction;
     readonly reasons: ReadonlyArray<string>;
+    readonly issueQuality: string;
   }
 > => {
   // eslint-disable-next-line no-restricted-globals
   const now = readonlyDate(new Date());
   return issues.map((issue) => {
     const issueAction = issueActionRequired(issue, now);
+
+    const issueQuality = quality(issueAction);
+
     const reasons: readonly string[] = issueAction.checks.flatMap((check) =>
       check.outcome === "warn" || check.outcome === "fail" ? check.reasons : []
     );
@@ -32,6 +36,7 @@ const checkedIssues = (
       ...issue,
       action: issueAction,
       reasons,
+      issueQuality,
     };
   });
 };
@@ -111,7 +116,7 @@ const renderTable = (issues: ReadonlyArray<EnhancedIssue>): void => {
           : "",
         noFormat,
       ],
-      [issue.fields[QualityField] ?? "-", noFormat],
+      [`${issue.fields[QualityField] ?? "-"}/${issue.issueQuality}`, noFormat],
       [issue.key, noFormat],
       [issue.fields.issuetype.name, noFormat],
       [issue.fields.summary, noFormat],
