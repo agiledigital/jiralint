@@ -228,7 +228,7 @@ const issueStalled = (issue: Issue, board?: Board): boolean => {
 const issueClosed = (issue: Issue, board?: Board): boolean => {
   return board !== undefined
     ? columnForIssue(issue, board)?.name.toLowerCase() === "release ready"
-    : issue.fields.status.name.toLowerCase() === "closed";
+    : issue.fields.status.statusCategory.name?.toLowerCase() === "done";
 };
 
 export const enhancedIssue = (
