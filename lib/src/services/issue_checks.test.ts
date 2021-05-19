@@ -45,6 +45,9 @@ const issue: Issue = {
     },
     comment: {
       comments: [],
+      maxResults: 0,
+      total: 0,
+      startAt: 0,
     },
   },
   changelog: {

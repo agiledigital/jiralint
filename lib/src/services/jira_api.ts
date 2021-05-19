@@ -8,6 +8,7 @@ import {
   Issue,
   Board,
   BoardSummary,
+  IssueComment,
   enhancedIssue,
   AccountField,
   EnhancedIssue,
@@ -290,6 +291,44 @@ const boardsByProject = (
   )(boards);
 };
 
+const fetchMostRecentComment = (
+  issueKey: string,
+  jiraApi: JiraApi
+): TE.TaskEither<string, IssueComment | undefined> => {
+  const fetch = TE.tryCatch(
+    () =>
+      jiraApi.genericGet(
+        `issue/${encodeURIComponent(
+          issueKey
+        )}/comment?maxResults=1&orderBy=-created`
+      ),
+    (error) =>
+      `Failed to fetch most recent comment for [${issueKey}] - [${JSON.stringify(
+        error,
+        null,
+        2
+      )}].`
+  );
+
+  const parsed = (
+    response: JiraApi.JsonResponse
+  ): TE.TaskEither<string, ReadonlyArray<IssueComment>> =>
+    TE.fromEither(
+      decode(
+        "comments",
+        response["comments"],
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        T.readonlyArray(IssueComment).decode
+      )
+    );
+
+  return pipe(
+    fetch,
+    TE.chain(parsed),
+    TE.map((comments) => comments[0])
+  );
+};
+
 const issueLink = (issue: Issue): string =>
   `${jiraHost}://${jiraProtocol}/browse/${encodeURIComponent(issue.key)}`;
 
@@ -430,7 +469,32 @@ export const searchIssues = async (
     })(boardsByProject(issues, jiraApi));
   };
 
-  return pipe(fetchIssues, TE.chain(parsed), TE.chain(enhancedIssues))();
+  const issueWithComment = (
+    issue: EnhancedIssue
+  ): TE.TaskEither<string, EnhancedIssue> => {
+    const mostRecentCommentLoaded =
+      issue.fields.comment.total === issue.fields.comment.comments.length;
+
+    const recentComment =
+      issue.fields.comment.comments[issue.fields.comment.comments.length - 1];
+
+    return pipe(
+      mostRecentCommentLoaded
+        ? TE.right(recentComment)
+        : fetchMostRecentComment(issue.key, jiraApi),
+      TE.map((comment) => ({
+        ...issue,
+        mostRecentComment: comment,
+      }))
+    );
+  };
+
+  return pipe(
+    fetchIssues,
+    TE.chain(parsed),
+    TE.chain(enhancedIssues),
+    TE.chain(TE.traverseSeqArray((issue) => issueWithComment(issue)))
+  )();
 };
 
 /**
