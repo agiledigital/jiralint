@@ -318,7 +318,7 @@ const fetchMostRecentComment = (
         "comments",
         response["comments"],
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        T.array(IssueComment).decode
+        T.readonlyArray(IssueComment).decode
       )
     );
 

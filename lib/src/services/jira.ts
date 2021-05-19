@@ -17,11 +17,13 @@ export const AccountField = "customfield_11410 "; // FIXME should be configurabl
 
 export const QualityField = "customfield_12410"; // FIXME should be configurable.
 
-export const PaginatedResults = T.type({
-  maxResults: T.number,
-  total: T.number,
-  startAt: T.number,
-});
+export const PaginatedResults = T.readonly(
+  T.type({
+    maxResults: T.number,
+    total: T.number,
+    startAt: T.number,
+  })
+);
 
 export const Author = T.type({
   name: T.string,
@@ -106,12 +108,14 @@ export const Issue = T.type({
           colorName: nullOrMissingToUndefined(T.string),
         }),
       }),
-      comment: T.intersection([
-        PaginatedResults,
-        T.type({
-          comments: T.readonlyArray(IssueComment),
-        }),
-      ]),
+      comment: T.readonly(
+        T.intersection([
+          PaginatedResults,
+          T.type({
+            comments: T.readonlyArray(IssueComment),
+          }),
+        ])
+      ),
     }),
     T.partial({
       account: T.type({
