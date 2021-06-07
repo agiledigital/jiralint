@@ -10,6 +10,7 @@ import {
   formatDistance,
   differenceInBusinessDays,
   differenceInCalendarMonths,
+  isAfter,
 } from "date-fns";
 
 export type CheckResult = {
@@ -25,34 +26,83 @@ export type IssueAction = {
   readonly checks: ReadonlyArray<CheckResult>;
 };
 
-const fail = (check: string, reason: string): CheckResult => ({
-  outcome: "fail",
-  description: check,
-  reasons: [reason],
+type Checker = {
+  readonly fail: (check: string) => CheckResult;
+  readonly ok: (check: string) => CheckResult;
+  readonly na: (check: string) => CheckResult;
+  readonly cantApply: (check: string) => CheckResult;
+};
+
+const checker = (check: string): Checker => ({
+  fail: (reason: string) => ({
+    outcome: "fail",
+    description: check,
+    reasons: [reason],
+  }),
+  ok: (reason: string) => ({
+    outcome: "ok",
+    description: check,
+    reasons: [reason],
+  }),
+  na: (reason: string) => ({
+    outcome: "not applied",
+    description: check,
+    reasons: [reason],
+  }),
+  cantApply: (reason: string) => ({
+    outcome: "cant apply",
+    description: check,
+    reasons: [reason],
+  }),
 });
 
-const ok = (check: string, reason: string): CheckResult => ({
-  outcome: "ok",
-  description: check,
-  reasons: [reason],
-});
+export const validateDependenciesHaveDueDate = (
+  issue: EnhancedIssue
+): CheckResult => {
+  const check = checker("Dependencies have a due date");
 
-const na = (check: string, reason: string): CheckResult => ({
-  outcome: "not applied",
-  description: check,
-  reasons: [reason],
-});
+  return match<readonly [boolean, boolean]>([
+    issue.fields.issuetype.name.toLowerCase() === "dependency",
+    issue.fields.duedate !== undefined,
+  ])
+    .with([false, __], () => check.na("not a dependency"))
+    .with([true, false], () => check.fail("has no due date"))
+    .otherwise(() => check.ok("has a due date"));
+};
 
-const cantApply = (check: string, reason: string): CheckResult => ({
-  outcome: "cant apply",
-  description: check,
-  reasons: [reason],
-});
+export const validateNotClosedDependenciesNotPassedDueDate = (
+  at: ReadonlyDate
+) => (issue: EnhancedIssue): CheckResult => {
+  const check = checker("Dependencies not passed due date");
+
+  const closed = issue.closed;
+
+  return match<readonly [boolean, boolean, ReadonlyDate | undefined]>([
+    issue.fields.issuetype.name.toLowerCase() === "dependency",
+    closed,
+    issue.fields.duedate,
+  ])
+    .with([false, __, __], () => check.na("not a dependency"))
+    .with([true, true, __], () => check.na("dependency is closed"))
+    .with([true, __, undefined], () => check.na("dependency has no due date"))
+    .with(
+      [
+        true,
+        __,
+        when(
+          (duedate) =>
+            duedate !== undefined && isAfter(duedate.valueOf(), at.valueOf())
+        ),
+      ],
+      () => check.fail("due date has passed")
+    )
+    .otherwise(() => check.ok("due date has not passed"));
+};
 
 export const validateInProgressHasEstimate = (
   issue: EnhancedIssue
 ): CheckResult => {
-  const check = "In Progress issues have estimates";
+  const check = checker("In Progress issues have estimates");
   const originalEstimateSeconds =
     issue.fields.aggregatetimeoriginalestimate ?? 0;
 
@@ -60,60 +110,62 @@ export const validateInProgressHasEstimate = (
     issue.inProgress,
     originalEstimateSeconds,
   ])
-    .with([false, __], () => na(check, "not in progress"))
+    .with([false, __], () => check.na("not in progress"))
     .with([true, when((estimate) => estimate > 0)], () =>
-      ok(check, "has an estimate")
+      check.ok("has an estimate")
     )
-    .otherwise(() => fail(check, "has no estimate"));
+    .otherwise(() => check.fail("has no estimate"));
 };
 
 // TODO check whether the description is a template and fail if it is.
 export const validateDescription = (issue: EnhancedIssue): CheckResult => {
-  const check = "Tickets have a description";
+  const check = checker("Tickets have a description");
 
   return issue.fields.description !== undefined &&
     issue.fields.description.trim().length > 0
-    ? ok(check, "description isn't empty")
-    : fail(check, "description is empty");
+    ? check.ok("description isn't empty")
+    : check.fail("description is empty");
 };
 
 const validateNotStalledForTooLong = (at: ReadonlyDate) => (
   issue: EnhancedIssue
 ): CheckResult => {
-  const check = "issues not stalled for too long";
+  const check = checker("issues not stalled for too long");
 
   return match<readonly [boolean, ReadonlyDate | undefined]>([
     issue.stalled,
     issue.mostRecentTransition?.created,
   ])
-    .with([false, __], () => na(check, "not stalled"))
+    .with([false, __], () => check.na("not stalled"))
     .with([true, undefined], () =>
-      cantApply(check, "can not determine transition date")
+      check.cantApply("can not determine transition date")
     )
     .with(
       [true, not(undefined)],
       ([, transition]) =>
         differenceInBusinessDays(at.valueOf(), transition.valueOf()) > 0,
-      () => fail(check, "stalled for more than 1 day")
+      () => check.fail("stalled for more than 1 day")
     )
-    .otherwise(() => ok(check, "stalled for less than on day"));
+    .otherwise(() => check.ok("stalled for less than on day"));
 };
 
 const validateInProgressNotCloseToEstimate = (
   issue: EnhancedIssue
 ): CheckResult => {
-  const check = "time spent within acceptable ratio of original estimate";
+  const check = checker(
+    "time spent within acceptable ratio of original estimate"
+  );
   const originalEstimateSeconds =
     issue.fields.aggregatetimeoriginalestimate ?? 0;
   const timeSpentSeconds = issue.fields.aggregatetimespent ?? 0;
 
   return match<readonly [boolean, number]>([issue.inProgress, timeSpentSeconds])
-    .with([false, __], () => na(check, "not in progress"))
+    .with([false, __], () => check.na("not in progress"))
     .with([__, when((spent) => spent > originalEstimateSeconds * 0.8)], () =>
-      fail(check, "time spent > 0.8 of original while in progress")
+      check.fail("time spent > 0.8 of original while in progress")
     )
     .otherwise(() =>
-      ok(check, "time spent <= 0.8 of original while in progress")
+      check.ok("time spent <= 0.8 of original while in progress")
     );
 };
 
@@ -123,7 +175,7 @@ const validateInProgressNotCloseToEstimate = (
 export const validateTooLongInBacklog = (at: ReadonlyDate) => (
   issue: EnhancedIssue
 ): CheckResult => {
-  const check = "issues don't stay in the backlog for too long";
+  const check = checker("issues don't stay in the backlog for too long");
   const ageInMonths = differenceInCalendarMonths(
     at.valueOf(),
     issue.fields.created
@@ -133,20 +185,20 @@ export const validateTooLongInBacklog = (at: ReadonlyDate) => (
     issue.column?.toLocaleLowerCase(),
     ageInMonths,
   ])
-    .with([not("backlog"), __], () => na(check, "not on the backlog"))
+    .with([not("backlog"), __], () => check.na("not on the backlog"))
     .with(
       ["backlog", __],
       ([, age]) => age > 3,
-      () => fail(check, `in backlog for too long [${ageInMonths} months]`)
+      () => check.fail(`in backlog for too long [${ageInMonths} months]`)
     )
-    .otherwise(() => ok(check, "not too long in backlog"));
+    .otherwise(() => check.ok("not too long in backlog"));
 };
 
 // TODO check sub-tasks for comments?
 export const validateComment = (at: ReadonlyDate) => (
   issue: EnhancedIssue
 ): CheckResult => {
-  const check = "issues that have been worked have comments";
+  const check = checker("issues that have been worked have comments");
 
   const lastBusinessDay = subBusinessDays(at.valueOf(), 1);
 
@@ -163,14 +215,14 @@ export const validateComment = (at: ReadonlyDate) => (
     loggedTime,
   ])
     .with([undefined, false, __, 0], () =>
-      na(check, "not in progress and no time logged")
+      check.na("not in progress and no time logged")
     )
-    .with([__, __, true, __], () => na(check, "closed"))
+    .with([__, __, true, __], () => check.na("closed"))
     .with([undefined, true, false, __], () =>
-      fail(check, "no comments, in progress")
+      check.fail("no comments, in progress")
     )
     .with([undefined, __, false, __], () =>
-      fail(check, "no comments, time logged")
+      check.fail("no comments, time logged")
     )
     .with(
       [not(undefined), __, false, __],
@@ -179,13 +231,12 @@ export const validateComment = (at: ReadonlyDate) => (
         (inProgress || loggedTime > 0),
       ([recentCommentTime]) => {
         const commentAge = formatDistance(recentCommentTime, at.valueOf());
-        return fail(
-          check,
+        return check.fail(
           `last comment was ${commentAge} since last business day, which is longer than allowed`
         );
       }
     )
-    .otherwise(() => ok(check, "has recent comments"));
+    .otherwise(() => check.ok("has recent comments"));
 };
 
 const check = (
@@ -254,5 +305,7 @@ export const issueActionRequired = (
         validateNotStalledForTooLong(now),
         validateDescription,
         validateTooLongInBacklog(now),
+        validateDependenciesHaveDueDate,
+        validateNotClosedDependenciesNotPassedDueDate(now),
       ]);
 };
