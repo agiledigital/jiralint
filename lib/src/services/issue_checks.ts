@@ -56,6 +56,11 @@ const checker = (check: string): Checker => ({
   }),
 });
 
+/**
+ * Checks that all dependency issues have a due date.
+ * @param issue the issue to check.
+ * @returns result of checking the issue.
+ */
 export const validateDependenciesHaveDueDate = (
   issue: EnhancedIssue
 ): CheckResult => {
@@ -70,6 +75,12 @@ export const validateDependenciesHaveDueDate = (
     .otherwise(() => check.ok("has a due date"));
 };
 
+/**
+ * Checks that dependency issues that haven't been closed aren't past their due date.
+ * @param at the date to take as now.
+ * @param issue the issue to check.
+ * @returns result of checking the issue.
+ */
 export const validateNotClosedDependenciesNotPassedDueDate = (
   at: ReadonlyDate
 ) => (issue: EnhancedIssue): CheckResult => {
