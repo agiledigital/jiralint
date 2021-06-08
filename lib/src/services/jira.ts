@@ -7,10 +7,10 @@ import { compareDesc } from "date-fns";
  * @param t the type of the property - if it is supplied and not null.
  * @returns a codec that will treat missing property or null value as undefined.
  */
-const nullOrMissingToUndefined = <P>(
-  t: T.Type<P>
+const nullOrMissingToUndefined = <P, O = P>(
+  t: T.Type<P, O>
   // eslint-disable-next-line functional/prefer-readonly-type
-): T.UnionC<[T.Type<P, P, unknown>, T.UndefinedC]> =>
+): T.UnionC<[T.Type<P, O, unknown>, T.UndefinedC]> =>
   ITT.fromNullable(T.union([t, T.undefined]), undefined);
 
 export const AccountField = "customfield_11410 "; // FIXME should be configurable.
@@ -116,6 +116,7 @@ export const Issue = T.type({
           }),
         ])
       ),
+      duedate: nullOrMissingToUndefined(ITT.DateFromISOString),
     }),
     T.partial({
       account: T.type({

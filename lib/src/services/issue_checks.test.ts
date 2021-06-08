@@ -7,6 +7,8 @@ import {
   validateDescription,
   validateComment,
   validateTooLongInBacklog,
+  validateDependenciesHaveDueDate,
+  validateNotClosedDependenciesNotPassedDueDate,
 } from "./issue_checks";
 import { EnhancedIssue, Issue } from "./jira";
 
@@ -49,6 +51,7 @@ const issue: Issue = {
       total: 0,
       startAt: 0,
     },
+    duedate: undefined,
   },
   changelog: {
     histories: [],
@@ -245,6 +248,118 @@ describe("checking for tickets languishing in the backlog", () => {
     };
 
     const actual = validateTooLongInBacklog(now)(input);
+
+    expect(actual).toEqual(expect.objectContaining(expected));
+  });
+});
+
+describe("checking that dependencies have a due date", () => {
+  it.each([
+    [
+      "not a dependency",
+      undefined,
+      { outcome: "not applied", reasons: ["not a dependency"] },
+    ],
+    [
+      "not a dependnecy",
+      new Date("2019/06/1"),
+      { outcome: "not applied", reasons: ["not a dependency"] },
+    ],
+    [
+      "dependency",
+      undefined,
+      { outcome: "fail", reasons: ["has no due date"] },
+    ],
+    [
+      "dependency",
+      new Date("2019/06/1"),
+      { outcome: "ok", reasons: ["has a due date"] },
+    ],
+  ])("checks as expected", (issueTypeName, duedate, expected) => {
+    const input = {
+      ...enhancedIssue,
+      fields: {
+        ...enhancedIssue.fields,
+        issuetype: {
+          ...enhancedIssue.fields.issuetype,
+          name: issueTypeName,
+        },
+        duedate,
+      },
+    };
+
+    const actual = validateDependenciesHaveDueDate(input);
+
+    expect(actual).toEqual(expect.objectContaining(expected));
+  });
+});
+
+describe("checking that dependencies have not blown past the due date", () => {
+  it.each([
+    [
+      "not a dependency",
+      undefined,
+      new Date("2018/06/1"),
+      false,
+      { outcome: "not applied", reasons: ["not a dependency"] },
+    ],
+    [
+      "not a dependency",
+      new Date("2019/06/1"),
+      new Date("2018/06/1"),
+      false,
+      { outcome: "not applied", reasons: ["not a dependency"] },
+    ],
+    [
+      "dependency",
+      undefined,
+      new Date("2018/06/1"),
+      false,
+      { outcome: "not applied", reasons: ["dependency has no due date"] },
+    ],
+    [
+      "dependency",
+      new Date("2019/06/1"),
+      new Date("2018/06/1"),
+      false,
+      { outcome: "fail", reasons: ["due date has passed"] },
+    ],
+    [
+      "dependency",
+      new Date("2019/06/1"),
+      new Date("2018/06/1"),
+      true,
+      { outcome: "not applied", reasons: ["dependency is closed"] },
+    ],
+    [
+      "dependency",
+      new Date("2017/06/1"),
+      new Date("2018/06/1"),
+      false,
+      { outcome: "ok", reasons: ["due date has not passed"] },
+    ],
+    [
+      "dependency",
+      new Date("2017/06/1"),
+      new Date("2018/06/1"),
+      true,
+      { outcome: "not applied", reasons: ["dependency is closed"] },
+    ],
+  ])("checks as expected", (issueTypeName, duedate, now, closed, expected) => {
+    const input = {
+      ...enhancedIssue,
+      fields: {
+        ...enhancedIssue.fields,
+        issuetype: {
+          ...enhancedIssue.fields.issuetype,
+          name: issueTypeName,
+        },
+        duedate,
+      },
+      closed,
+    };
+
+    const actual = validateNotClosedDependenciesNotPassedDueDate(now)(input);
 
     expect(actual).toEqual(expect.objectContaining(expected));
   });

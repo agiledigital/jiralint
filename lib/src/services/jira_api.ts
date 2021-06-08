@@ -428,6 +428,7 @@ export const searchIssues = async (
           "aggregatetimespent",
           "created",
           "parent",
+          "duedate",
           AccountField,
           QualityField,
         ],
