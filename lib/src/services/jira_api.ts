@@ -15,6 +15,7 @@ import {
   User,
   JiraError,
   QualityField,
+  QaImpactStatementField,
 } from "./jira";
 import * as T from "io-ts";
 import { ReadonlyRecord } from "readonly-types";
@@ -64,6 +65,16 @@ export type Requested = {
   readonly requestSecret: string;
   readonly requestToken: string;
 };
+
+/**
+ * Prefix of the name of boards to be ignored when determining the 'column' that a ticket is currently in.
+ * This column is used as proxy for the status of tickets in some circumstances (e.g. to
+ * abstract over the statuses of different issue types.)
+ */
+const boardNamesToIgnore: readonly string[] = [
+  "delivery management board",
+  "copy of",
+];
 
 /**
  * Requests a temporary token from Jira for the user to authorise access.
@@ -251,7 +262,12 @@ const boardsForProject = (jiraApi: JiraApi) => (
     boards: ReadonlyArray<BoardSummary>
   ): TE.TaskEither<string, ReadonlyArray<number>> => {
     const ids: ReadonlyArray<number> = boards
-      .filter((board) => !board.name.toLowerCase().startsWith("copy of"))
+      .filter(
+        (board) =>
+          !boardNamesToIgnore.some((prefix) =>
+            board.name.toLowerCase().startsWith(prefix)
+          )
+      )
       .map((board) => board.id);
     return TE.right(ids);
   };
@@ -330,7 +346,7 @@ const fetchMostRecentComment = (
 };
 
 const issueLink = (issue: Issue): string =>
-  `${jiraHost}://${jiraProtocol}/browse/${encodeURIComponent(issue.key)}`;
+  `${jiraProtocol}://${jiraHost}/browse/${encodeURIComponent(issue.key)}`;
 
 export type FieldNotEditable = {
   readonly fields: ReadonlyArray<string>;
@@ -431,6 +447,7 @@ export const searchIssues = async (
           "duedate",
           AccountField,
           QualityField,
+          QaImpactStatementField,
         ],
         expand: ["changelog"],
       }),

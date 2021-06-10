@@ -17,6 +17,8 @@ export const AccountField = "customfield_11410 "; // FIXME should be configurabl
 
 export const QualityField = "customfield_12410"; // FIXME should be configurable.
 
+export const QaImpactStatementField = "customfield_10111"; // FIXME should be configurable.
+
 export const PaginatedResults = T.readonly(
   T.type({
     maxResults: T.number,
@@ -128,6 +130,7 @@ export const Issue = T.type({
       aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
       aggregatetimespent: nullOrMissingToUndefined(T.number),
       [QualityField]: nullOrMissingToUndefined(T.string),
+      [QaImpactStatementField]: nullOrMissingToUndefined(T.string),
       parent: T.type({
         id: T.string,
         key: T.string,
