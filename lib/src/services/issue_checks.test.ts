@@ -1,7 +1,10 @@
+/* eslint-disable jest/expect-expect */
+/* eslint-disable functional/no-return-void */
 /* eslint-disable sonarjs/no-duplicate-string */
 /* eslint-disable no-restricted-globals */
 /* eslint-disable functional/functional-parameters */
 /* eslint-disable functional/no-expression-statement */
+/* eslint-disable-next-line functional/no-return-void */
 import {
   validateInProgressHasEstimate,
   validateDescription,
@@ -9,8 +12,11 @@ import {
   validateTooLongInBacklog,
   validateDependenciesHaveDueDate,
   validateNotClosedDependenciesNotPassedDueDate,
+  validateHasQaImpactStatement,
+  CheckResult,
 } from "./issue_checks";
-import { EnhancedIssue, Issue } from "./jira";
+import { EnhancedIssue, Issue, QaImpactStatementField } from "./jira";
+import fc from "fast-check";
 
 const issue: Issue = {
   key: "ABC-123",
@@ -362,5 +368,71 @@ describe("checking that dependencies have not blown past the due date", () => {
     const actual = validateNotClosedDependenciesNotPassedDueDate(now)(input);
 
     expect(actual).toEqual(expect.objectContaining(expected));
+  });
+});
+
+describe("checking QA impact statements", () => {
+  const input = (
+    column: string,
+    statement: string | undefined
+  ): EnhancedIssue => ({
+    ...enhancedIssue,
+    fields: {
+      ...enhancedIssue.fields,
+      [QaImpactStatementField]: statement,
+    },
+    column,
+  });
+
+  const check = (expected: Partial<CheckResult>) => (
+    column: string,
+    statement: string | undefined
+  ) => {
+    const actual = validateHasQaImpactStatement(input(column, statement));
+    expect(actual).toEqual(expect.objectContaining(expected));
+  };
+
+  const inReviewOrCompleted = fc.oneof(
+    fc.constant("review"),
+    fc.constant("completed"),
+    fc.constant("Review"),
+    fc.constant("Completed")
+  );
+
+  it("should always pass issues in review or completed that have a non-empty statement", () => {
+    fc.assert(
+      fc.property(
+        inReviewOrCompleted,
+        fc.string({ minLength: 1 }).filter((s) => s.trim().length > 0),
+        check({
+          outcome: "ok",
+          reasons: ["has a QA impact statement"],
+        })
+      )
+    );
+  });
+  it("should always fail issues in review or completed that have an empty statement", () => {
+    fc.assert(
+      fc.property(
+        inReviewOrCompleted,
+        fc.oneof(fc.constant(undefined), fc.constant(""), fc.constant("   ")),
+        check({
+          outcome: "fail",
+          reasons: ["missing a QA impact statement"],
+        })
+      )
+    );
+  });
+  it("should not apply to issues that are not in review or completed", () => {
+    fc.assert(
+      fc.property(
+        fc.string().filter((s) => s !== "review" && s !== "completed"),
+        fc.string(),
+        check({
+          outcome: "not applied",
+          reasons: ["does not apply unless in Review or Completed"],
+        })
+      )
+    );
   });
 });
