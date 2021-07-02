@@ -56,6 +56,40 @@ const checker = (check: string): Checker => ({
   }),
 });
 
+const lastBusinessDay = (at: ReadonlyDate): ReadonlyDate =>
+  subBusinessDays(at.valueOf(), 1);
+
+/**
+ * Checks whether an in-progress ticket has been worked (as evidenced by work logs)
+ *
+ * Applies to: tickets that have an in-progress status category.
+ * Fails if: no worklogs in the last business day.
+ *
+ * @param at the current time
+ * @param issue the issue too check.
+ * @returns result of checking the issue.
+ */
+export const validateInProgressHasWorklog = (at: ReadonlyDate) => (
+  issue: EnhancedIssue
+): CheckResult => {
+  const check = checker("In progress tickets have been worked");
+
+  const mostRecentWork = issue.mostRecentWorklog?.started;
+
+  const workedRecently =
+    mostRecentWork === undefined
+      ? false
+      : isBefore(mostRecentWork, lastBusinessDay(at).valueOf());
+
+  return match<readonly [boolean, string]>([
+    workedRecently,
+    issue.fields.status.name.toLowerCase(),
+  ])
+    .with([false, "in progress"], () => check.fail("no recent worklog"))
+    .with([true, "in progress"], () => check.ok("has recent worklog"))
+    .otherwise(() => check.na("does not apply unless in progress"));
+};
+
 /**
  * Checks that issues have a QA impact statement if they are review (close to being tested)
  * or completed (ready to be tested).
@@ -238,8 +272,6 @@ export const validateComment = (at: ReadonlyDate) => (
 ): CheckResult => {
   const check = checker("issues that have been worked have comments");
 
-  const lastBusinessDay = subBusinessDays(at.valueOf(), 1);
-
   const timeOfMostRecentComment = issue.mostRecentComment?.created.valueOf();
   const loggedTime = issue.fields.aggregatetimespent ?? 0;
 
@@ -265,7 +297,7 @@ export const validateComment = (at: ReadonlyDate) => (
     .with(
       [not(undefined), __, false, __],
       ([recentCommentTime, inProgress, , loggedTime]) =>
-        isBefore(recentCommentTime, lastBusinessDay) &&
+        isBefore(recentCommentTime, lastBusinessDay(at).valueOf()) &&
         (inProgress || loggedTime > 0),
       ([recentCommentTime]) => {
         const commentAge = formatDistance(recentCommentTime, at.valueOf());
@@ -346,5 +378,6 @@ export const issueActionRequired = (
         validateDependenciesHaveDueDate,
         validateNotClosedDependenciesNotPassedDueDate(now),
         validateHasQaImpactStatement,
+        validateInProgressHasWorklog(now),
       ]);
 };
