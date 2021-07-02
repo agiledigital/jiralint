@@ -16,12 +16,14 @@ import {
   JiraError,
   QualityField,
   QaImpactStatementField,
+  IssueWorklog,
 } from "./jira";
 import * as T from "io-ts";
 import { ReadonlyRecord } from "readonly-types";
 import { pipe, flow } from "fp-ts/lib/function";
 import { PathReporter } from "io-ts/PathReporter";
 import { isLeft } from "fp-ts/lib/These";
+import { compareDesc } from "date-fns";
 
 const privKey = `-----BEGIN PRIVATE KEY-----
 MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAN2x/ovMRTUt3qIy
@@ -307,10 +309,39 @@ const boardsByProject = (
   )(boards);
 };
 
-const fetchMostRecentComment = (
+const fetchMostRecentWorklogs = (
   issueKey: string,
   jiraApi: JiraApi
-): TE.TaskEither<string, IssueComment | undefined> => {
+): TE.TaskEither<string, ReadonlyArray<IssueWorklog>> => {
+  const fetch = TE.tryCatch(
+    () => jiraApi.genericGet(`issue/${encodeURIComponent(issueKey)}/worklog`),
+    (error) =>
+      `Failed to fetch worklogs for [${issueKey}] - [${JSON.stringify(
+        error,
+        null,
+        2
+      )}].`
+  );
+
+  const parsed = (
+    response: JiraApi.JsonResponse
+  ): TE.TaskEither<string, ReadonlyArray<IssueWorklog>> =>
+    TE.fromEither(
+      decode(
+        "worklogs",
+        response["worklogs"],
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        T.readonlyArray(IssueWorklog).decode
+      )
+    );
+
+  return pipe(fetch, TE.chain(parsed));
+};
+
+const fetchMostRecentComments = (
+  issueKey: string,
+  jiraApi: JiraApi
+): TE.TaskEither<string, ReadonlyArray<IssueComment>> => {
   const fetch = TE.tryCatch(
     () =>
       jiraApi.genericGet(
@@ -338,11 +369,7 @@ const fetchMostRecentComment = (
       )
     );
 
-  return pipe(
-    fetch,
-    TE.chain(parsed),
-    TE.map((comments) => comments[0])
-  );
+  return pipe(fetch, TE.chain(parsed));
 };
 
 const issueLink = (issue: Issue): string =>
@@ -491,18 +518,52 @@ export const searchIssues = async (
     issue: EnhancedIssue
   ): TE.TaskEither<string, EnhancedIssue> => {
     const mostRecentCommentLoaded =
+      issue.fields.comment !== undefined &&
       issue.fields.comment.total === issue.fields.comment.comments.length;
 
-    const recentComment =
-      issue.fields.comment.comments[issue.fields.comment.comments.length - 1];
+    const recentComment = (
+      worklogs: ReadonlyArray<IssueComment> | undefined
+    ): IssueComment | undefined =>
+      worklogs === undefined
+        ? undefined
+        : [...worklogs].sort((w1, w2) =>
+            compareDesc(w1.created, w2.created)
+          )[0];
 
     return pipe(
       mostRecentCommentLoaded
-        ? TE.right(recentComment)
-        : fetchMostRecentComment(issue.key, jiraApi),
-      TE.map((comment) => ({
+        ? TE.right(issue.fields.comment?.comments)
+        : fetchMostRecentComments(issue.key, jiraApi),
+      TE.map((comments) => ({
         ...issue,
-        mostRecentComment: comment,
+        mostRecentComment: recentComment(comments),
+      }))
+    );
+  };
+
+  const issueWithWorklog = (
+    issue: EnhancedIssue
+  ): TE.TaskEither<string, EnhancedIssue> => {
+    const mostRecentWorklogLoaded =
+      issue.fields.worklog !== undefined &&
+      issue.fields.worklog.total === issue.fields.worklog.worklogs.length;
+
+    const recentWorklog = (
+      worklogs: ReadonlyArray<IssueWorklog> | undefined
+    ): IssueWorklog | undefined =>
+      worklogs === undefined
+        ? undefined
+        : [...worklogs].sort((w1, w2) =>
+            compareDesc(w1.started, w2.started)
+          )[0];
+
+    return pipe(
+      mostRecentWorklogLoaded
+        ? TE.right(issue.fields.worklog?.worklogs)
+        : fetchMostRecentWorklogs(issue.key, jiraApi),
+      TE.map((worklogs) => ({
+        ...issue,
+        mostRecentWorklog: recentWorklog(worklogs),
       }))
     );
   };
@@ -511,7 +572,8 @@ export const searchIssues = async (
     fetchIssues,
     TE.chain(parsed),
     TE.chain(enhancedIssues),
-    TE.chain(TE.traverseSeqArray((issue) => issueWithComment(issue)))
+    TE.chain(TE.traverseSeqArray((issue) => issueWithComment(issue))),
+    TE.chain(TE.traverseSeqArray((issue) => issueWithWorklog(issue)))
   )();
 };
 

@@ -55,6 +55,13 @@ export const ChangeLog = T.type({
   ),
 });
 
+export const IssueWorklog = T.type({
+  author: Author,
+  started: ITT.DateFromISOString,
+  timeSpentSeconds: T.number,
+  comment: nullOrMissingToUndefined(T.string),
+});
+
 export const Issue = T.type({
   key: T.string,
   self: T.string,
@@ -110,13 +117,25 @@ export const Issue = T.type({
           colorName: nullOrMissingToUndefined(T.string),
         }),
       }),
-      comment: T.readonly(
-        T.intersection([
-          PaginatedResults,
-          T.type({
-            comments: T.readonlyArray(IssueComment),
-          }),
-        ])
+      comment: nullOrMissingToUndefined(
+        T.readonly(
+          T.intersection([
+            PaginatedResults,
+            T.type({
+              comments: T.readonlyArray(IssueComment),
+            }),
+          ])
+        )
+      ),
+      worklog: nullOrMissingToUndefined(
+        T.readonly(
+          T.intersection([
+            PaginatedResults,
+            T.type({
+              worklogs: T.readonlyArray(IssueWorklog),
+            }),
+          ])
+        )
       ),
       duedate: nullOrMissingToUndefined(ITT.DateFromISOString),
     }),
@@ -152,6 +171,8 @@ export type Issue = T.TypeOf<typeof Issue>;
 export type IssueComment = T.TypeOf<typeof IssueComment>;
 
 export type IssueChangeLog = T.TypeOf<typeof ChangeLog>;
+
+export type IssueWorklog = T.TypeOf<typeof IssueWorklog>;
 
 export const BoardColumn = T.type({
   name: T.string,
@@ -192,6 +213,7 @@ export type EnhancedIssue = Issue & {
   readonly column?: string;
   readonly mostRecentComment?: IssueComment;
   readonly mostRecentTransition?: IssueChangeLog;
+  readonly mostRecentWorklog?: IssueWorklog;
   readonly viewLink: string;
 };
 
@@ -253,12 +275,6 @@ export const enhancedIssue = (
   viewLink: string,
   board?: Board
 ): EnhancedIssue => {
-  const comments: readonly IssueComment[] = [
-    ...issue.fields.comment.comments,
-  ].sort((a, b) => compareDesc(a.created, b.created));
-
-  const mostRecentComment = comments[0];
-
   const changelogs: readonly IssueChangeLog[] = [
     ...issue.changelog.histories,
   ].sort((a, b) => compareDesc(a.created, b.created));
@@ -278,7 +294,6 @@ export const enhancedIssue = (
     closed: issueClosed(issue, board),
     column:
       board !== undefined ? columnForIssue(issue, board)?.name : undefined,
-    mostRecentComment: mostRecentComment,
     mostRecentTransition: mostRecentTransition,
     released: released,
     viewLink,

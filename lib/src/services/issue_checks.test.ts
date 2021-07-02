@@ -58,6 +58,12 @@ const issue: Issue = {
       startAt: 0,
     },
     duedate: undefined,
+    worklog: {
+      worklogs: [],
+      maxResults: 0,
+      total: 0,
+      startAt: 0,
+    },
   },
   changelog: {
     histories: [],
