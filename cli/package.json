@@ -25,7 +25,7 @@
     "io-ts": "^2.2.15",
     "io-ts-types": "^0.5.15",
     "lib": "file://../lib",
-    "monocle-ts": "^2.3.9",
+    "monocle-ts": "^2.3.10",
     "newtype-ts": "^0.3.4",
     "oauth": "^0.9.15",
     "readonly-types": "^2.0.0",
