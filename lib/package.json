@@ -71,7 +71,7 @@
     "string-length": "^4.0.2",
     "ts-jest": "^26.5.5",
     "type-coverage": "^2.17.2",
-    "typescript": "^4.2.4"
+    "typescript": "^4.3.5"
   },
   "typeCoverage": {
     "atLeast": 100,
