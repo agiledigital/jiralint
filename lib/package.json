@@ -48,7 +48,7 @@
     "newtype-ts": "^0.3.4",
     "oauth": "^0.9.15",
     "readonly-types": "^2.0.0",
-    "ts-pattern": "^3.1.2"
+    "ts-pattern": "^3.2.1"
   },
   "devDependencies": {
     "@semantic-release/git": "^9.0.0",
