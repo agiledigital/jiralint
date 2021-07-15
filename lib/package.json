@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "colors": "^1.4.0",
-    "date-fns": "^2.19.0",
+    "date-fns": "^2.22.1",
     "fp-ts": "^2.10.5",
     "io-ts": "^2.2.15",
     "io-ts-types": "^0.5.15",
