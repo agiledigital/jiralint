@@ -69,26 +69,26 @@ const lastBusinessDay = (at: ReadonlyDate): ReadonlyDate =>
  * @param issue the issue too check.
  * @returns result of checking the issue.
  */
-export const validateInProgressHasWorklog =
-  (at: ReadonlyDate) =>
-  (issue: EnhancedIssue): CheckResult => {
-    const check = checker("In progress tickets have been worked");
+export const validateInProgressHasWorklog = (at: ReadonlyDate) => (
+  issue: EnhancedIssue
+): CheckResult => {
+  const check = checker("In progress tickets have been worked");
 
-    const mostRecentWork = issue.mostRecentWorklog?.started;
+  const mostRecentWork = issue.mostRecentWorklog?.started;
 
-    const workedRecently =
-      mostRecentWork === undefined
-        ? false
-        : isBefore(mostRecentWork.valueOf(), lastBusinessDay(at).valueOf());
+  const workedRecently =
+    mostRecentWork === undefined
+      ? false
+      : isBefore(mostRecentWork.valueOf(), lastBusinessDay(at).valueOf());
 
-    return match<readonly [boolean, string]>([
-      workedRecently,
-      issue.fields.status.name.toLowerCase(),
-    ])
-      .with([false, "in progress"], () => check.fail("no recent worklog"))
-      .with([true, "in progress"], () => check.ok("has recent worklog"))
-      .otherwise(() => check.na("does not apply unless in progress"));
-  };
+  return match<readonly [boolean, string]>([
+    workedRecently,
+    issue.fields.status.name.toLowerCase(),
+  ])
+    .with([false, "in progress"], () => check.fail("no recent worklog"))
+    .with([true, "in progress"], () => check.ok("has recent worklog"))
+    .otherwise(() => check.na("does not apply unless in progress"));
+};
 
 /**
  * Checks that issues have a QA impact statement if they are review (close to being tested)
@@ -142,34 +142,34 @@ export const validateDependenciesHaveDueDate = (
  * @param issue the issue to check.
  * @returns result of checking the issue.
  */
-export const validateNotClosedDependenciesNotPassedDueDate =
-  (at: ReadonlyDate) =>
-  (issue: EnhancedIssue): CheckResult => {
-    const check = checker("Dependencies not passed due date");
+export const validateNotClosedDependenciesNotPassedDueDate = (
+  at: ReadonlyDate
+) => (issue: EnhancedIssue): CheckResult => {
+  const check = checker("Dependencies not passed due date");
 
-    const closed = issue.closed;
+  const closed = issue.closed;
 
-    return match<readonly [boolean, boolean, ReadonlyDate | undefined]>([
-      issue.fields.issuetype.name.toLowerCase() === "dependency",
-      closed,
-      issue.fields.duedate,
-    ])
-      .with([false, __, __], () => check.na("not a dependency"))
-      .with([true, true, __], () => check.na("dependency is closed"))
-      .with([true, __, undefined], () => check.na("dependency has no due date"))
-      .with(
-        [
-          true,
-          __,
-          when(
-            (duedate) =>
-              duedate !== undefined && isAfter(duedate.valueOf(), at.valueOf())
-          ),
-        ],
-        () => check.fail("due date has passed")
-      )
-      .otherwise(() => check.ok("due date has not passed"));
-  };
+  return match<readonly [boolean, boolean, ReadonlyDate | undefined]>([
+    issue.fields.issuetype.name.toLowerCase() === "dependency",
+    closed,
+    issue.fields.duedate,
+  ])
+    .with([false, __, __], () => check.na("not a dependency"))
+    .with([true, true, __], () => check.na("dependency is closed"))
+    .with([true, __, undefined], () => check.na("dependency has no due date"))
+    .with(
+      [
+        true,
+        __,
+        when(
+          (duedate) =>
+            duedate !== undefined && isAfter(duedate.valueOf(), at.valueOf())
+        ),
+      ],
+      () => check.fail("due date has passed")
+    )
+    .otherwise(() => check.ok("due date has not passed"));
+};
 
 export const validateInProgressHasEstimate = (
   issue: EnhancedIssue
@@ -199,27 +199,27 @@ export const validateDescription = (issue: EnhancedIssue): CheckResult => {
     : check.fail("description is empty");
 };
 
-const validateNotStalledForTooLong =
-  (at: ReadonlyDate) =>
-  (issue: EnhancedIssue): CheckResult => {
-    const check = checker("issues not stalled for too long");
+const validateNotStalledForTooLong = (at: ReadonlyDate) => (
+  issue: EnhancedIssue
+): CheckResult => {
+  const check = checker("issues not stalled for too long");
 
-    return match<readonly [boolean, ReadonlyDate | undefined]>([
-      issue.stalled,
-      issue.mostRecentTransition?.created,
-    ])
-      .with([false, __], () => check.na("not stalled"))
-      .with([true, undefined], () =>
-        check.cantApply("can not determine transition date")
-      )
-      .with(
-        [true, not(undefined)],
-        ([, transition]) =>
-          differenceInBusinessDays(at.valueOf(), transition.valueOf()) > 0,
-        () => check.fail("stalled for more than 1 day")
-      )
-      .otherwise(() => check.ok("stalled for less than on day"));
-  };
+  return match<readonly [boolean, ReadonlyDate | undefined]>([
+    issue.stalled,
+    issue.mostRecentTransition?.created,
+  ])
+    .with([false, __], () => check.na("not stalled"))
+    .with([true, undefined], () =>
+      check.cantApply("can not determine transition date")
+    )
+    .with(
+      [true, not(undefined)],
+      ([, transition]) =>
+        differenceInBusinessDays(at.valueOf(), transition.valueOf()) > 0,
+      () => check.fail("stalled for more than 1 day")
+    )
+    .otherwise(() => check.ok("stalled for less than on day"));
+};
 
 const validateInProgressNotCloseToEstimate = (
   issue: EnhancedIssue
@@ -244,70 +244,70 @@ const validateInProgressNotCloseToEstimate = (
 /**
  * Checks that issues haven't been languishing in the backlog for too long.
  */
-export const validateTooLongInBacklog =
-  (at: ReadonlyDate) =>
-  (issue: EnhancedIssue): CheckResult => {
-    const check = checker("issues don't stay in the backlog for too long");
-    const ageInMonths = differenceInCalendarMonths(
-      at.valueOf(),
-      issue.fields.created.valueOf()
-    );
+export const validateTooLongInBacklog = (at: ReadonlyDate) => (
+  issue: EnhancedIssue
+): CheckResult => {
+  const check = checker("issues don't stay in the backlog for too long");
+  const ageInMonths = differenceInCalendarMonths(
+    at.valueOf(),
+    issue.fields.created.valueOf()
+  );
 
-    return match<readonly [string | undefined, number]>([
-      issue.column?.toLocaleLowerCase(),
-      ageInMonths,
-    ])
-      .with([not("backlog"), __], () => check.na("not on the backlog"))
-      .with(
-        ["backlog", __],
-        ([, age]) => age > 3,
-        () => check.fail(`in backlog for too long [${ageInMonths} months]`)
-      )
-      .otherwise(() => check.ok("not too long in backlog"));
-  };
+  return match<readonly [string | undefined, number]>([
+    issue.column?.toLocaleLowerCase(),
+    ageInMonths,
+  ])
+    .with([not("backlog"), __], () => check.na("not on the backlog"))
+    .with(
+      ["backlog", __],
+      ([, age]) => age > 3,
+      () => check.fail(`in backlog for too long [${ageInMonths} months]`)
+    )
+    .otherwise(() => check.ok("not too long in backlog"));
+};
 
 // TODO check sub-tasks for comments?
-export const validateComment =
-  (at: ReadonlyDate) =>
-  (issue: EnhancedIssue): CheckResult => {
-    const check = checker("issues that have been worked have comments");
+export const validateComment = (at: ReadonlyDate) => (
+  issue: EnhancedIssue
+): CheckResult => {
+  const check = checker("issues that have been worked have comments");
 
-    const timeOfMostRecentComment = issue.mostRecentComment?.created.valueOf();
-    const loggedTime = issue.fields.aggregatetimespent ?? 0;
+  const timeOfMostRecentComment = issue.mostRecentComment?.created.valueOf();
+  const loggedTime = issue.fields.aggregatetimespent ?? 0;
 
-    // FIXME this needs to use the aggregated times
-    // FIXME check issue age
+  // FIXME this needs to use the aggregated times
+  // FIXME check issue age
 
-    return match<readonly [number | undefined, boolean, boolean, number]>([
-      timeOfMostRecentComment,
-      issue.inProgress,
-      issue.closed,
-      loggedTime,
-    ])
-      .with([undefined, false, __, 0], () =>
-        check.na("not in progress and no time logged")
-      )
-      .with([__, __, true, __], () => check.na("closed"))
-      .with([undefined, true, false, __], () =>
-        check.fail("no comments, in progress")
-      )
-      .with([undefined, __, false, __], () =>
-        check.fail("no comments, time logged")
-      )
-      .with(
-        [not(undefined), __, false, __],
-        ([recentCommentTime, inProgress, , loggedTime]) =>
-          isBefore(recentCommentTime, lastBusinessDay(at).valueOf()) &&
-          (inProgress || loggedTime > 0),
-        ([recentCommentTime]) => {
-          const commentAge = formatDistance(recentCommentTime, at.valueOf());
-          return check.fail(
-            `last comment was ${commentAge} since last business day, which is longer than allowed`
-          );
-        }
-      )
-      .otherwise(() => check.ok("has recent comments"));
-  };
+  return match<readonly [number | undefined, boolean, boolean, number]>([
+    timeOfMostRecentComment,
+    issue.inProgress,
+    issue.closed,
+    loggedTime,
+  ])
+    .with([undefined, false, __, 0], () =>
+      check.na("not in progress and no time logged")
+    )
+    .with([__, __, true, __], () => check.na("closed"))
+    .with([undefined, true, false, __], () =>
+      check.fail("no comments, in progress")
+    )
+    .with([undefined, __, false, __], () =>
+      check.fail("no comments, time logged")
+    )
+    .with(
+      [not(undefined), __, false, __],
+      ([recentCommentTime, inProgress, , loggedTime]) =>
+        isBefore(recentCommentTime, lastBusinessDay(at).valueOf()) &&
+        (inProgress || loggedTime > 0),
+      ([recentCommentTime]) => {
+        const commentAge = formatDistance(recentCommentTime, at.valueOf());
+        return check.fail(
+          `last comment was ${commentAge} since last business day, which is longer than allowed`
+        );
+      }
+    )
+    .otherwise(() => check.ok("has recent comments"));
+};
 
 const check = (
   issue: EnhancedIssue,

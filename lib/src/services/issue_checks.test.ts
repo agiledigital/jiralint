@@ -330,12 +330,13 @@ describe("checking QA impact statements", () => {
     column,
   });
 
-  const check =
-    (expected: Partial<CheckResult>) =>
-    (column: string, statement: string | undefined) => {
-      const actual = validateHasQaImpactStatement(input(column, statement));
-      expect(actual).toEqual(expect.objectContaining(expected));
-    };
+  const check = (expected: Partial<CheckResult>) => (
+    column: string,
+    statement: string | undefined
+  ) => {
+    const actual = validateHasQaImpactStatement(input(column, statement));
+    expect(actual).toEqual(expect.objectContaining(expected));
+  };
 
   const inReviewOrCompleted = fc.oneof(
     fc.constant("review"),
