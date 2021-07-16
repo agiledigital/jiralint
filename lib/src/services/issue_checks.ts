@@ -79,7 +79,7 @@ export const validateInProgressHasWorklog = (at: ReadonlyDate) => (
   const workedRecently =
     mostRecentWork === undefined
       ? false
-      : isBefore(mostRecentWork, lastBusinessDay(at).valueOf());
+      : isBefore(mostRecentWork.valueOf(), lastBusinessDay(at).valueOf());
 
   return match<readonly [boolean, string]>([
     workedRecently,
@@ -250,7 +250,7 @@ export const validateTooLongInBacklog = (at: ReadonlyDate) => (
   const check = checker("issues don't stay in the backlog for too long");
   const ageInMonths = differenceInCalendarMonths(
     at.valueOf(),
-    issue.fields.created
+    issue.fields.created.valueOf()
   );
 
   return match<readonly [string | undefined, number]>([
@@ -346,7 +346,10 @@ export const issueDeservesGrace = (
   issue: EnhancedIssue,
   now: ReadonlyDate
 ): boolean => {
-  const age = differenceInBusinessDays(issue.fields.created, now.valueOf());
+  const age = differenceInBusinessDays(
+    issue.fields.created.valueOf(),
+    now.valueOf()
+  );
   const timeSpent = issue.fields.aggregatetimespent ?? 0;
 
   return !issue.inProgress && timeSpent === 0 && age < 2;

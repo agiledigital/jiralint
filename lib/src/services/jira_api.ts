@@ -527,7 +527,7 @@ export const searchIssues = async (
       worklogs === undefined
         ? undefined
         : [...worklogs].sort((w1, w2) =>
-            compareDesc(w1.created, w2.created)
+            compareDesc(w1.created.valueOf(), w2.created.valueOf())
           )[0];
 
     return pipe(
@@ -554,7 +554,7 @@ export const searchIssues = async (
       worklogs === undefined
         ? undefined
         : [...worklogs].sort((w1, w2) =>
-            compareDesc(w1.started, w2.started)
+            compareDesc(w1.started.valueOf(), w2.started.valueOf())
           )[0];
 
     return pipe(
