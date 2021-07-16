@@ -38,10 +38,10 @@ export const jiraFormattedDuration = (duration: Duration): string => {
  * @returns duration in a Jira-like format.
  */
 export const jiraFormattedSeconds = (seconds: number): string => {
-  const units = (seconds: number, unit: number): readonly [number, number] => {
-    const units = Math.floor(seconds / unit);
-    const remainder = seconds - units * unit;
-    return [units, remainder];
+  const units = (n: number, unit: number): readonly [number, number] => {
+    const numberOfUnits = Math.floor(n / unit);
+    const remainder = n - numberOfUnits * unit;
+    return [numberOfUnits, remainder];
   };
 
   const ONE_MINUTE_IN_SECONDS = 60;

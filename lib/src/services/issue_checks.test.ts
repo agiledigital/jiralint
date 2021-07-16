@@ -15,69 +15,9 @@ import {
   validateHasQaImpactStatement,
   CheckResult,
 } from "./issue_checks";
-import { EnhancedIssue, Issue, QaImpactStatementField } from "./jira";
+import * as IssueData from "./test_data/issue_data";
+import { EnhancedIssue, QaImpactStatementField } from "./jira";
 import fc from "fast-check";
-
-const issue: Issue = {
-  key: "ABC-123",
-  self: "self",
-  fields: {
-    summary: "summary",
-    description: "description",
-    created: new Date("2020-01-01"),
-    project: {
-      key: "project",
-    },
-    timetracking: {},
-    fixVersions: [],
-    aggregateprogress: {
-      progress: undefined,
-      total: undefined,
-      percent: undefined,
-    },
-    issuetype: {
-      name: "issue name",
-      subtask: false,
-    },
-    assignee: {
-      name: "assignee",
-    },
-    status: {
-      id: "id",
-      name: "status",
-      statusCategory: {
-        id: undefined,
-        name: undefined,
-        colorName: undefined,
-      },
-    },
-    comment: {
-      comments: [],
-      maxResults: 0,
-      total: 0,
-      startAt: 0,
-    },
-    duedate: undefined,
-    worklog: {
-      worklogs: [],
-      maxResults: 0,
-      total: 0,
-      startAt: 0,
-    },
-  },
-  changelog: {
-    histories: [],
-  },
-};
-
-const enhancedIssue: EnhancedIssue = {
-  ...issue,
-  inProgress: true,
-  stalled: false,
-  closed: false,
-  released: false,
-  viewLink: "viewlink",
-};
 
 describe("checking that in progress tickets have estimates", () => {
   it.each([
@@ -87,10 +27,10 @@ describe("checking that in progress tickets have estimates", () => {
     [false, 10, { outcome: "not applied", reasons: ["not in progress"] }],
   ])("checks as expected", (inProgress, estimate, expected) => {
     const input = {
-      ...enhancedIssue,
+      ...IssueData.enhancedIssue,
       inProgress,
       fields: {
-        ...enhancedIssue.fields,
+        ...IssueData.enhancedIssue.fields,
         aggregatetimeoriginalestimate: estimate,
       },
     };
@@ -108,9 +48,9 @@ describe("checking that tickets have a description", () => {
     ["description", { outcome: "ok", reasons: ["description isn't empty"] }],
   ])("checks as expected", (description, expected) => {
     const input = {
-      ...enhancedIssue,
+      ...IssueData.enhancedIssue,
       fields: {
-        ...enhancedIssue.fields,
+        ...IssueData.enhancedIssue.fields,
         description,
       },
     };
@@ -206,9 +146,9 @@ describe("checking comments", () => {
           : undefined;
 
       const input = {
-        ...enhancedIssue,
+        ...IssueData.enhancedIssue,
         fields: {
-          ...enhancedIssue.fields,
+          ...IssueData.enhancedIssue.fields,
           aggregatetimespent,
         },
         mostRecentComment,
@@ -251,9 +191,9 @@ describe("checking for tickets languishing in the backlog", () => {
     ],
   ])("checks as expected", (created, column, now, expected) => {
     const input = {
-      ...enhancedIssue,
+      ...IssueData.enhancedIssue,
       fields: {
-        ...enhancedIssue.fields,
+        ...IssueData.enhancedIssue.fields,
         created,
       },
       column,
@@ -289,11 +229,11 @@ describe("checking that dependencies have a due date", () => {
     ],
   ])("checks as expected", (issueTypeName, duedate, expected) => {
     const input = {
-      ...enhancedIssue,
+      ...IssueData.enhancedIssue,
       fields: {
-        ...enhancedIssue.fields,
+        ...IssueData.enhancedIssue.fields,
         issuetype: {
-          ...enhancedIssue.fields.issuetype,
+          ...IssueData.enhancedIssue.fields.issuetype,
           name: issueTypeName,
         },
         duedate,
@@ -359,11 +299,11 @@ describe("checking that dependencies have not blown past the due date", () => {
     ],
   ])("checks as expected", (issueTypeName, duedate, now, closed, expected) => {
     const input = {
-      ...enhancedIssue,
+      ...IssueData.enhancedIssue,
       fields: {
-        ...enhancedIssue.fields,
+        ...IssueData.enhancedIssue.fields,
         issuetype: {
-          ...enhancedIssue.fields.issuetype,
+          ...IssueData.enhancedIssue.fields.issuetype,
           name: issueTypeName,
         },
         duedate,
@@ -382,21 +322,20 @@ describe("checking QA impact statements", () => {
     column: string,
     statement: string | undefined
   ): EnhancedIssue => ({
-    ...enhancedIssue,
+    ...IssueData.enhancedIssue,
     fields: {
-      ...enhancedIssue.fields,
+      ...IssueData.enhancedIssue.fields,
       [QaImpactStatementField]: statement,
     },
     column,
   });
 
-  const check = (expected: Partial<CheckResult>) => (
-    column: string,
-    statement: string | undefined
-  ) => {
-    const actual = validateHasQaImpactStatement(input(column, statement));
-    expect(actual).toEqual(expect.objectContaining(expected));
-  };
+  const check =
+    (expected: Partial<CheckResult>) =>
+    (column: string, statement: string | undefined) => {
+      const actual = validateHasQaImpactStatement(input(column, statement));
+      expect(actual).toEqual(expect.objectContaining(expected));
+    };
 
   const inReviewOrCompleted = fc.oneof(
     fc.constant("review"),

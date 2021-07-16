@@ -1,17 +1,8 @@
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";
 import { compareDesc } from "date-fns";
-
-/**
- * Converts a codec into one that treats a missing property or null value as undefined.
- * @param t the type of the property - if it is supplied and not null.
- * @returns a codec that will treat missing property or null value as undefined.
- */
-const nullOrMissingToUndefined = <P, O = P>(
-  t: T.Type<P, O>
-  // eslint-disable-next-line functional/prefer-readonly-type
-): T.UnionC<[T.Type<P, O, unknown>, T.UndefinedC]> =>
-  ITT.fromNullable(T.union([t, T.undefined]), undefined);
+import { ReadonlyDate } from "readonly-types/dist";
+import { nullOrMissingToUndefined, readOnlyDateFromISOString } from "../codecs";
 
 export const AccountField = "customfield_11410 "; // FIXME should be configurable.
 
@@ -35,14 +26,14 @@ export const IssueComment = T.type({
   id: T.string,
   author: Author,
   body: T.string,
-  created: ITT.DateFromISOString,
-  updated: ITT.DateFromISOString,
+  created: readOnlyDateFromISOString,
+  updated: readOnlyDateFromISOString,
 });
 
 export const ChangeLog = T.type({
   id: T.string,
   author: Author,
-  created: ITT.DateFromISOString,
+  created: readOnlyDateFromISOString,
   items: T.readonlyArray(
     T.type({
       field: T.string,
@@ -57,7 +48,7 @@ export const ChangeLog = T.type({
 
 export const IssueWorklog = T.type({
   author: Author,
-  started: ITT.DateFromISOString,
+  started: readOnlyDateFromISOString,
   timeSpentSeconds: T.number,
   comment: nullOrMissingToUndefined(T.string),
 });
@@ -69,7 +60,7 @@ export const Issue = T.type({
     T.type({
       summary: T.string,
       description: nullOrMissingToUndefined(T.string),
-      created: ITT.DateFromISOString,
+      created: readOnlyDateFromISOString,
       project: T.type({
         key: T.string,
       }),
@@ -215,6 +206,7 @@ export type EnhancedIssue = Issue & {
   readonly mostRecentTransition?: IssueChangeLog;
   readonly mostRecentWorklog?: IssueWorklog;
   readonly viewLink: string;
+  readonly lastWorked?: ReadonlyDate; // The last time that there was evidence the ticket was actively worked (e.g. there was a transition, worklog or comment added).
 };
 
 export const User = T.type({
@@ -270,22 +262,104 @@ const issueClosed = (issue: Issue, board?: Board): boolean => {
     : issue.fields.status.statusCategory.name?.toLowerCase() === "done";
 };
 
+/**
+ * Finds the changelogs where teh status of the issue was changed (i.e. there was a transition).
+ * @param issue the issue whose transitions should be found.
+ * @returns the changelogs where the status changed.
+ */
+export const issueTransitions = (
+  issue: Issue
+): ReadonlyArray<IssueChangeLog> => {
+  const changelogs: readonly IssueChangeLog[] = [...issue.changelog.histories];
+
+  return changelogs.filter((changelog) =>
+    changelog.items.some(
+      (item) => item.field === "status" && item.fieldtype === "jira"
+    )
+  );
+};
+
+/**
+ * Finds the most recent transition of the issue.
+ * @param issue the issue whose most recent transition should be found.
+ * @returns the most recent transition, or undefined if no transitions have occurred.
+ */
+export const mostRecentIssueTransition = (
+  issue: Issue
+): IssueChangeLog | undefined => {
+  const transitions = issueTransitions(issue);
+
+  return [...transitions].sort((a, b) =>
+    compareDesc(a.created.valueOf(), b.created.valueOf())
+  )[0];
+};
+
+/**
+ * Finds the most recent comment of the issue (based on created date).
+ * @param issue the issue whose most recent comment should be found.
+ * @returns the most recent comment, or undefined if no comments have been made.
+ */
+export const mostRecentIssueComment = (
+  issue: Issue
+): IssueComment | undefined => {
+  const comments =
+    issue.fields.comment === undefined ? [] : issue.fields.comment.comments;
+
+  return [...comments].sort((a, b) =>
+    compareDesc(a.created.valueOf(), b.created.valueOf())
+  )[0];
+};
+
+/**
+ * Finds the most recent worklog on the issue (based on the started date).
+ * @param issue the issue whose most recent worklog should be found.
+ * @returns the most recent worklog, or undefined if no work has been logged.
+ */
+export const mostRecentIssueWorklog = (
+  issue: Issue
+): IssueWorklog | undefined => {
+  const worklogs =
+    issue.fields.worklog === undefined ? [] : issue.fields.worklog.worklogs;
+
+  return [...worklogs].sort((a, b) =>
+    compareDesc(a.started.valueOf(), b.started.valueOf())
+  )[0];
+};
+
+/**
+ * Determines the time at which the issue was last worked, as evidenced by
+ * comments, transitions or worklogs.
+ * @param issue the issue.
+ * @returns the time that the issue was last worked, or undefined if it has never been worked.
+ */
+export const issueLastWorked = (issue: Issue): ReadonlyDate | undefined => {
+  const mostRecentTransition = mostRecentIssueTransition(issue);
+
+  const mostRecentComment = mostRecentIssueComment(issue);
+
+  const mostRecentWorklog = mostRecentIssueWorklog(issue);
+
+  return [
+    mostRecentTransition?.created,
+    mostRecentComment?.created,
+    mostRecentWorklog?.started,
+  ]
+    .filter((d): d is ReadonlyDate => d !== undefined)
+    .sort((a, b) => compareDesc(a.valueOf(), b.valueOf()))[0];
+};
+
 export const enhancedIssue = (
   issue: Issue,
   viewLink: string,
   board?: Board
 ): EnhancedIssue => {
-  const changelogs: readonly IssueChangeLog[] = [
-    ...issue.changelog.histories,
-  ].sort((a, b) => compareDesc(a.created, b.created));
+  const mostRecentTransition = mostRecentIssueTransition(issue);
 
-  const mostRecentTransition = changelogs.find((changelog) =>
-    changelog.items.some(
-      (item) => item.field === "status" && item.fieldtype === "jira"
-    )
-  );
+  const mostRecentComment = mostRecentIssueComment(issue);
 
   const released = issue.fields.fixVersions.some((version) => version.released);
+
+  const lastWorked = issueLastWorked(issue);
 
   return {
     ...issue,
@@ -295,7 +369,9 @@ export const enhancedIssue = (
     column:
       board !== undefined ? columnForIssue(issue, board)?.name : undefined,
     mostRecentTransition: mostRecentTransition,
+    mostRecentComment: mostRecentComment,
     released: released,
     viewLink,
+    lastWorked: lastWorked,
   };
 };
