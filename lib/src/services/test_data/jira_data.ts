@@ -37,8 +37,7 @@ export const nullDescription = {
           "https://jira.agiledigital.com.au/secure/projectavatar?size=medium&pid=12080&avatarId=10011",
       },
       projectCategory: {
-        self:
-          "https://jira.agiledigital.com.au/rest/api/2/projectCategory/10011",
+        self: "https://jira.agiledigital.com.au/rest/api/2/projectCategory/10011",
         id: "10011",
         description:
           "Projects that are now inactive, will be excluded from all reporting.",
@@ -156,8 +155,7 @@ export const regular = {
           "https://jira.agiledigital.com.au/secure/projectavatar?size=medium&pid=12080&avatarId=10011",
       },
       projectCategory: {
-        self:
-          "https://jira.agiledigital.com.au/rest/api/2/projectCategory/10011",
+        self: "https://jira.agiledigital.com.au/rest/api/2/projectCategory/10011",
         id: "10011",
         description:
           "Projects that are now inactive, will be excluded from all reporting.",
@@ -270,8 +268,7 @@ export const withParent = {
           name: "In Progress",
           id: "3",
           statusCategory: {
-            self:
-              "https://jira.agiledigital.com.au/rest/api/2/statuscategory/4",
+            self: "https://jira.agiledigital.com.au/rest/api/2/statuscategory/4",
             id: 4,
             key: "indeterminate",
             colorName: "yellow",
@@ -318,8 +315,7 @@ export const withParent = {
           "https://jira.agiledigital.com.au/secure/projectavatar?size=medium&pid=12080&avatarId=10011",
       },
       projectCategory: {
-        self:
-          "https://jira.agiledigital.com.au/rest/api/2/projectCategory/10011",
+        self: "https://jira.agiledigital.com.au/rest/api/2/projectCategory/10011",
         id: "10011",
         description:
           "Projects that are now inactive, will be excluded from all reporting.",
@@ -384,8 +380,7 @@ export const withParent = {
       {
         id: "555096",
         author: {
-          self:
-            "https://jira.agiledigital.com.au/rest/api/2/user?username=sxguy",
+          self: "https://jira.agiledigital.com.au/rest/api/2/user?username=sxguy",
           name: "sxguy",
           key: "sxguy",
           emailAddress: "sxguy@agiledigital.com.au",
