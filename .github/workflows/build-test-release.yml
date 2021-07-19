@@ -11,18 +11,6 @@ jobs:
           node-version: 16.x
       - name: Check out repository code
         uses: actions/checkout@v2
-      - name: Cache npm modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-npm-modules
-        with:
-          # yarn cache files are stored in `~/.cache` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
       - name: Install Dependencies
         # Skip post-install scripts here, as a malicious script could steal env vars
         run: npm ci --ignore-scripts
