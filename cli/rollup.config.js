@@ -50,6 +50,7 @@ const deepDirectorySearch = (fileExtension, localDirectory) => {
  */
 const plugins = [
   typescript({
+    verbosity: 3,
     typescript: require('typescript'),
   }),
   cleanup(),
