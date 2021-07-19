@@ -1,7 +1,8 @@
 {
   "name": "@agiledigital-labs/jiralint-lib",
   "version": "1.9.0",
-  "main": "dist",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "license": "UNLICENSED",
   "repository": {
     "url": "https://github.com/agiledigital-labs/jiralint.git",
