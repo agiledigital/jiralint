@@ -54,7 +54,7 @@
     "rollup-plugin-delete": "2.0.0",
     "rollup-plugin-execute": "1.1.1",
     "rollup-plugin-typescript2": "0.30.0",
-    "string-length": "4.0.2",
+    "string-length": "5.0.0",
     "ts-jest": "27.0.4",
     "tsconfig-paths-webpack-plugin": "3.5.1",
     "type-coverage": "2.18.0",
