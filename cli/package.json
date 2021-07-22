@@ -18,7 +18,7 @@
   "dependencies": {
     "clear": "0.1.0",
     "clui": "0.3.6",
-    "colors": "1.0.3",
+    "colors": "1.4.0",
     "date-fns": "2.22.1",
     "fp-ts": "2.10.5",
     "inquirer": "8.1.2",
