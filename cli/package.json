@@ -21,7 +21,7 @@
     "colors": "1.0.3",
     "date-fns": "2.22.1",
     "fp-ts": "2.10.5",
-    "inquirer": "6.5.2",
+    "inquirer": "8.1.2",
     "io-ts": "2.2.16",
     "io-ts-types": "0.5.16",
     "monocle-ts": "2.3.10",
