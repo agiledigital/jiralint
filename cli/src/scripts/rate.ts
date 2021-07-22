@@ -1,6 +1,9 @@
 import { Argv } from "yargs";
 import { RootCommand } from "..";
-import { updateIssueQuality, jiraApiClient } from "lib";
+import {
+  updateIssueQuality,
+  jiraApiClient,
+} from "@agiledigital-labs/jiralint-lib";
 
 const rate = async (
   key: string,

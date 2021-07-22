@@ -1,6 +1,11 @@
 import { Argv } from "yargs";
 import { RootCommand } from "..";
-import { getAccessToken, currentUser, jiraApiClient, startSignIn } from "lib";
+import {
+  getAccessToken,
+  currentUser,
+  jiraApiClient,
+  startSignIn,
+} from "@agiledigital-labs/jiralint-lib";
 import { isLeft } from "fp-ts/lib/Either";
 import inquirer from "inquirer";
 
