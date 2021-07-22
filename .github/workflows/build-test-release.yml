@@ -35,6 +35,8 @@ jobs:
         run: npm run coverage
       - name: Run Lint
         run: npm run lint
+      - name: validate cli can be invoked
+        run: cli/dist/jiralint help
       - name: Run Semantic Release
         run: npm run release
         env:
