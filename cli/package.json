@@ -28,7 +28,7 @@
     "newtype-ts": "0.3.4",
     "oauth": "0.9.15",
     "readonly-types": "2.0.0",
-    "ts-pattern": "3.2.1",
+    "ts-pattern": "3.2.2",
     "yargs": "16.2.0"
   },
   "devDependencies": {
