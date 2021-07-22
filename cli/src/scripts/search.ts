@@ -1,11 +1,21 @@
 import { Argv } from "yargs";
 import { RootCommand } from "..";
-import { EnhancedIssue, quality, QualityField } from "lib";
-import { searchIssues, jiraApiClient } from "lib";
-import { issueActionRequired, IssueAction } from "lib";
+import {
+  EnhancedIssue,
+  quality,
+  QualityField,
+} from "@agiledigital-labs/jiralint-lib";
+import { searchIssues, jiraApiClient } from "@agiledigital-labs/jiralint-lib";
+import {
+  issueActionRequired,
+  IssueAction,
+} from "@agiledigital-labs/jiralint-lib";
 import { isLeft } from "fp-ts/lib/Either";
 import { readonlyDate } from "readonly-types/dist";
-import { jiraFormattedDistance, jiraFormattedSeconds } from "lib";
+import {
+  jiraFormattedDistance,
+  jiraFormattedSeconds,
+} from "@agiledigital-labs/jiralint-lib";
 import stringLength from "string-length";
 
 import * as CLUI from "clui";
