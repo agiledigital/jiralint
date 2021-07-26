@@ -40,7 +40,7 @@
   "dependencies": {
     "colors": "^1.4.0",
     "date-fns": "^2.19.0",
-    "fp-ts": "^2.10.5",
+    "fp-ts": "^2.11.0",
     "io-ts": "^2.2.15",
     "io-ts-types": "^0.5.15",
     "jira-client": "^6.21.1",
