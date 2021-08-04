@@ -15,9 +15,10 @@ export type RootCommand = typeof rootCommand;
  */
 const rootCommand = yargs;
 
+/* eslint-disable functional/no-expression-statement */
 auth(rootCommand);
 rate(rootCommand);
 search(rootCommand);
 
-// eslint-disable-next-line functional/no-expression-statement
 rootCommand.demandCommand().strict().help().argv;
+/* eslint-enable functional/no-expression-statement */
