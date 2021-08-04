@@ -319,7 +319,7 @@ describe("checking that dependencies have not blown past the due date", () => {
 
 describe("checking QA impact statements", () => {
   const qaImpactStatementField = "test-qa-impact-statement-field";
-  
+
   const input = (
     column: string,
     statement: string | undefined
@@ -335,7 +335,9 @@ describe("checking QA impact statements", () => {
   const check =
     (expected: Partial<CheckResult>) =>
     (column: string, statement: string | undefined) => {
-      const actual = validateHasQaImpactStatement(qaImpactStatementField)(input(column, statement));
+      const actual = validateHasQaImpactStatement(qaImpactStatementField)(
+        input(column, statement)
+      );
       expect(actual).toEqual(expect.objectContaining(expected));
     };
 
