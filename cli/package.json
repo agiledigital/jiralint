@@ -29,7 +29,7 @@
     "oauth": "0.9.15",
     "readonly-types": "2.0.0",
     "string-length": "4.0.2",
-    "ts-pattern": "3.2.2",
+    "ts-pattern": "3.2.4",
     "yargs": "17.0.1"
   },
   "devDependencies": {
