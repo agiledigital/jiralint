@@ -1,5 +1,5 @@
 /* eslint-disable functional/functional-parameters */
-import { EnhancedIssue as EnhancedIssue, QaImpactStatementField } from "./jira";
+import { EnhancedIssue as EnhancedIssue } from "./jira";
 import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import { match, __, when, not } from "ts-pattern";
 import { ReadonlyDate } from "readonly-types";
@@ -99,23 +99,27 @@ export const validateInProgressHasWorklog =
  * @param issue the issue to check.
  * @returns result of checking the issue.
  */
-export const validateHasQaImpactStatement = (
-  issue: EnhancedIssue
-): CheckResult => {
-  const check = checker("Issues have a QA impact statement");
+export const validateHasQaImpactStatement =
+  (qaImpactStatementField: string) =>
+  (issue: EnhancedIssue): CheckResult => {
+    const check = checker("Issues have a QA impact statement");
 
-  return match<readonly [string | undefined, string]>([
-    issue.column?.toLocaleLowerCase(),
-    (issue.fields[QaImpactStatementField] ?? "").trim(),
-  ])
-    .with(["review", ""], ["completed", ""], () =>
-      check.fail("missing a QA impact statement")
-    )
-    .with(["review", not("")], ["completed", not("")], () =>
-      check.ok("has a QA impact statement")
-    )
-    .otherwise(() => check.na("does not apply unless in Review or Completed"));
-};
+    const qaImpactStatement = issue.fields[qaImpactStatementField];
+
+    return match<readonly [string | undefined, string]>([
+      issue.column?.toLocaleLowerCase(),
+      (typeof qaImpactStatement === "string" ? qaImpactStatement : "").trim(),
+    ])
+      .with(["review", ""], ["completed", ""], () =>
+        check.fail("missing a QA impact statement")
+      )
+      .with(["review", not("")], ["completed", not("")], () =>
+        check.ok("has a QA impact statement")
+      )
+      .otherwise(() =>
+        check.na("does not apply unless in Review or Completed")
+      );
+  };
 
 /**
  * Checks that all dependency issues have a due date.
@@ -364,7 +368,8 @@ export const issueDeservesGrace = (
  */
 export const issueActionRequired = (
   issue: EnhancedIssue,
-  now: ReadonlyDate
+  now: ReadonlyDate,
+  qaImpactStatementField: string
 ): IssueAction => {
   return issueDeservesGrace(issue, now)
     ? {
@@ -380,7 +385,7 @@ export const issueActionRequired = (
         validateTooLongInBacklog(now),
         validateDependenciesHaveDueDate,
         validateNotClosedDependenciesNotPassedDueDate(now),
-        validateHasQaImpactStatement,
+        validateHasQaImpactStatement(qaImpactStatementField),
         validateInProgressHasWorklog(now),
       ]);
 };

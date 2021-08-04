@@ -1,17 +1,24 @@
 import { Argv } from "yargs";
-import { RootCommand } from "..";
-import {
-  getAccessToken,
-  currentUser,
-  jiraApiClient,
-  startSignIn,
-} from "@agiledigital-labs/jiralint-lib";
+import type { RootCommand } from "..";
+import { jiraClient } from "@agiledigital-labs/jiralint-lib";
 import { isLeft } from "fp-ts/lib/Either";
 import inquirer from "inquirer";
+import * as config from "./config";
 
 // eslint-disable-next-line functional/functional-parameters
 const auth = async (): Promise<void> => {
-  const requested = await startSignIn();
+  const jira = jiraClient(
+    config.jiraProtocol,
+    config.jiraHost,
+    config.jiraConsumerKey,
+    config.privKey,
+    config.boardNamesToIgnore,
+    config.accountField,
+    config.qualityField,
+    config.qaImpactStatementField
+  );
+
+  const requested = await jira.startSignIn();
 
   // eslint-disable-next-line functional/no-expression-statement
   console.log(`Request Token:        ${requested.requestSecret}`);
@@ -24,19 +31,16 @@ const auth = async (): Promise<void> => {
     message: `Follow this link [${requested.requestUrl}] then enter your access secret:`,
   });
 
-  const authorised = await getAccessToken(requested, answer.secret);
+  const authorised = await jira.getAccessToken(requested, answer.secret);
 
   // eslint-disable-next-line functional/no-expression-statement
   console.log(`Access token:  ${authorised.accessToken}`);
   // eslint-disable-next-line functional/no-expression-statement
   console.log(`Access secret: ${authorised.accessSecret}`);
 
-  const jiraClient = jiraApiClient(
-    authorised.accessToken,
-    authorised.accessSecret
-  );
+  const jiraApi = jira.jiraApi(authorised.accessToken, authorised.accessSecret);
 
-  const user = await currentUser(jiraClient);
+  const user = await jira.currentUser(jiraApi);
 
   // eslint-disable-next-line functional/no-expression-statement
   isLeft(user)
