@@ -4,12 +4,6 @@ import { compareDesc } from "date-fns";
 import { ReadonlyDate } from "readonly-types/dist";
 import { nullOrMissingToUndefined, readOnlyDateFromISOString } from "../codecs";
 
-export const AccountField = "customfield_11410 "; // FIXME should be configurable.
-
-export const QualityField = "customfield_12410"; // FIXME should be configurable.
-
-export const QaImpactStatementField = "customfield_10111"; // FIXME should be configurable.
-
 export const PaginatedResults = T.readonly(
   T.type({
     maxResults: T.number,
@@ -139,13 +133,13 @@ export const Issue = T.type({
       aggregatetimeestimate: nullOrMissingToUndefined(T.number),
       aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
       aggregatetimespent: nullOrMissingToUndefined(T.number),
-      [QualityField]: nullOrMissingToUndefined(T.string),
-      [QaImpactStatementField]: nullOrMissingToUndefined(T.string),
       parent: T.type({
         id: T.string,
         key: T.string,
       }),
     }),
+    // Required to model custom fields whose names cannot be known at compile time
+    T.readonly(T.record(T.string, T.unknown)),
   ]),
   changelog: ITT.fromNullable(
     T.type({

@@ -16,7 +16,7 @@ import {
   CheckResult,
 } from "./issue_checks";
 import * as IssueData from "./test_data/issue_data";
-import { EnhancedIssue, QaImpactStatementField } from "./jira";
+import { EnhancedIssue } from "./jira";
 import fc from "fast-check";
 
 describe("checking that in progress tickets have estimates", () => {
@@ -318,6 +318,8 @@ describe("checking that dependencies have not blown past the due date", () => {
 });
 
 describe("checking QA impact statements", () => {
+  const qaImpactStatementField = "test-qa-impact-statement-field";
+  
   const input = (
     column: string,
     statement: string | undefined
@@ -325,7 +327,7 @@ describe("checking QA impact statements", () => {
     ...IssueData.enhancedIssue,
     fields: {
       ...IssueData.enhancedIssue.fields,
-      [QaImpactStatementField]: statement,
+      [qaImpactStatementField]: statement,
     },
     column,
   });
@@ -333,7 +335,7 @@ describe("checking QA impact statements", () => {
   const check =
     (expected: Partial<CheckResult>) =>
     (column: string, statement: string | undefined) => {
-      const actual = validateHasQaImpactStatement(input(column, statement));
+      const actual = validateHasQaImpactStatement(qaImpactStatementField)(input(column, statement));
       expect(actual).toEqual(expect.objectContaining(expected));
     };
 

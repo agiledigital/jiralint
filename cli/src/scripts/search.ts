@@ -1,11 +1,7 @@
 import { Argv } from "yargs";
 import { RootCommand } from "..";
-import {
-  EnhancedIssue,
-  quality,
-  QualityField,
-} from "@agiledigital-labs/jiralint-lib";
-import { searchIssues, jiraApiClient } from "@agiledigital-labs/jiralint-lib";
+import { EnhancedIssue, quality } from "@agiledigital-labs/jiralint-lib";
+import { jiraClient } from "@agiledigital-labs/jiralint-lib";
 import {
   issueActionRequired,
   IssueAction,
@@ -17,6 +13,7 @@ import {
   jiraFormattedSeconds,
 } from "@agiledigital-labs/jiralint-lib";
 import stringLength from "string-length";
+import * as config from "./config";
 
 import * as CLUI from "clui";
 import * as clc from "cli-color";
@@ -35,7 +32,11 @@ const checkedIssues = (
   // eslint-disable-next-line no-restricted-globals
   const now = readonlyDate(new Date());
   return issues.map((issue) => {
-    const issueAction = issueActionRequired(issue, now);
+    const issueAction = issueActionRequired(
+      issue,
+      now,
+      config.qaImpactStatementField
+    );
 
     const issueQuality = quality(issueAction);
 
@@ -118,6 +119,7 @@ const renderTable = (issues: ReadonlyArray<EnhancedIssue>): void => {
         : "";
 
     const noFormat: ReadonlyArray<clc.Format> = [clc.white];
+    const quality = issue.fields[config.qualityField];
 
     return [
       [
@@ -126,7 +128,10 @@ const renderTable = (issues: ReadonlyArray<EnhancedIssue>): void => {
           : "",
         noFormat,
       ],
-      [`${issue.fields[QualityField] ?? "-"}/${issue.issueQuality}`, noFormat],
+      [
+        `${typeof quality === "string" ? quality : "-"}/${issue.issueQuality}`,
+        noFormat,
+      ],
       [issue.key, noFormat],
       [issue.fields.issuetype.name, noFormat],
       [issue.fields.summary, noFormat],
@@ -182,9 +187,20 @@ const search = async (
   // eslint-disable-next-line functional/no-expression-statement
   countdown.start();
 
-  const jiraClient = jiraApiClient(accessToken, accessSecret);
+  const jira = jiraClient(
+    config.jiraProtocol,
+    config.jiraHost,
+    config.jiraConsumerKey,
+    config.privKey,
+    config.boardNamesToIgnore,
+    config.accountField,
+    config.qualityField,
+    config.qaImpactStatementField
+  );
 
-  const issues = await searchIssues(jql, jiraClient);
+  const jiraApi = jira.jiraApi(accessToken, accessSecret);
+
+  const issues = await jira.searchIssues(jql, jiraApi);
 
   // eslint-disable-next-line functional/no-expression-statement
   countdown.stop();

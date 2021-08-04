@@ -1,9 +1,7 @@
 import { Argv } from "yargs";
 import { RootCommand } from "..";
-import {
-  updateIssueQuality,
-  jiraApiClient,
-} from "@agiledigital-labs/jiralint-lib";
+import { jiraClient } from "@agiledigital-labs/jiralint-lib";
+import * as config from "./config";
 
 const rate = async (
   key: string,
@@ -11,9 +9,20 @@ const rate = async (
   accessToken: string,
   accessSecret: string
 ): Promise<void> => {
-  const jiraClient = jiraApiClient(accessToken, accessSecret);
+  const jira = jiraClient(
+    config.jiraProtocol,
+    config.jiraHost,
+    config.jiraConsumerKey,
+    config.privKey,
+    config.boardNamesToIgnore,
+    config.accountField,
+    config.qualityField,
+    config.qaImpactStatementField
+  );
 
-  const update = await updateIssueQuality(key, quality, jiraClient);
+  const jiraApi = jira.jiraApi(accessToken, accessSecret);
+
+  const update = await jira.updateIssueQuality(key, quality, jiraApi);
 
   // eslint-disable-next-line functional/no-expression-statement
   console.log(`Updated [${JSON.stringify(update, null, 2)}]`);
