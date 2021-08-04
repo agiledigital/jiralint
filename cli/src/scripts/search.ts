@@ -1,5 +1,5 @@
 import { Argv } from "yargs";
-import { RootCommand } from "..";
+import type { RootCommand } from "..";
 import { EnhancedIssue, quality } from "@agiledigital-labs/jiralint-lib";
 import { jiraClient } from "@agiledigital-labs/jiralint-lib";
 import {

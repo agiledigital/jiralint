@@ -1,5 +1,5 @@
 import { Argv } from "yargs";
-import { RootCommand } from "..";
+import type { RootCommand } from "..";
 import { jiraClient } from "@agiledigital-labs/jiralint-lib";
 import * as config from "./config";
 
