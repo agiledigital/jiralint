@@ -1,23 +1,22 @@
 import { Argv } from "yargs";
-import type { RootCommand } from "..";
-import { jiraClient } from "@agiledigital-labs/jiralint-lib";
-import * as config from "./config";
+import { RootCommand, withAuthOptions } from "..";
+import { makeJiraClient } from "./common";
 
 const rate = async (
+  jiraProtocol: string,
+  jiraHost: string,
+  jiraConsumerKey: string,
+  jiraConsumerSecret: string,
   key: string,
   quality: string,
   accessToken: string,
   accessSecret: string
 ): Promise<void> => {
-  const jira = jiraClient(
-    config.jiraProtocol,
-    config.jiraHost,
-    config.jiraConsumerKey,
-    config.privKey,
-    config.boardNamesToIgnore,
-    config.accountField,
-    config.qualityField,
-    config.qaImpactStatementField
+  const jira = makeJiraClient(
+    jiraProtocol,
+    jiraHost,
+    jiraConsumerKey,
+    jiraConsumerSecret
   );
 
   const jiraApi = jira.jiraApi(accessToken, accessSecret);
@@ -33,7 +32,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
     "rate",
     "records the quality of a jira issue",
     (yargs) =>
-      yargs
+      withAuthOptions(yargs)
         .option("key", {
           alias: "k",
           type: "string",
@@ -44,20 +43,18 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           choices: ["A", "B"],
           description: "assessed quality",
         })
-        .option("accessToken", {
-          alias: "t",
-          type: "string",
-          describe: "access token",
-        })
-        .option("accessSecret", {
-          alias: "s",
-          type: "string",
-          describe: "access secret",
-        })
-        .group(["accessToken", "accessSecret"], "Auth")
-        .demandOption(["key", "quality", "accessToken", "accessSecret"]),
+        .demandOption(["key", "quality"]),
     (args) => {
       // eslint-disable-next-line functional/no-expression-statement
-      void rate(args.key, args.quality, args.accessToken, args.accessSecret);
+      void rate(
+        args.jiraProtocol,
+        args.jiraHost,
+        args.jiraConsumerKey,
+        args.jiraConsumerSecret,
+        args.key,
+        args.quality,
+        args.accessToken,
+        args.accessSecret
+      );
     }
   );

@@ -1,21 +1,21 @@
 import { Argv } from "yargs";
-import type { RootCommand } from "..";
-import { jiraClient } from "@agiledigital-labs/jiralint-lib";
+import { RootCommand, withCommonOptions } from "..";
 import { isLeft } from "fp-ts/lib/Either";
 import inquirer from "inquirer";
-import * as config from "./config";
+import { makeJiraClient } from "./common";
 
 // eslint-disable-next-line functional/functional-parameters
-const auth = async (): Promise<void> => {
-  const jira = jiraClient(
-    config.jiraProtocol,
-    config.jiraHost,
-    config.jiraConsumerKey,
-    config.privKey,
-    config.boardNamesToIgnore,
-    config.accountField,
-    config.qualityField,
-    config.qaImpactStatementField
+const auth = async (
+  jiraProtocol: string,
+  jiraHost: string,
+  jiraConsumerKey: string,
+  jiraConsumerSecret: string
+): Promise<void> => {
+  const jira = makeJiraClient(
+    jiraProtocol,
+    jiraHost,
+    jiraConsumerKey,
+    jiraConsumerSecret
   );
 
   const requested = await jira.startSignIn();
@@ -52,10 +52,15 @@ export default ({ command }: RootCommand): Argv<unknown> =>
   command(
     "auth",
     "authorises the linter to call Jira APIs and outputs the access token and secret",
-    (yargs) => yargs,
+    (yargs) => withCommonOptions(yargs),
     // eslint-disable-next-line functional/functional-parameters
-    () => {
+    (args) => {
       // eslint-disable-next-line functional/no-expression-statement
-      void auth();
+      void auth(
+        args.jiraProtocol,
+        args.jiraHost,
+        args.jiraConsumerKey,
+        args.jiraConsumerSecret
+      );
     }
   );

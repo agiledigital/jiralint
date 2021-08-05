@@ -26,10 +26,20 @@ npm run build
 ```
 4. Get your access token.
 ```sh
-cli/dist/jiralint auth
+cli/dist/jiralint auth -h [JIRA HOST] --cs $(echo "
+-----BEGIN PRIVATE KEY-----
+...
+...
+...
+-----END PRIVATE KEY-----" | base64)
 ```
 5. Follow the instructions to authorise Jira Lint then take a note of the access token and access secret.
 6. Run:
 ```sh
-cli/dist/jiralint search -j "project=MF order by created" -t [ACCESS TOKEN] -s [ACCESS SECRET]
+cli/dist/jiralint search -h [JIRA HOST] -j "project=MF order by created" -t [ACCESS TOKEN] -s [ACCESS SECRET] --cs $(echo "
+-----BEGIN PRIVATE KEY-----
+...
+...
+...
+-----END PRIVATE KEY-----" | base64)
 ```

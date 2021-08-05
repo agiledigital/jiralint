@@ -1,7 +1,6 @@
 import { Argv } from "yargs";
-import type { RootCommand } from "..";
+import { RootCommand, withAuthOptions } from "..";
 import { EnhancedIssue, quality } from "@agiledigital-labs/jiralint-lib";
-import { jiraClient } from "@agiledigital-labs/jiralint-lib";
 import {
   issueActionRequired,
   IssueAction,
@@ -13,7 +12,7 @@ import {
   jiraFormattedSeconds,
 } from "@agiledigital-labs/jiralint-lib";
 import stringLength from "string-length";
-import * as config from "./config";
+import { makeJiraClient, qaImpactStatementField, qualityField } from "./common";
 
 import * as CLUI from "clui";
 import * as clc from "cli-color";
@@ -32,11 +31,7 @@ const checkedIssues = (
   // eslint-disable-next-line no-restricted-globals
   const now = readonlyDate(new Date());
   return issues.map((issue) => {
-    const issueAction = issueActionRequired(
-      issue,
-      now,
-      config.qaImpactStatementField
-    );
+    const issueAction = issueActionRequired(issue, now, qaImpactStatementField);
 
     const issueQuality = quality(issueAction);
 
@@ -119,7 +114,7 @@ const renderTable = (issues: ReadonlyArray<EnhancedIssue>): void => {
         : "";
 
     const noFormat: ReadonlyArray<clc.Format> = [clc.white];
-    const quality = issue.fields[config.qualityField];
+    const quality = issue.fields[qualityField];
 
     return [
       [
@@ -178,6 +173,10 @@ const renderTable = (issues: ReadonlyArray<EnhancedIssue>): void => {
 };
 
 const search = async (
+  jiraProtocol: string,
+  jiraHost: string,
+  jiraConsumerKey: string,
+  jiraConsumerSecret: string,
   jql: string,
   accessToken: string,
   accessSecret: string,
@@ -187,15 +186,11 @@ const search = async (
   // eslint-disable-next-line functional/no-expression-statement
   countdown.start();
 
-  const jira = jiraClient(
-    config.jiraProtocol,
-    config.jiraHost,
-    config.jiraConsumerKey,
-    config.privKey,
-    config.boardNamesToIgnore,
-    config.accountField,
-    config.qualityField,
-    config.qaImpactStatementField
+  const jira = makeJiraClient(
+    jiraProtocol,
+    jiraHost,
+    jiraConsumerKey,
+    jiraConsumerSecret
   );
 
   const jiraApi = jira.jiraApi(accessToken, accessSecret);
@@ -220,7 +215,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
     "search",
     "searches for jira issues using JQL and then lints",
     (yargs) =>
-      yargs
+      withAuthOptions(yargs)
         .option("jql", {
           alias: "j",
           type: "string",
@@ -232,20 +227,18 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           default: DEFAULT_OUTPUT_MODE,
           description: "output format for results",
         })
-        .option("accessToken", {
-          alias: "t",
-          type: "string",
-          describe: "access token",
-        })
-        .option("accessSecret", {
-          alias: "s",
-          type: "string",
-          describe: "access secret",
-        })
-        .group(["accessToken", "accessSecret"], "Auth")
-        .demandOption(["jql", "accessToken", "accessSecret"]),
+        .demandOption(["jql"]),
     (args) => {
       // eslint-disable-next-line functional/no-expression-statement
-      void search(args.jql, args.accessToken, args.accessSecret, args.output);
+      void search(
+        args.jiraProtocol,
+        args.jiraHost,
+        args.jiraConsumerKey,
+        args.jiraConsumerSecret,
+        args.jql,
+        args.accessToken,
+        args.accessSecret,
+        args.output
+      );
     }
   );
