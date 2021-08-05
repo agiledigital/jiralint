@@ -1,5 +1,5 @@
-import type { EnhancedIssue, Issue } from "../jira";
 import { readonlyDate } from "readonly-types";
+import type { EnhancedIssue, Issue } from "@agiledigital-labs/jiralint-lib";
 
 export const issue: Issue = {
   key: "ABC-123",

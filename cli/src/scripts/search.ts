@@ -16,6 +16,7 @@ import { makeJiraClient, qaImpactStatementField, qualityField } from "./common";
 
 import * as CLUI from "clui";
 import * as clc from "cli-color";
+import { validateHasQaImpactStatement } from "../issue_checks";
 // eslint-disable-next-line functional/no-expression-statement
 require("cli-color");
 
@@ -31,7 +32,9 @@ const checkedIssues = (
   // eslint-disable-next-line no-restricted-globals
   const now = readonlyDate(new Date());
   return issues.map((issue) => {
-    const issueAction = issueActionRequired(issue, now, qaImpactStatementField);
+    const issueAction = issueActionRequired(issue, now, [
+      validateHasQaImpactStatement(qaImpactStatementField),
+    ]);
 
     const issueQuality = quality(issueAction);
 

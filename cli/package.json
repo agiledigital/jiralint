@@ -13,7 +13,7 @@
     "lint": "eslint src --ext .ts,.tsx",
     "coverage": "type-coverage",
     "format": "prettier --write 'src/**/*.{ts,tsx}'",
-    "test": "echo TODO add tests"
+    "test": "jest"
   },
   "dependencies": {
     "clear": "0.1.0",
