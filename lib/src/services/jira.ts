@@ -125,11 +125,6 @@ export const Issue = T.type({
       duedate: nullOrMissingToUndefined(ITT.DateFromISOString),
     }),
     T.partial({
-      account: T.type({
-        AccountField: T.type({
-          key: T.string,
-        }),
-      }),
       aggregatetimeestimate: nullOrMissingToUndefined(T.number),
       aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
       aggregatetimespent: nullOrMissingToUndefined(T.number),
