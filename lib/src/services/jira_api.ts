@@ -63,7 +63,7 @@ export type JiraClient = {
  * @param jiraProtocol
  * @param jiraHost
  * @param jiraConsumerKey
- * @param privKey
+ * @param jiraConsumerSecret
  * @param boardNamesToIgnore Prefix of the name of boards to be ignored when determining the 'column' that a ticket is currently in.
  *                           This column is used as proxy for the status of tickets in some circumstances (e.g. to
  *                           abstract over the statuses of different issue types.)
@@ -73,7 +73,7 @@ export const jiraClient = (
   jiraProtocol: string,
   jiraHost: string,
   jiraConsumerKey: string,
-  privKey: string,
+  jiraConsumerSecret: string,
   boardNamesToIgnore: readonly string[],
   accountField: string,
   qualityField: string,
@@ -83,7 +83,7 @@ export const jiraClient = (
     `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/request-token`,
     `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/access-token`,
     jiraConsumerKey,
-    privKey,
+    jiraConsumerSecret,
     "1.0",
     "oob", // Out-of-band - request that Jira displays the verification code to the user when they follow the auth link.
     "RSA-SHA1"
@@ -381,7 +381,7 @@ export const jiraClient = (
         host: jiraHost,
         oauth: {
           consumer_key: jiraConsumerKey,
-          consumer_secret: privKey,
+          consumer_secret: jiraConsumerSecret,
           access_token: accessToken,
           access_token_secret: accessSecret,
         },
