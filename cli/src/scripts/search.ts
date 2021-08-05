@@ -183,7 +183,8 @@ const search = async (
   jql: string,
   accessToken: string,
   accessSecret: string,
-  output: OutputMode
+  output: OutputMode,
+  boardNamesToIgnore: readonly string[]
 ): Promise<void> => {
   const countdown = new CLUI.Spinner("Searching the things...  ");
   // eslint-disable-next-line functional/no-expression-statement
@@ -198,7 +199,7 @@ const search = async (
 
   const jiraApi = jira.jiraApi(accessToken, accessSecret);
 
-  const issues = await jira.searchIssues(jql, jiraApi);
+  const issues = await jira.searchIssues(jql, jiraApi, boardNamesToIgnore);
 
   // eslint-disable-next-line functional/no-expression-statement
   countdown.stop();
@@ -230,6 +231,11 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           default: DEFAULT_OUTPUT_MODE,
           description: "output format for results",
         })
+        .option("boardNamesToIgnore", {
+          type: "string",
+          array: true,
+          default: ["delivery management board", "copy of"],
+        })
         .demandOption(["jql"]),
     (args) => {
       // eslint-disable-next-line functional/no-expression-statement
@@ -241,7 +247,8 @@ export default ({ command }: RootCommand): Argv<unknown> =>
         args.jql,
         args.accessToken,
         args.accessSecret,
-        args.output
+        args.output,
+        args.boardNamesToIgnore
       );
     }
   );
