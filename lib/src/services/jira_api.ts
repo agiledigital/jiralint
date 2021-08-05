@@ -67,6 +67,9 @@ export type JiraClient = {
  * @param boardNamesToIgnore Prefix of the name of boards to be ignored when determining the 'column' that a ticket is currently in.
  *                           This column is used as proxy for the status of tickets in some circumstances (e.g. to
  *                           abstract over the statuses of different issue types.)
+ * @param customFieldNames List of other custom issue field names to include when retrieving issues from Jira. Must be specified explicitly, sadly.
+ *                         If you want to use a custom field in a rule, you must specify it here.
+ * @param qualityField The name of the custom field used to store issue quality.
  * @returns The Jira API abstraction.
  */
 export const jiraClient = (
@@ -75,9 +78,8 @@ export const jiraClient = (
   jiraConsumerKey: string,
   jiraConsumerSecret: string,
   boardNamesToIgnore: readonly string[],
-  accountField: string,
-  qualityField: string,
-  qaImpactStatementField: string
+  customFieldNames: readonly string[],
+  qualityField: string
 ): JiraClient => {
   const oauth = new OAuth(
     `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/request-token`,
@@ -481,9 +483,8 @@ export const jiraClient = (
               "created",
               "parent",
               "duedate",
-              accountField,
               qualityField,
-              qaImpactStatementField,
+              ...customFieldNames,
             ],
             expand: ["changelog"],
           }),
