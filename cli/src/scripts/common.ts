@@ -3,11 +3,6 @@ import type { JiraClient } from "@agiledigital-labs/jiralint-lib";
 
 // FIXME: solicit these options from the CLI user
 
-const boardNamesToIgnore: readonly string[] = [
-  "delivery management board",
-  "copy of",
-];
-
 const accountField = "customfield_11410";
 
 export const qualityField = "customfield_12410";
@@ -30,7 +25,6 @@ export const makeJiraClient = (
     // It can't handle three or more dashes in an argument: --jiraConsumerSecret "---".
     // eslint-disable-next-line total-functions/no-unsafe-readonly-mutable-assignment
     Buffer.from(jiraConsumerSecret, "base64").toString("utf8"),
-    boardNamesToIgnore,
     customFieldNames,
     qualityField
   );

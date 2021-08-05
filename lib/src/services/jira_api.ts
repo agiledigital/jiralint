@@ -53,7 +53,8 @@ export type JiraClient = {
   ) => Promise<Either<string | FieldNotEditable | JiraError, JsonResponse>>;
   readonly searchIssues: (
     jql: string,
-    jiraApi: JiraApi
+    jiraApi: JiraApi,
+    boardNamesToIgnore: readonly string[]
   ) => Promise<Either<string, ReadonlyArray<EnhancedIssue>>>;
   readonly currentUser: (jiraApi: JiraApi) => Promise<Either<string, User>>;
 };
@@ -64,9 +65,6 @@ export type JiraClient = {
  * @param jiraHost
  * @param jiraConsumerKey
  * @param jiraConsumerSecret
- * @param boardNamesToIgnore Prefix of the name of boards to be ignored when determining the 'column' that a ticket is currently in.
- *                           This column is used as proxy for the status of tickets in some circumstances (e.g. to
- *                           abstract over the statuses of different issue types.)
  * @param customFieldNames List of other custom issue field names to include when retrieving issues from Jira. Must be specified explicitly, sadly.
  *                         If you want to use a custom field in a rule, you must specify it here.
  * @param qualityField The name of the custom field used to store issue quality.
@@ -77,7 +75,6 @@ export const jiraClient = (
   jiraHost: string,
   jiraConsumerKey: string,
   jiraConsumerSecret: string,
-  boardNamesToIgnore: readonly string[],
   customFieldNames: readonly string[],
   qualityField: string
 ): JiraClient => {
@@ -151,7 +148,7 @@ export const jiraClient = (
     };
 
   const boardsForProject =
-    (jiraApi: JiraApi) =>
+    (jiraApi: JiraApi, boardNamesToIgnore: readonly string[]) =>
     (
       projectKey: string
     ): TE.TaskEither<string, ReadonlyRecord<string, ReadonlyArray<Board>>> => {
@@ -209,7 +206,8 @@ export const jiraClient = (
 
   const boardsByProject = (
     issues: ReadonlyArray<Issue>,
-    jiraApi: JiraApi
+    jiraApi: JiraApi,
+    boardNamesToIgnore: readonly string[]
   ): TE.TaskEither<string, ReadonlyRecord<string, ReadonlyArray<Board>>> => {
     const projectKeys: readonly string[] = issues
       .map((issue) => issue.fields.project.key)
@@ -217,7 +215,9 @@ export const jiraClient = (
     const boards: TE.TaskEither<
       string,
       ReadonlyArray<ReadonlyRecord<string, ReadonlyArray<Board>>>
-    > = TE.traverseSeqArray(boardsForProject(jiraApi))(projectKeys);
+    > = TE.traverseSeqArray(boardsForProject(jiraApi, boardNamesToIgnore))(
+      projectKeys
+    );
 
     return TE.map(
       (bs: ReadonlyArray<ReadonlyRecord<string, ReadonlyArray<Board>>>) =>
@@ -456,11 +456,15 @@ export const jiraClient = (
      *
      * @param jql query statement used to search for issues.
      * @param jiraApi API used to retrieve the user details.
+     * @param boardNamesToIgnore Prefix of the name of boards to be ignored when determining the 'column' that a ticket is currently in.
+     *                           This column is used as proxy for the status of tickets in some circumstances (e.g. to
+     *                           abstract over the statuses of different issue types.)
      * @returns either an error or the enhanced issues.
      */
     searchIssues: async (
       jql: string,
-      jiraApi: JiraApi
+      jiraApi: JiraApi,
+      boardNamesToIgnore: readonly string[]
     ): Promise<Either<string, ReadonlyArray<EnhancedIssue>>> => {
       const fetchIssues = TE.tryCatch(
         () =>
@@ -523,7 +527,7 @@ export const jiraClient = (
               return enhancedIssue(issue, issueLink(issue), boardByStatus);
             });
           }
-        )(boardsByProject(issues, jiraApi));
+        )(boardsByProject(issues, jiraApi, boardNamesToIgnore));
       };
 
       const issueWithComment = (
