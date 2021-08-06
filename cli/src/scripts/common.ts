@@ -1,9 +1,6 @@
 import { jiraClient } from "@agiledigital-labs/jiralint-lib";
 import type { JiraClient } from "@agiledigital-labs/jiralint-lib";
 
-// FIXME remove this specific field (and corresponding check)
-export const qaImpactStatementField = "customfield_10111";
-
 export const makeJiraClient = (
   jiraProtocol: string,
   jiraHost: string,

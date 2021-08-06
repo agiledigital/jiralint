@@ -12,11 +12,11 @@ import {
   jiraFormattedSeconds,
 } from "@agiledigital-labs/jiralint-lib";
 import stringLength from "string-length";
-import { makeJiraClient, qaImpactStatementField } from "./common";
+import { makeJiraClient } from "./common";
 
 import * as CLUI from "clui";
 import * as clc from "cli-color";
-import { validateHasQaImpactStatement } from "../issue_checks";
+
 // eslint-disable-next-line functional/no-expression-statement
 require("cli-color");
 
@@ -32,9 +32,8 @@ const checkedIssues = (
   // eslint-disable-next-line no-restricted-globals
   const now = readonlyDate(new Date());
   return issues.map((issue) => {
-    const issueAction = issueActionRequired(issue, now, [
-      validateHasQaImpactStatement(qaImpactStatementField),
-    ]);
+    const customChecks = [] as const; // TODO ability to dynamically load custom checks
+    const issueAction = issueActionRequired(issue, now, customChecks);
 
     const issueQuality = quality(issueAction);
 
@@ -249,14 +248,14 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           array: true,
           description:
             "Prefix of the name of boards to be ignored when determining the 'column' that a ticket is currently in.",
-          default: ["delivery management board", "copy of"], // TODO remove this default
+          default: [],
         })
         .option("customFieldNames", {
           type: "string",
           array: true,
           description:
             "List of other custom issue field names to include when retrieving issues from Jira.",
-          default: ["customfield_11410"], // TODO remove this default (account field)
+          default: [],
         })
         .demandOption(["jql"]),
     (args) => {
@@ -271,7 +270,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
         args.accessSecret,
         args.output,
         args.boardNamesToIgnore,
-        [...args.customFieldNames, qaImpactStatementField],
+        args.customFieldNames,
         args.qualityFieldName
       );
     }
