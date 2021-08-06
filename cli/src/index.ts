@@ -67,7 +67,6 @@ export const withQualityFieldOption = <C extends RootCommand>(command: C) =>
     .option("qualityFieldName", {
       type: "string",
       describe: "The name of the Jira custom field used to store issue quality",
-      default: "customfield_12410", // TODO remove this default
     })
     .demandOption(["qualityFieldName"]);
 

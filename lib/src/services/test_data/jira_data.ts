@@ -3,16 +3,16 @@ export const nullDescription = {
   expand:
     "operations,versionedRepresentations,editmeta,changelog,renderedFields",
   id: "39477",
-  self: "https://jira.agiledigital.com.au/rest/api/2/issue/39477",
-  key: "MF-100",
+  self: "https://jira.example.com/rest/api/2/issue/39477",
+  key: "ABC-100",
   fields: {
     summary: "QA and Rework",
     issuetype: {
-      self: "https://jira.agiledigital.com.au/rest/api/2/issuetype/5",
+      self: "https://jira.example.com/rest/api/2/issuetype/5",
       id: "5",
       description: "The sub-task of the issue",
       iconUrl:
-        "https://jira.agiledigital.com.au/secure/viewavatar?size=xsmall&avatarId=11606&avatarType=issuetype",
+        "https://jira.example.com/secure/viewavatar?size=xsmall&avatarId=11606&avatarType=issuetype",
       name: "Sub-task",
       subtask: true,
       avatarId: 11606,
@@ -21,23 +21,23 @@ export const nullDescription = {
     created: "2014-09-08T12:50:57.000+1000",
     description: null,
     project: {
-      self: "https://jira.agiledigital.com.au/rest/api/2/project/12080",
+      self: "https://jira.example.com/rest/api/2/project/12080",
       id: "12080",
-      key: "MF",
-      name: "Cinefly Mobflic (Ref: CIN-SFM-20210322CIN)",
+      key: "ABC",
+      name: "Acme Inc Project",
       projectTypeKey: "software",
       avatarUrls: {
         "48x48":
-          "https://jira.agiledigital.com.au/secure/projectavatar?pid=12080&avatarId=10011",
+          "https://jira.example.com/secure/projectavatar?pid=12080&avatarId=10011",
         "24x24":
-          "https://jira.agiledigital.com.au/secure/projectavatar?size=small&pid=12080&avatarId=10011",
+          "https://jira.example.com/secure/projectavatar?size=small&pid=12080&avatarId=10011",
         "16x16":
-          "https://jira.agiledigital.com.au/secure/projectavatar?size=xsmall&pid=12080&avatarId=10011",
+          "https://jira.example.com/secure/projectavatar?size=xsmall&pid=12080&avatarId=10011",
         "32x32":
-          "https://jira.agiledigital.com.au/secure/projectavatar?size=medium&pid=12080&avatarId=10011",
+          "https://jira.example.com/secure/projectavatar?size=medium&pid=12080&avatarId=10011",
       },
       projectCategory: {
-        self: "https://jira.agiledigital.com.au/rest/api/2/projectCategory/10011",
+        self: "https://jira.example.com/rest/api/2/projectCategory/10011",
         id: "10011",
         description:
           "Projects that are now inactive, will be excluded from all reporting.",
@@ -46,7 +46,7 @@ export const nullDescription = {
     },
     fixVersions: [
       {
-        self: "https://jira.agiledigital.com.au/rest/api/2/version/13589",
+        self: "https://jira.example.com/rest/api/2/version/13589",
         id: "13589",
         name: "Kanban",
         archived: false,
@@ -74,34 +74,33 @@ export const nullDescription = {
       startAt: 0,
     },
     assignee: {
-      self: "https://jira.agiledigital.com.au/rest/api/2/user?username=sxguy",
+      self: "https://jira.example.com/rest/api/2/user?username=sxguy",
       name: "sxguy",
       key: "sxguy",
-      emailAddress: "sxguy@agiledigital.com.au",
+      emailAddress: "sxguy@example.com",
       avatarUrls: {
         "48x48":
-          "https://jira.agiledigital.com.au/secure/useravatar?ownerId=sxguy&avatarId=12390",
+          "https://jira.example.com/secure/useravatar?ownerId=sxguy&avatarId=12390",
         "24x24":
-          "https://jira.agiledigital.com.au/secure/useravatar?size=small&ownerId=sxguy&avatarId=12390",
+          "https://jira.example.com/secure/useravatar?size=small&ownerId=sxguy&avatarId=12390",
         "16x16":
-          "https://jira.agiledigital.com.au/secure/useravatar?size=xsmall&ownerId=sxguy&avatarId=12390",
+          "https://jira.example.com/secure/useravatar?size=xsmall&ownerId=sxguy&avatarId=12390",
         "32x32":
-          "https://jira.agiledigital.com.au/secure/useravatar?size=medium&ownerId=sxguy&avatarId=12390",
+          "https://jira.example.com/secure/useravatar?size=medium&ownerId=sxguy&avatarId=12390",
       },
       displayName: "Some Guy",
       active: true,
       timeZone: "Australia/Sydney",
     },
     status: {
-      self: "https://jira.agiledigital.com.au/rest/api/2/status/5",
+      self: "https://jira.example.com/rest/api/2/status/5",
       description:
         "A resolution has been taken, and it is awaiting verification by reporter. From here issues are either reopened, or are closed.",
-      iconUrl:
-        "https://jira.agiledigital.com.au/images/icons/statuses/resolved.png",
+      iconUrl: "https://jira.example.com/images/icons/statuses/resolved.png",
       name: "Resolved",
       id: "5",
       statusCategory: {
-        self: "https://jira.agiledigital.com.au/rest/api/2/statuscategory/2",
+        self: "https://jira.example.com/rest/api/2/statuscategory/2",
         id: 2,
         key: "new",
         colorName: "blue-gray",
@@ -121,16 +120,16 @@ export const regular = {
   expand:
     "operations,versionedRepresentations,editmeta,changelog,renderedFields",
   id: "39477",
-  self: "https://jira.agiledigital.com.au/rest/api/2/issue/39477",
-  key: "MF-100",
+  self: "https://jira.example.com/rest/api/2/issue/39477",
+  key: "ABC-100",
   fields: {
     summary: "QA and Rework",
     issuetype: {
-      self: "https://jira.agiledigital.com.au/rest/api/2/issuetype/5",
+      self: "https://jira.example.com/rest/api/2/issuetype/5",
       id: "5",
       description: "The sub-task of the issue",
       iconUrl:
-        "https://jira.agiledigital.com.au/secure/viewavatar?size=xsmall&avatarId=11606&avatarType=issuetype",
+        "https://jira.example.com/secure/viewavatar?size=xsmall&avatarId=11606&avatarType=issuetype",
       name: "Sub-task",
       subtask: true,
       avatarId: 11606,
@@ -139,23 +138,23 @@ export const regular = {
     created: "2014-09-08T12:50:57.000+1000",
     description: "some description",
     project: {
-      self: "https://jira.agiledigital.com.au/rest/api/2/project/12080",
+      self: "https://jira.example.com/rest/api/2/project/12080",
       id: "12080",
-      key: "MF",
-      name: "Cinefly Mobflic (Ref: CIN-SFM-20210322CIN)",
+      key: "ABC",
+      name: "Acme Inc Project",
       projectTypeKey: "software",
       avatarUrls: {
         "48x48":
-          "https://jira.agiledigital.com.au/secure/projectavatar?pid=12080&avatarId=10011",
+          "https://jira.example.com/secure/projectavatar?pid=12080&avatarId=10011",
         "24x24":
-          "https://jira.agiledigital.com.au/secure/projectavatar?size=small&pid=12080&avatarId=10011",
+          "https://jira.example.com/secure/projectavatar?size=small&pid=12080&avatarId=10011",
         "16x16":
-          "https://jira.agiledigital.com.au/secure/projectavatar?size=xsmall&pid=12080&avatarId=10011",
+          "https://jira.example.com/secure/projectavatar?size=xsmall&pid=12080&avatarId=10011",
         "32x32":
-          "https://jira.agiledigital.com.au/secure/projectavatar?size=medium&pid=12080&avatarId=10011",
+          "https://jira.example.com/secure/projectavatar?size=medium&pid=12080&avatarId=10011",
       },
       projectCategory: {
-        self: "https://jira.agiledigital.com.au/rest/api/2/projectCategory/10011",
+        self: "https://jira.example.com/rest/api/2/projectCategory/10011",
         id: "10011",
         description:
           "Projects that are now inactive, will be excluded from all reporting.",
@@ -164,7 +163,7 @@ export const regular = {
     },
     fixVersions: [
       {
-        self: "https://jira.agiledigital.com.au/rest/api/2/version/13589",
+        self: "https://jira.example.com/rest/api/2/version/13589",
         id: "13589",
         name: "Kanban",
         archived: false,
@@ -192,34 +191,33 @@ export const regular = {
       startAt: 0,
     },
     assignee: {
-      self: "https://jira.agiledigital.com.au/rest/api/2/user?username=sxguy",
+      self: "https://jira.example.com/rest/api/2/user?username=sxguy",
       name: "sxguy",
       key: "sxguy",
-      emailAddress: "sxguy@agiledigital.com.au",
+      emailAddress: "sxguy@example.com",
       avatarUrls: {
         "48x48":
-          "https://jira.agiledigital.com.au/secure/useravatar?ownerId=sxguy&avatarId=12390",
+          "https://jira.example.com/secure/useravatar?ownerId=sxguy&avatarId=12390",
         "24x24":
-          "https://jira.agiledigital.com.au/secure/useravatar?size=small&ownerId=sxguy&avatarId=12390",
+          "https://jira.example.com/secure/useravatar?size=small&ownerId=sxguy&avatarId=12390",
         "16x16":
-          "https://jira.agiledigital.com.au/secure/useravatar?size=xsmall&ownerId=sxguy&avatarId=12390",
+          "https://jira.example.com/secure/useravatar?size=xsmall&ownerId=sxguy&avatarId=12390",
         "32x32":
-          "https://jira.agiledigital.com.au/secure/useravatar?size=medium&ownerId=sxguy&avatarId=12390",
+          "https://jira.example.com/secure/useravatar?size=medium&ownerId=sxguy&avatarId=12390",
       },
       displayName: "Some Guy",
       active: true,
       timeZone: "Australia/Sydney",
     },
     status: {
-      self: "https://jira.agiledigital.com.au/rest/api/2/status/5",
+      self: "https://jira.example.com/rest/api/2/status/5",
       description:
         "A resolution has been taken, and it is awaiting verification by reporter. From here issues are either reopened, or are closed.",
-      iconUrl:
-        "https://jira.agiledigital.com.au/images/icons/statuses/resolved.png",
+      iconUrl: "https://jira.example.com/images/icons/statuses/resolved.png",
       name: "Resolved",
       id: "5",
       statusCategory: {
-        self: "https://jira.agiledigital.com.au/rest/api/2/statuscategory/2",
+        self: "https://jira.example.com/rest/api/2/statuscategory/2",
         id: 2,
         key: "new",
         colorName: "blue-gray",
@@ -239,36 +237,36 @@ export const withParent = {
   expand:
     "operations,versionedRepresentations,editmeta,changelog,renderedFields",
   id: "121666",
-  self: "https://jira.agiledigital.com.au/rest/api/2/issue/121666",
-  key: "MF-433",
+  self: "https://jira.example.com/rest/api/2/issue/121666",
+  key: "ABC-433",
   fields: {
-    summary: "Implement fetch /v1/current-user/flics API in cinefly-backend.",
+    summary: "Implement fetch /v1/shopping-cart API in backend.",
     issuetype: {
-      self: "https://jira.agiledigital.com.au/rest/api/2/issuetype/5",
+      self: "https://jira.example.com/rest/api/2/issuetype/5",
       id: "5",
       description: "The sub-task of the issue",
       iconUrl:
-        "https://jira.agiledigital.com.au/secure/viewavatar?size=xsmall&avatarId=11606&avatarType=issuetype",
+        "https://jira.example.com/secure/viewavatar?size=xsmall&avatarId=11606&avatarType=issuetype",
       name: "Sub-task",
       subtask: true,
       avatarId: 11606,
     },
     parent: {
       id: "121082",
-      key: "MF-398",
-      self: "https://jira.agiledigital.com.au/rest/api/2/issue/121082",
+      key: "ABC-398",
+      self: "https://jira.example.com/rest/api/2/issue/121082",
       fields: {
-        summary: "Cinefly APIs are proxied through AWS API Gateway and Lambda.",
+        summary: "APIs are proxied.",
         status: {
-          self: "https://jira.agiledigital.com.au/rest/api/2/status/3",
+          self: "https://jira.example.com/rest/api/2/status/3",
           description:
             "This issue is being actively worked on at the moment by the assignee.",
           iconUrl:
-            "https://jira.agiledigital.com.au/images/icons/statuses/inprogress.png",
+            "https://jira.example.com/images/icons/statuses/inprogress.png",
           name: "In Progress",
           id: "3",
           statusCategory: {
-            self: "https://jira.agiledigital.com.au/rest/api/2/statuscategory/4",
+            self: "https://jira.example.com/rest/api/2/statuscategory/4",
             id: 4,
             key: "indeterminate",
             colorName: "yellow",
@@ -276,19 +274,19 @@ export const withParent = {
           },
         },
         priority: {
-          self: "https://jira.agiledigital.com.au/rest/api/2/priority/8",
+          self: "https://jira.example.com/rest/api/2/priority/8",
           iconUrl:
-            "https://jira.agiledigital.com.au/images/icons/priorities/trivial.svg",
+            "https://jira.example.com/images/icons/priorities/trivial.svg",
           name: "None",
           id: "8",
         },
         issuetype: {
-          self: "https://jira.agiledigital.com.au/rest/api/2/issuetype/4",
+          self: "https://jira.example.com/rest/api/2/issuetype/4",
           id: "4",
           description:
             "An improvement or enhancement to an existing feature or task.",
           iconUrl:
-            "https://jira.agiledigital.com.au/secure/viewavatar?size=xsmall&avatarId=11600&avatarType=issuetype",
+            "https://jira.example.com/secure/viewavatar?size=xsmall&avatarId=11600&avatarType=issuetype",
           name: "Improvement",
           subtask: false,
           avatarId: 11600,
@@ -299,23 +297,23 @@ export const withParent = {
     created: "2021-05-03T15:13:44.000+1000",
     description: null,
     project: {
-      self: "https://jira.agiledigital.com.au/rest/api/2/project/12080",
+      self: "https://jira.example.com/rest/api/2/project/12080",
       id: "12080",
-      key: "MF",
-      name: "Cinefly Mobflic (Ref: CIN-SFM-20210322CIN)",
+      key: "ABC",
+      name: "Acme Inc Project",
       projectTypeKey: "software",
       avatarUrls: {
         "48x48":
-          "https://jira.agiledigital.com.au/secure/projectavatar?pid=12080&avatarId=10011",
+          "https://jira.example.com/secure/projectavatar?pid=12080&avatarId=10011",
         "24x24":
-          "https://jira.agiledigital.com.au/secure/projectavatar?size=small&pid=12080&avatarId=10011",
+          "https://jira.example.com/secure/projectavatar?size=small&pid=12080&avatarId=10011",
         "16x16":
-          "https://jira.agiledigital.com.au/secure/projectavatar?size=xsmall&pid=12080&avatarId=10011",
+          "https://jira.example.com/secure/projectavatar?size=xsmall&pid=12080&avatarId=10011",
         "32x32":
-          "https://jira.agiledigital.com.au/secure/projectavatar?size=medium&pid=12080&avatarId=10011",
+          "https://jira.example.com/secure/projectavatar?size=medium&pid=12080&avatarId=10011",
       },
       projectCategory: {
-        self: "https://jira.agiledigital.com.au/rest/api/2/projectCategory/10011",
+        self: "https://jira.example.com/rest/api/2/projectCategory/10011",
         id: "10011",
         description:
           "Projects that are now inactive, will be excluded from all reporting.",
@@ -337,34 +335,33 @@ export const withParent = {
     aggregatetimeestimate: 0,
     comment: { comments: [], maxResults: 0, total: 0, startAt: 0 },
     assignee: {
-      self: "https://jira.agiledigital.com.au/rest/api/2/user?username=sxguy",
+      self: "https://jira.example.com/rest/api/2/user?username=sxguy",
       name: "sxguy",
       key: "sxguy",
-      emailAddress: "sxguy@agiledigital.com.au",
+      emailAddress: "sxguy@example.com",
       avatarUrls: {
         "48x48":
-          "https://jira.agiledigital.com.au/secure/useravatar?ownerId=sxguy&avatarId=12391",
+          "https://jira.example.com/secure/useravatar?ownerId=sxguy&avatarId=12391",
         "24x24":
-          "https://jira.agiledigital.com.au/secure/useravatar?size=small&ownerId=sxguy&avatarId=12391",
+          "https://jira.example.com/secure/useravatar?size=small&ownerId=sxguy&avatarId=12391",
         "16x16":
-          "https://jira.agiledigital.com.au/secure/useravatar?size=xsmall&ownerId=sxguy&avatarId=12391",
+          "https://jira.example.com/secure/useravatar?size=xsmall&ownerId=sxguy&avatarId=12391",
         "32x32":
-          "https://jira.agiledigital.com.au/secure/useravatar?size=medium&ownerId=sxguy&avatarId=12391",
+          "https://jira.example.com/secure/useravatar?size=medium&ownerId=sxguy&avatarId=12391",
       },
       displayName: "Some Guy",
       active: true,
       timeZone: "Australia/Sydney",
     },
     status: {
-      self: "https://jira.agiledigital.com.au/rest/api/2/status/5",
+      self: "https://jira.example.com/rest/api/2/status/5",
       description:
         "A resolution has been taken, and it is awaiting verification by reporter. From here issues are either reopened, or are closed.",
-      iconUrl:
-        "https://jira.agiledigital.com.au/images/icons/statuses/resolved.png",
+      iconUrl: "https://jira.example.com/images/icons/statuses/resolved.png",
       name: "Resolved",
       id: "5",
       statusCategory: {
-        self: "https://jira.agiledigital.com.au/rest/api/2/statuscategory/2",
+        self: "https://jira.example.com/rest/api/2/statuscategory/2",
         id: 2,
         key: "new",
         colorName: "blue-gray",
@@ -380,19 +377,19 @@ export const withParent = {
       {
         id: "555096",
         author: {
-          self: "https://jira.agiledigital.com.au/rest/api/2/user?username=sxguy",
+          self: "https://jira.example.com/rest/api/2/user?username=sxguy",
           name: "sxguy",
           key: "sxguy",
-          emailAddress: "sxguy@agiledigital.com.au",
+          emailAddress: "sxguy@example.com",
           avatarUrls: {
             "48x48":
-              "https://jira.agiledigital.com.au/secure/useravatar?ownerId=sxguy&avatarId=12391",
+              "https://jira.example.com/secure/useravatar?ownerId=sxguy&avatarId=12391",
             "24x24":
-              "https://jira.agiledigital.com.au/secure/useravatar?size=small&ownerId=sxguy&avatarId=12391",
+              "https://jira.example.com/secure/useravatar?size=small&ownerId=sxguy&avatarId=12391",
             "16x16":
-              "https://jira.agiledigital.com.au/secure/useravatar?size=xsmall&ownerId=sxguy&avatarId=12391",
+              "https://jira.example.com/secure/useravatar?size=xsmall&ownerId=sxguy&avatarId=12391",
             "32x32":
-              "https://jira.agiledigital.com.au/secure/useravatar?size=medium&ownerId=sxguy&avatarId=12391",
+              "https://jira.example.com/secure/useravatar?size=medium&ownerId=sxguy&avatarId=12391",
           },
           displayName: "Some Guy",
           active: true,
