@@ -1,0 +1,78 @@
+{
+  "name": "@agiledigital/jiralint-lib",
+  "version": "1.0.0",
+  "main": "dist",
+  "license": "MIT",
+  "repository": {
+    "url": "https://github.com/agiledigital/jiralint.git",
+    "type": "git"
+  },
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src --ext .ts,.tsx",
+    "coverage": "type-coverage",
+    "format": "prettier --write 'src/**/*.{ts,tsx}'",
+    "test": "jest",
+    "release": "semantic-release"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/npm",
+      [
+        "@semantic-release/git",
+        {
+          "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+        }
+      ]
+    ]
+  },
+  "dependencies": {
+    "colors": "^1.4.0",
+    "date-fns": "^2.19.0",
+    "fp-ts": "^2.10.5",
+    "io-ts": "^2.2.15",
+    "io-ts-types": "^0.5.15",
+    "jira-client": "^6.21.1",
+    "monocle-ts": "^2.3.10",
+    "newtype-ts": "^0.3.4",
+    "oauth": "^0.9.15",
+    "readonly-types": "^2.0.0",
+    "ts-pattern": "^3.2.2"
+  },
+  "devDependencies": {
+    "@semantic-release/git": "9.0.0",
+    "@types/jest": "26.0.24",
+    "@types/jira-client": "6.21.2",
+    "@types/oauth": "0.9.1",
+    "@typescript-eslint/eslint-plugin": "4.29.0",
+    "@typescript-eslint/parser": "4.29.0",
+    "eslint": "7.32.0",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-config-typed-fp": "1.5.0",
+    "eslint-plugin-functional": "3.5.0",
+    "eslint-plugin-jest": "24.4.0",
+    "eslint-plugin-prettier": "3.4.0",
+    "eslint-plugin-sonarjs": "0.9.1",
+    "eslint-plugin-total-functions": "4.9.0",
+    "jest": "27.0.6",
+    "prettier": "2.3.2",
+    "semantic-release": "17.4.4",
+    "ts-jest": "27.0.4",
+    "type-coverage": "2.18.0",
+    "typescript": "4.3.5"
+  },
+  "typeCoverage": {
+    "atLeast": 100,
+    "ignoreCatch": false,
+    "strict": true,
+    "detail": true
+  }
+}

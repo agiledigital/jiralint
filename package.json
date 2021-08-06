@@ -1,0 +1,44 @@
+{
+  "name": "jiralint",
+  "version": "0.0.0",
+  "license": "UNLICENSED",
+  "private": true,
+  "repository": {
+    "url": "https://github.com/agiledigital/jiralint.git",
+    "type": "git"
+  },
+  "engines": {
+    "node": ">=10"
+  },
+  "workspaces": [
+    "lib",
+    "cli"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "start": "npm run start --workspaces",
+    "lint": "npm run lint --workspaces",
+    "coverage": "npm run coverage --workspaces",
+    "format": "npm run format --workspaces",
+    "test": "npm run test --workspaces",
+    "prepare": "husky install",
+    "commit": "git-cz",
+    "release": "npm run release --workspace=lib"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "13.1.0",
+    "@commitlint/config-conventional": "13.1.0",
+    "commitizen": "4.2.4",
+    "cz-conventional-changelog": "3.3.0",
+    "fast-check": "2.17.0",
+    "husky": "7.0.1"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "dependencies": {
+    "semantic-release": "17.4.4"
+  }
+}

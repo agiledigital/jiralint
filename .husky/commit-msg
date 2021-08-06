@@ -1,0 +1,5 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# FIXME make this compatible with cz commit
+# npx --no-install commitlint --edit ""
