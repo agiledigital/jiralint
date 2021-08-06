@@ -40,7 +40,7 @@ export const withCommonOptions = <C extends RootCommand>(command: C) =>
     .option("jiraConsumerSecret", {
       alias: "cs",
       type: "string",
-      describe: "The Jira consumer secret",
+      describe: "The Jira consumer secret in base64 format",
     })
     .group(["jiraConsumerKey", "jiraConsumerSecret"], authOptionGroup)
     .demandOption(["jiraHost", "jiraConsumerSecret"]);

@@ -12,11 +12,7 @@ import {
   jiraFormattedSeconds,
 } from "@agiledigital-labs/jiralint-lib";
 import stringLength from "string-length";
-import {
-  additionalCustomFieldNames,
-  makeJiraClient,
-  qaImpactStatementField,
-} from "./common";
+import { makeJiraClient, qaImpactStatementField } from "./common";
 
 import * as CLUI from "clui";
 import * as clc from "cli-color";
@@ -251,7 +247,16 @@ export default ({ command }: RootCommand): Argv<unknown> =>
         .option("boardNamesToIgnore", {
           type: "string",
           array: true,
+          description:
+            "Prefix of the name of boards to be ignored when determining the 'column' that a ticket is currently in.",
           default: ["delivery management board", "copy of"], // TODO remove this default
+        })
+        .option("customFieldNames", {
+          type: "string",
+          array: true,
+          description:
+            "List of other custom issue field names to include when retrieving issues from Jira.",
+          default: ["customfield_11410"], // TODO remove this default (account field)
         })
         .demandOption(["jql"]),
     (args) => {
@@ -266,7 +271,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
         args.accessSecret,
         args.output,
         args.boardNamesToIgnore,
-        additionalCustomFieldNames, // TODO solicit from user and combine with these additional ones
+        [...args.customFieldNames, qaImpactStatementField],
         args.qualityFieldName
       );
     }

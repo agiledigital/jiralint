@@ -1,14 +1,8 @@
 import { jiraClient } from "@agiledigital-labs/jiralint-lib";
 import type { JiraClient } from "@agiledigital-labs/jiralint-lib";
 
-// FIXME: solicit these options from the CLI user
-
-const accountField = "customfield_11410";
+// FIXME remove this specific field (and corresponding check)
 export const qaImpactStatementField = "customfield_10111";
-export const additionalCustomFieldNames = [
-  accountField,
-  qaImpactStatementField,
-] as const;
 
 export const makeJiraClient = (
   jiraProtocol: string,
