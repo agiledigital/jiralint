@@ -1,5 +1,5 @@
 import { Argv } from "yargs";
-import { RootCommand, withAuthOptions } from "..";
+import { RootCommand, withQualityFieldOption } from "..";
 import { EnhancedIssue, quality } from "@agiledigital-labs/jiralint-lib";
 import {
   issueActionRequired,
@@ -12,7 +12,7 @@ import {
   jiraFormattedSeconds,
 } from "@agiledigital-labs/jiralint-lib";
 import stringLength from "string-length";
-import { makeJiraClient, qaImpactStatementField, qualityField } from "./common";
+import { makeJiraClient, qaImpactStatementField } from "./common";
 
 import * as CLUI from "clui";
 import * as clc from "cli-color";
@@ -58,8 +58,11 @@ const renderJson = (issues: ReadonlyArray<EnhancedIssue>): void => {
   );
 };
 
-// eslint-disable-next-line functional/no-return-void
-const renderTable = (issues: ReadonlyArray<EnhancedIssue>): void => {
+const renderTable = (
+  issues: ReadonlyArray<EnhancedIssue>,
+  qualityFieldName: string
+  // eslint-disable-next-line functional/no-return-void
+): void => {
   const tableHeaders: ReadonlyArray<string> = [
     "Action",
     "Quality",
@@ -117,7 +120,7 @@ const renderTable = (issues: ReadonlyArray<EnhancedIssue>): void => {
         : "";
 
     const noFormat: ReadonlyArray<clc.Format> = [clc.white];
-    const quality = issue.fields[qualityField];
+    const quality = issue.fields[qualityFieldName];
 
     return [
       [
@@ -184,7 +187,9 @@ const search = async (
   accessToken: string,
   accessSecret: string,
   output: OutputMode,
-  boardNamesToIgnore: readonly string[]
+  boardNamesToIgnore: readonly string[],
+  customFieldNames: readonly string[],
+  qualityFieldName: string
 ): Promise<void> => {
   const countdown = new CLUI.Spinner("Searching the things...  ");
   // eslint-disable-next-line functional/no-expression-statement
@@ -199,7 +204,13 @@ const search = async (
 
   const jiraApi = jira.jiraApi(accessToken, accessSecret);
 
-  const issues = await jira.searchIssues(jql, jiraApi, boardNamesToIgnore);
+  const issues = await jira.searchIssues(
+    jql,
+    jiraApi,
+    boardNamesToIgnore,
+    qualityFieldName,
+    customFieldNames
+  );
 
   // eslint-disable-next-line functional/no-expression-statement
   countdown.stop();
@@ -207,7 +218,9 @@ const search = async (
   const render = output === "table" ? renderTable : renderJson;
 
   // eslint-disable-next-line functional/no-expression-statement
-  isLeft(issues) ? console.error(issues) : render(issues.right);
+  isLeft(issues)
+    ? console.error(issues)
+    : render(issues.right, qualityFieldName);
 };
 
 type OutputMode = "json" | "table";
@@ -219,7 +232,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
     "search",
     "searches for jira issues using JQL and then lints",
     (yargs) =>
-      withAuthOptions(yargs)
+      withQualityFieldOption(yargs)
         .option("jql", {
           alias: "j",
           type: "string",
@@ -234,7 +247,16 @@ export default ({ command }: RootCommand): Argv<unknown> =>
         .option("boardNamesToIgnore", {
           type: "string",
           array: true,
-          default: ["delivery management board", "copy of"],
+          description:
+            "Prefix of the name of boards to be ignored when determining the 'column' that a ticket is currently in.",
+          default: ["delivery management board", "copy of"], // TODO remove this default
+        })
+        .option("customFieldNames", {
+          type: "string",
+          array: true,
+          description:
+            "List of other custom issue field names to include when retrieving issues from Jira.",
+          default: ["customfield_11410"], // TODO remove this default (account field)
         })
         .demandOption(["jql"]),
     (args) => {
@@ -248,7 +270,9 @@ export default ({ command }: RootCommand): Argv<unknown> =>
         args.accessToken,
         args.accessSecret,
         args.output,
-        args.boardNamesToIgnore
+        args.boardNamesToIgnore,
+        [...args.customFieldNames, qaImpactStatementField],
+        args.qualityFieldName
       );
     }
   );

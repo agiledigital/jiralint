@@ -1,5 +1,5 @@
 import { Argv } from "yargs";
-import { RootCommand, withAuthOptions } from "..";
+import { RootCommand, withQualityFieldOption } from "..";
 import { makeJiraClient } from "./common";
 
 const rate = async (
@@ -10,7 +10,8 @@ const rate = async (
   key: string,
   quality: string,
   accessToken: string,
-  accessSecret: string
+  accessSecret: string,
+  qualityFieldName: string
 ): Promise<void> => {
   const jira = makeJiraClient(
     jiraProtocol,
@@ -21,7 +22,12 @@ const rate = async (
 
   const jiraApi = jira.jiraApi(accessToken, accessSecret);
 
-  const update = await jira.updateIssueQuality(key, quality, jiraApi);
+  const update = await jira.updateIssueQuality(
+    key,
+    quality,
+    jiraApi,
+    qualityFieldName
+  );
 
   // eslint-disable-next-line functional/no-expression-statement
   console.log(`Updated [${JSON.stringify(update, null, 2)}]`);
@@ -32,7 +38,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
     "rate",
     "records the quality of a jira issue",
     (yargs) =>
-      withAuthOptions(yargs)
+      withQualityFieldOption(yargs)
         .option("key", {
           alias: "k",
           type: "string",
@@ -54,7 +60,8 @@ export default ({ command }: RootCommand): Argv<unknown> =>
         args.key,
         args.quality,
         args.accessToken,
-        args.accessSecret
+        args.accessSecret,
+        args.qualityFieldName
       );
     }
   );

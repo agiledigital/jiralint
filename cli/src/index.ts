@@ -35,12 +35,12 @@ export const withCommonOptions = <C extends RootCommand>(command: C) =>
       alias: "ck",
       type: "string",
       describe: "The Jira consumer key",
-      default: "jiralintkey",
+      default: "jiralintkey", // TODO remove this default?
     })
     .option("jiraConsumerSecret", {
       alias: "cs",
       type: "string",
-      describe: "The Jira consumer secret",
+      describe: "The Jira consumer secret in base64 format",
     })
     .group(["jiraConsumerKey", "jiraConsumerSecret"], authOptionGroup)
     .demandOption(["jiraHost", "jiraConsumerSecret"]);
@@ -60,6 +60,16 @@ export const withAuthOptions = <C extends RootCommand>(command: C) =>
     })
     .group(["accessToken", "accessSecret"], authOptionGroup)
     .demandOption(["accessToken", "accessSecret"]);
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const withQualityFieldOption = <C extends RootCommand>(command: C) =>
+  withAuthOptions(command)
+    .option("qualityFieldName", {
+      type: "string",
+      describe: "The name of the Jira custom field used to store issue quality",
+      default: "customfield_12410", // TODO remove this default
+    })
+    .demandOption(["qualityFieldName"]);
 
 /* eslint-disable functional/no-expression-statement */
 auth(rootCommand);
