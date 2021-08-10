@@ -1,5 +1,5 @@
 import { Argv } from "yargs";
-import { RootCommand, withQualityFieldOption } from "..";
+import { RootCommand, withQualityFieldsOption } from "..";
 import { EnhancedIssue, quality } from "@agiledigital/jiralint-lib";
 import { issueActionRequired, IssueAction } from "@agiledigital/jiralint-lib";
 import { isLeft } from "fp-ts/lib/Either";
@@ -185,7 +185,8 @@ const search = async (
   output: OutputMode,
   boardNamesToIgnore: readonly string[],
   customFieldNames: readonly string[],
-  qualityFieldName: string
+  qualityFieldName: string,
+  qualityReasonFieldName: string
 ): Promise<void> => {
   const countdown = new CLUI.Spinner("Searching the things...  ");
   // eslint-disable-next-line functional/no-expression-statement
@@ -205,6 +206,7 @@ const search = async (
     jiraApi,
     boardNamesToIgnore,
     qualityFieldName,
+    qualityReasonFieldName,
     customFieldNames
   );
 
@@ -228,7 +230,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
     "search",
     "searches for jira issues using JQL and then lints",
     (yargs) =>
-      withQualityFieldOption(yargs)
+      withQualityFieldsOption(yargs)
         .option("jql", {
           alias: "j",
           type: "string",
@@ -268,7 +270,8 @@ export default ({ command }: RootCommand): Argv<unknown> =>
         args.output,
         args.boardNamesToIgnore,
         args.customFieldNames,
-        args.qualityFieldName
+        args.qualityFieldName,
+        args.qualityReasonFieldName
       );
     }
   );

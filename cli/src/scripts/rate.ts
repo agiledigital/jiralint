@@ -1,5 +1,5 @@
 import { Argv } from "yargs";
-import { RootCommand, withQualityFieldOption } from "..";
+import { RootCommand, withQualityFieldsOption } from "..";
 import { makeJiraClient } from "./common";
 
 const rate = async (
@@ -9,9 +9,11 @@ const rate = async (
   jiraConsumerSecret: string,
   key: string,
   quality: string,
+  reason: string,
   accessToken: string,
   accessSecret: string,
-  qualityFieldName: string
+  qualityFieldName: string,
+  reasonFieldName: string
 ): Promise<void> => {
   const jira = makeJiraClient(
     jiraProtocol,
@@ -25,8 +27,10 @@ const rate = async (
   const update = await jira.updateIssueQuality(
     key,
     quality,
+    reason,
     jiraApi,
-    qualityFieldName
+    qualityFieldName,
+    reasonFieldName
   );
 
   // eslint-disable-next-line functional/no-expression-statement
@@ -38,7 +42,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
     "rate",
     "records the quality of a jira issue",
     (yargs) =>
-      withQualityFieldOption(yargs)
+      withQualityFieldsOption(yargs)
         .option("key", {
           alias: "k",
           type: "string",
@@ -49,7 +53,12 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           choices: ["A", "B"],
           description: "assessed quality",
         })
-        .demandOption(["key", "quality"]),
+        .option("reason", {
+          alias: "r",
+          type: "string",
+          describe: "reason for assessment",
+        })
+        .demandOption(["key", "quality", "reason"]),
     (args) => {
       // eslint-disable-next-line functional/no-expression-statement
       void rate(
@@ -59,9 +68,11 @@ export default ({ command }: RootCommand): Argv<unknown> =>
         args.jiraConsumerSecret,
         args.key,
         args.quality,
+        args.reason,
         args.accessToken,
         args.accessSecret,
-        args.qualityFieldName
+        args.qualityFieldName,
+        args.qualityReasonFieldName
       );
     }
   );
