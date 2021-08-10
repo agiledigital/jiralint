@@ -49,14 +49,17 @@ export type JiraClient = {
   readonly updateIssueQuality: (
     key: string,
     quality: string,
+    reason: string,
     jiraApi: JiraApi,
-    qualityField: string
+    qualityField: string,
+    qualityReasonField: string
   ) => Promise<Either<string | FieldNotEditable | JiraError, JsonResponse>>;
   readonly searchIssues: (
     jql: string,
     jiraApi: JiraApi,
     boardNamesToIgnore: readonly string[],
     qualityField: string,
+    qualityReasonField: string,
     customFieldNames: readonly string[]
   ) => Promise<Either<string, ReadonlyArray<EnhancedIssue>>>;
   readonly currentUser: (jiraApi: JiraApi) => Promise<Either<string, User>>;
@@ -392,21 +395,26 @@ export const jiraClient = (
      *
      * @param key key that identifies the issue.
      * @param quality rated quality to be recorded.
+     * @param reason reason that the rated quality was recorded.
      * @param jiraApi API used to effect the update.
      * @param qualityField The name of the custom field used to store issue quality.
+     * @param qualityReasonField The name of the custom field used to store issue quality reason.
      * @returns the result of doing the update
      */
     updateIssueQuality: async (
       key: string,
       quality: string,
+      reason: string,
       jiraApi: JiraApi,
-      qualityField: string
+      qualityField: string,
+      qualityReasonField: string
     ): Promise<Either<string | FieldNotEditable | JiraError, JsonResponse>> => {
       const updateIssue = TE.tryCatch(
         () =>
           jiraApi.updateIssue(key, {
             fields: {
               [qualityField]: quality,
+              [qualityReasonField]: reason,
             },
           }),
         (error: unknown) => {
@@ -460,6 +468,7 @@ export const jiraClient = (
      *                           This column is used as proxy for the status of tickets in some circumstances (e.g. to
      *                           abstract over the statuses of different issue types.)
      * @param qualityField The name of the custom field used to store issue quality.
+     * @param qualityReasonField The name of the custom field used to store the reason an issue has been rated at a quality.
      * @param customFieldNames List of other custom issue field names to include when retrieving issues from Jira. Must be specified explicitly, sadly.
      *                         If you want to use a custom field in a rule, you must specify it here.
      * @returns either an error or the enhanced issues.
@@ -469,6 +478,7 @@ export const jiraClient = (
       jiraApi: JiraApi,
       boardNamesToIgnore: readonly string[],
       qualityField: string,
+      qualityReasonField: string,
       customFieldNames: readonly string[]
     ): Promise<Either<string, ReadonlyArray<EnhancedIssue>>> => {
       const fetchIssues = TE.tryCatch(
@@ -493,6 +503,7 @@ export const jiraClient = (
               "parent",
               "duedate",
               qualityField,
+              qualityReasonField,
               ...customFieldNames,
             ],
             expand: ["changelog"],

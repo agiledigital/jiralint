@@ -62,13 +62,18 @@ export const withAuthOptions = <C extends RootCommand>(command: C) =>
     .demandOption(["accessToken", "accessSecret"]);
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const withQualityFieldOption = <C extends RootCommand>(command: C) =>
+export const withQualityFieldsOption = <C extends RootCommand>(command: C) =>
   withAuthOptions(command)
     .option("qualityFieldName", {
       type: "string",
       describe: "The name of the Jira custom field used to store issue quality",
     })
-    .demandOption(["qualityFieldName"]);
+    .options("qualityReasonFieldName", {
+      type: "string",
+      describe:
+        "The name of the Jira custom field used to store issue quality reason",
+    })
+    .demandOption(["qualityFieldName", "qualityReasonFieldName"]);
 
 /* eslint-disable functional/no-expression-statement */
 auth(rootCommand);
