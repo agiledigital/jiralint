@@ -196,6 +196,8 @@ export type EnhancedIssue = Issue & {
   readonly mostRecentWorklog?: IssueWorklog;
   readonly viewLink: string;
   readonly lastWorked?: ReadonlyDate; // The last time that there was evidence the ticket was actively worked (e.g. there was a transition, worklog or comment added).
+  readonly quality: string | undefined;
+  readonly qualityReason: string | undefined; // The reason that the issue has the quality rating it does.
 };
 
 export const User = T.type({
@@ -340,6 +342,8 @@ export const issueLastWorked = (issue: Issue): ReadonlyDate | undefined => {
 export const enhancedIssue = (
   issue: Issue,
   viewLink: string,
+  qualityFieldName: string,
+  qualityReasonFieldName: string,
   board?: Board
 ): EnhancedIssue => {
   const mostRecentTransition = mostRecentIssueTransition(issue);
@@ -349,6 +353,14 @@ export const enhancedIssue = (
   const released = issue.fields.fixVersions.some((version) => version.released);
 
   const lastWorked = issueLastWorked(issue);
+
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  const quality = issue.fields[qualityFieldName] as string | undefined; // type-coverage:ignore-line
+
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  const qualityReason = issue.fields[qualityReasonFieldName] as  // type-coverage:ignore-line
+    | string
+    | undefined;
 
   return {
     ...issue,
@@ -362,5 +374,7 @@ export const enhancedIssue = (
     released: released,
     viewLink,
     lastWorked: lastWorked,
+    quality,
+    qualityReason,
   };
 };

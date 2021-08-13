@@ -61,4 +61,6 @@ export const enhancedIssue: EnhancedIssue = {
   released: false,
   viewLink: "viewlink",
   lastWorked: undefined,
+  quality: "A",
+  qualityReason: "for a good reason",
 };

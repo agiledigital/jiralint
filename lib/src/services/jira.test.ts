@@ -11,6 +11,7 @@ import {
   issueTransitions,
   issueLastWorked,
   IssueWorklog,
+  enhancedIssue,
 } from "./jira";
 import { PathReporter } from "io-ts/PathReporter";
 import * as E from "fp-ts/lib/Either";
@@ -19,6 +20,7 @@ import { isLeft } from "fp-ts/lib/These";
 import * as TestData from "./test_data/jira_data";
 import * as IssueData from "./test_data/issue_data";
 import { readonlyDate } from "readonly-types/dist";
+import fc from "fast-check";
 
 const commentFrom2021 = {
   id: "5",
@@ -283,5 +285,66 @@ describe("finding the most recent transition", () => {
 
     // Then it should be expected value.
     expect(actual).toEqual(expected);
+  });
+});
+
+describe("enhancing issues", () => {
+  it("should extract the issue quality if set", () => {
+    fc.assert(
+      fc.property(
+        fc.string({ minLength: 1 }).filter((s) => s.trim().length > 0),
+        fc.string({ minLength: 1 }).filter((s) => s.trim().length > 0),
+        (fieldName, value) => {
+          // Given an issue that has the provided value
+          const issue = {
+            ...IssueData.issue,
+            fields: {
+              ...IssueData.issue.fields,
+              [fieldName]: value,
+            },
+          };
+
+          // When it is enhanced
+          const enhanced = enhancedIssue(
+            issue,
+            "viewlink",
+            fieldName,
+            "not_reason"
+          );
+
+          // Then the quality field should have been set.
+          expect(enhanced.quality).toBe(value);
+        }
+      )
+    );
+  });
+  it("should extract the issue quality reason if set", () => {
+    fc.assert(
+      fc.property(
+        fc.string({ minLength: 1 }).filter((s) => s.trim().length > 0),
+        fc.string({ minLength: 1 }).filter((s) => s.trim().length > 0),
+        (fieldName, value) => {
+          // Given an issue that has the provided value
+          const issue = {
+            ...IssueData.issue,
+            fields: {
+              ...IssueData.issue.fields,
+              [fieldName]: value,
+            },
+          };
+
+          // When it is enhanced
+          const enhanced = enhancedIssue(
+            issue,
+            "viewlink",
+            "not_quality",
+            fieldName
+          );
+
+          // Then the quality field should have been set.
+          expect(enhanced.qualityReason).toBe(value);
+        }
+      )
+    );
   });
 });
