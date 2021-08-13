@@ -540,7 +540,13 @@ export const jiraClient = (
                   )
                 )
               );
-              return enhancedIssue(issue, issueLink(issue), boardByStatus);
+              return enhancedIssue(
+                issue,
+                issueLink(issue),
+                qualityField,
+                qualityReasonField,
+                boardByStatus
+              );
             });
           }
         )(boardsByProject(issues, jiraApi, boardNamesToIgnore));
