@@ -61,6 +61,8 @@ export const checker = (check: string): Checker => ({
 const lastBusinessDay = (at: ReadonlyDate): ReadonlyDate =>
   subBusinessDays(at.valueOf(), 1);
 
+const notInProgressReason = "not in progress";
+
 /**
  * Checks whether an in-progress ticket has been worked (as evidenced by work logs)
  *
@@ -81,15 +83,15 @@ export const validateInProgressHasWorklog =
     const workedRecently =
       mostRecentWork === undefined
         ? false
-        : isBefore(mostRecentWork.valueOf(), lastBusinessDay(at).valueOf());
+        : isBefore(lastBusinessDay(at).valueOf(), mostRecentWork.valueOf());
 
-    return match<readonly [boolean, string]>([
+    return match<readonly [boolean, boolean]>([
       workedRecently,
-      issue.fields.status.name.toLowerCase(),
+      issue.inProgress,
     ])
-      .with([false, "in progress"], () => check.fail("no recent worklog"))
-      .with([true, "in progress"], () => check.ok("has recent worklog"))
-      .otherwise(() => check.na("does not apply unless in progress"));
+      .with([false, true], () => check.fail("no recent worklog"))
+      .with([true, true], () => check.ok("has recent worklog"))
+      .otherwise(() => check.na(notInProgressReason));
   };
 
 /**
@@ -157,7 +159,7 @@ export const validateInProgressHasEstimate = (
     issue.inProgress,
     originalEstimateSeconds,
   ])
-    .with([false, __], () => check.na("not in progress"))
+    .with([false, __], () => check.na(notInProgressReason))
     .with([true, when((estimate) => estimate > 0)], () =>
       check.ok("has an estimate")
     )
@@ -207,7 +209,7 @@ const validateInProgressNotCloseToEstimate = (
   const timeSpentSeconds = issue.fields.aggregatetimespent ?? 0;
 
   return match<readonly [boolean, number]>([issue.inProgress, timeSpentSeconds])
-    .with([false, __], () => check.na("not in progress"))
+    .with([false, __], () => check.na(notInProgressReason))
     .with([__, when((spent) => spent > originalEstimateSeconds * 0.8)], () =>
       check.fail("time spent > 0.8 of original while in progress")
     )

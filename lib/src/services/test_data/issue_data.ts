@@ -1,4 +1,4 @@
-import type { EnhancedIssue, Issue } from "../jira";
+import type { EnhancedIssue, Issue, IssueWorklog } from "../jira";
 import { readonlyDate } from "readonly-types";
 
 export const issue: Issue = {
@@ -63,4 +63,13 @@ export const enhancedIssue: EnhancedIssue = {
   lastWorked: undefined,
   quality: "A",
   qualityReason: "for a good reason",
+};
+
+export const worklog: IssueWorklog = {
+  author: {
+    name: "danixon",
+  },
+  comment: "Working on issue ESGT-13",
+  started: readonlyDate("2021-08-16T14:00:00.000Z"),
+  timeSpentSeconds: 10800,
 };
