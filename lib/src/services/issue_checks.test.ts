@@ -7,6 +7,7 @@
 /* eslint-disable-next-line functional/no-return-void */
 import {
   validateInProgressHasEstimate,
+  validateInProgressHasWorklog,
   validateDescription,
   validateComment,
   validateTooLongInBacklog,
@@ -14,6 +15,62 @@ import {
   validateNotClosedDependenciesNotPassedDueDate,
 } from "./issue_checks";
 import * as IssueData from "./test_data/issue_data";
+import { readonlyDate } from "readonly-types";
+
+describe("checking that in progress tickets have worklogs", () => {
+  const tuesday = readonlyDate("2021-08-17T12:50:00.000+1000");
+  const monday = readonlyDate("2021-08-16T14:00:00.000Z");
+  const sunday = readonlyDate("2021-08-15T14:00:00.000Z");
+
+  it.each([
+    [
+      true,
+      undefined,
+      tuesday,
+      { outcome: "fail", reasons: ["no recent worklog"] },
+    ],
+    [
+      true,
+      sunday,
+      tuesday,
+      { outcome: "fail", reasons: ["no recent worklog"] },
+    ],
+    [true, monday, tuesday, { outcome: "ok", reasons: ["has recent worklog"] }],
+    [
+      false,
+      undefined,
+      tuesday,
+      { outcome: "not applied", reasons: ["not in progress"] },
+    ],
+    [
+      false,
+      monday,
+      tuesday,
+      { outcome: "not applied", reasons: ["not in progress"] },
+    ],
+  ])(
+    "checks as expected %#",
+    (inProgress, lastWorklogCreated, checkTime, expected) => {
+      const mostRecentWorklog =
+        lastWorklogCreated === undefined
+          ? undefined
+          : {
+              ...IssueData.worklog,
+              started: lastWorklogCreated,
+            };
+
+      const input = {
+        ...IssueData.enhancedIssue,
+        inProgress,
+        mostRecentWorklog,
+      };
+
+      const actual = validateInProgressHasWorklog(checkTime)(input);
+
+      expect(actual).toEqual(expect.objectContaining(expected));
+    }
+  );
+});
 
 describe("checking that in progress tickets have estimates", () => {
   it.each([
