@@ -1,9 +1,9 @@
 import typescript from 'rollup-plugin-typescript2';
 import { join } from 'path';
 import { readdirSync } from 'fs';
-import execute from 'rollup-plugin-execute';
 import del from 'rollup-plugin-delete';
 import cleanup from 'rollup-plugin-cleanup';
+import { spawnSync } from 'child_process';
 
 const cliConfig = require('./config/cliConfig.json');
 const typeScriptFileMatch = new RegExp(/^[A-z0-9/-]+\.ts$/);
@@ -81,7 +81,13 @@ export default [
     },
     plugins: [
       ...plugins,
-      execute(`chmod +x dist/${cliConfig.name}`),
+      {
+        name: 'closeBundle',
+        writeBundle: () => {
+          console.info(`make ${cliConfig.name} executable`);
+          spawnSync(`chmod`, ['u+x', `dist/${cliConfig.name}`]);
+        }
+      },
       !process.env.ROLLUP_WATCH ? del({ targets: 'dist/**/*' }) : undefined,
     ],
   },
