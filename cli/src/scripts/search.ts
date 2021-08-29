@@ -1,3 +1,4 @@
+import { JiraClient } from "../../../lib/src/services/jira_api";
 import { Argv } from "yargs";
 import { RootCommand, withQualityFieldsOption } from "..";
 import { EnhancedIssue, quality } from "@agiledigital/jiralint-lib";
@@ -9,7 +10,6 @@ import {
   jiraFormattedSeconds,
 } from "@agiledigital/jiralint-lib";
 import stringLength from "string-length";
-import { makeJiraClient } from "./common";
 
 import * as CLUI from "clui";
 import * as clc from "cli-color";
@@ -175,13 +175,8 @@ const renderTable = (
 };
 
 const search = async (
-  jiraProtocol: string,
-  jiraHost: string,
-  jiraConsumerKey: string,
-  jiraConsumerSecret: string,
+  jira: JiraClient,
   jql: string,
-  accessToken: string,
-  accessSecret: string,
   output: OutputMode,
   boardNamesToIgnore: readonly string[],
   customFieldNames: readonly string[],
@@ -192,18 +187,8 @@ const search = async (
   // eslint-disable-next-line functional/no-expression-statement
   countdown.start();
 
-  const jira = makeJiraClient(
-    jiraProtocol,
-    jiraHost,
-    jiraConsumerKey,
-    jiraConsumerSecret
-  );
-
-  const jiraApi = jira.jiraApi(accessToken, accessSecret);
-
   const issues = await jira.searchIssues(
     jql,
-    jiraApi,
     boardNamesToIgnore,
     qualityFieldName,
     qualityReasonFieldName,
@@ -260,13 +245,9 @@ export default ({ command }: RootCommand): Argv<unknown> =>
     (args) => {
       // eslint-disable-next-line functional/no-expression-statement
       void search(
-        args.jiraProtocol,
-        args.jiraHost,
-        args.jiraConsumerKey,
-        args.jiraConsumerSecret,
+        // yargs will error before passing a null client
+        args.jira,
         args.jql,
-        args.accessToken,
-        args.accessSecret,
         args.output,
         args.boardNamesToIgnore,
         args.customFieldNames,

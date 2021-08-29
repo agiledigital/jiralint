@@ -1,46 +1,48 @@
+import {
+  getOAuthAccessToken,
+  jiraClientWithOAuth,
+} from "../../../lib/src/services/jira_api";
 import { Argv } from "yargs";
-import { RootCommand, withCommonOptions } from "..";
+import { RootCommand, withAuthenticationOptions } from "..";
 import { isLeft } from "fp-ts/lib/Either";
 import inquirer from "inquirer";
-import { makeJiraClient } from "./common";
 
 // eslint-disable-next-line functional/functional-parameters
 const auth = async (
-  jiraProtocol: string,
+  jiraProtocol: "http" | "https",
   jiraHost: string,
   jiraConsumerKey: string,
   jiraConsumerSecret: string
 ): Promise<void> => {
-  const jira = makeJiraClient(
+  const { accessToken, accessSecret } = await getOAuthAccessToken(
     jiraProtocol,
     jiraHost,
     jiraConsumerKey,
-    jiraConsumerSecret
+    jiraConsumerSecret,
+    async (requestUrl: string): Promise<string> => {
+      const { secret } = await inquirer.prompt<{ readonly secret: string }>({
+        type: "input",
+        name: "secret",
+        message: `Follow this link [${requestUrl}] then enter your access secret:`,
+      });
+      return secret;
+    }
+  );
+  // eslint-disable-next-line functional/no-expression-statement
+  console.log(`Access token:  ${accessToken}`);
+  // eslint-disable-next-line functional/no-expression-statement
+  console.log(`Access secret: ${accessSecret}`);
+
+  const jiraClient = jiraClientWithOAuth(
+    jiraProtocol,
+    jiraHost,
+    jiraConsumerKey,
+    jiraConsumerSecret,
+    accessToken,
+    accessSecret
   );
 
-  const requested = await jira.startSignIn();
-
-  // eslint-disable-next-line functional/no-expression-statement
-  console.log(`Request Token:        ${requested.requestSecret}`);
-  // eslint-disable-next-line functional/no-expression-statement
-  console.log(`Request Token Secret: ${requested.requestToken}`);
-
-  const answer = await inquirer.prompt<{ readonly secret: string }>({
-    type: "input",
-    name: "secret",
-    message: `Follow this link [${requested.requestUrl}] then enter your access secret:`,
-  });
-
-  const authorised = await jira.getAccessToken(requested, answer.secret);
-
-  // eslint-disable-next-line functional/no-expression-statement
-  console.log(`Access token:  ${authorised.accessToken}`);
-  // eslint-disable-next-line functional/no-expression-statement
-  console.log(`Access secret: ${authorised.accessSecret}`);
-
-  const jiraApi = jira.jiraApi(authorised.accessToken, authorised.accessSecret);
-
-  const user = await jira.currentUser(jiraApi);
+  const user = await jiraClient.currentUser();
 
   // eslint-disable-next-line functional/no-expression-statement
   isLeft(user)
@@ -52,15 +54,18 @@ export default ({ command }: RootCommand): Argv<unknown> =>
   command(
     "auth",
     "authorises the linter to call Jira APIs and outputs the access token and secret",
-    (yargs) => withCommonOptions(yargs),
+    (yargs) => withAuthenticationOptions(yargs),
     // eslint-disable-next-line functional/functional-parameters
     (args) => {
+      const protocol = args["jira.protocol"];
       // eslint-disable-next-line functional/no-expression-statement
       void auth(
-        args.jiraProtocol,
-        args.jiraHost,
-        args.jiraConsumerKey,
-        args.jiraConsumerSecret
+        // yargs ensures that this is always 'http' or 'https'
+        protocol === "http" || protocol === "https" ? protocol : "https",
+        args["jira.host"],
+        args["jira.consumerKey"],
+        // eslint-disable-next-line total-functions/no-unsafe-readonly-mutable-assignment
+        Buffer.from(args["jira.consumerSecret"], "base64").toString("utf8")
       );
     }
   );

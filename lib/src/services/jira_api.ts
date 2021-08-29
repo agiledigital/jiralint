@@ -30,7 +30,6 @@ export type Authorised = {
 
 export type Requested = {
   readonly status: "requested";
-  readonly requestUrl: string;
   readonly requestSecret: string;
   readonly requestToken: string;
 };
@@ -39,46 +38,50 @@ type FieldNotEditable = {
   readonly fields: ReadonlyArray<string>;
 };
 
+// FIXME:  turn this into a class so your editor "go to source" works and you
+// only need to document the functions in one place
 export type JiraClient = {
-  readonly startSignIn: () => Promise<Requested>;
-  readonly getAccessToken: (
-    request: Requested,
-    verificationCode: string
-  ) => Promise<Authorised>;
-  readonly jiraApi: (accessToken: string, accessSecret: string) => JiraApi;
+  readonly jiraApi: JiraApi;
   readonly updateIssueQuality: (
     key: string,
     quality: string,
     reason: string,
-    jiraApi: JiraApi,
     qualityField: string,
     qualityReasonField: string
   ) => Promise<Either<string | FieldNotEditable | JiraError, JsonResponse>>;
   readonly searchIssues: (
     jql: string,
-    jiraApi: JiraApi,
     boardNamesToIgnore: readonly string[],
     qualityField: string,
     qualityReasonField: string,
     customFieldNames: readonly string[]
   ) => Promise<Either<string, ReadonlyArray<EnhancedIssue>>>;
-  readonly currentUser: (jiraApi: JiraApi) => Promise<Either<string, User>>;
+  readonly currentUser: () => Promise<Either<string, User>>;
 };
 
 /**
- * An abstraction over the raw Jira API, with useful functions in the context of this project.
- * @param jiraProtocol
- * @param jiraHost
- * @param jiraConsumerKey
- * @param jiraConsumerSecret
- * @returns The Jira API abstraction.
+ * Using OAuth and the consumer key and secret you created using the
+ * instructions from:
+ *     https://developer.atlassian.com/server/jira/platform/oauth/
+ *
+ * Create the access token and access secret that you can then use for the rest
+ * of your session to access Jira with the JiraClient
+ *
+ * @param jiraProtocol the protocol to use to connect to Jira: http or https
+ * @param jiraHost the Jira hostname: e.g. jira.example.com
+ * @param jiraConsumerKey the Jira consumer key name set when creating the key
+ * @param jiraConsumerSecret Jira consumer secret - the full text of PEM file
+ * @param secretCallback function that takes a request URL which you can use
+ *   to sign in and get the secret
+ * @returns the access token and access secret to use in requests to Jira
  */
-export const jiraClient = (
-  jiraProtocol: string,
+export const getOAuthAccessToken = async (
+  jiraProtocol: "http" | "https",
   jiraHost: string,
   jiraConsumerKey: string,
-  jiraConsumerSecret: string
-): JiraClient => {
+  jiraConsumerSecret: string,
+  secretCallback: (requestUrl: string) => Promise<string>
+): Promise<Authorised> => {
   const oauth = new OAuth(
     `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/request-token`,
     `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/access-token`,
@@ -89,6 +92,160 @@ export const jiraClient = (
     "RSA-SHA1"
   );
 
+  const { requestToken, requestSecret } = await new Promise<{
+    readonly requestSecret: string;
+    readonly requestToken: string;
+  }>((resolve, reject) => {
+    // eslint-disable-next-line functional/no-expression-statement
+    oauth.getOAuthRequestToken(
+      (err: unknown, requestToken: string, requestSecret: string) => {
+        // eslint-disable-next-line functional/no-conditional-statement
+        if (err !== null) {
+          // eslint-disable-next-line functional/no-expression-statement
+          reject(`Failed to get request token [${JSON.stringify(err)}].`);
+        } else {
+          // eslint-disable-next-line functional/no-expression-statement
+          resolve({
+            requestSecret,
+            requestToken,
+          });
+        }
+      }
+    );
+  });
+
+  // pass the request URL back to the caller so they can get the user to
+  // retrieve the secret we need to create the access token and secret.
+  const requestUrl = `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/authorize?oauth_token=${requestToken}`;
+  const verificationCode: string = await secretCallback(requestUrl);
+
+  // Exchanges the temporary request token and secret for an access token and secret, using
+  //the verification code to prove that the user authorised the application to use the API.
+  return new Promise<Authorised>((resolve, reject) => {
+    // eslint-disable-next-line functional/no-expression-statement
+    oauth.getOAuthAccessToken(
+      requestToken,
+      requestSecret,
+      verificationCode,
+      (err: unknown, accessToken: string, accessSecret: string) => {
+        // eslint-disable-next-line functional/no-conditional-statement
+        if (err !== null) {
+          // eslint-disable-next-line functional/no-expression-statement
+          reject(JSON.stringify(err, null, 2));
+        } else {
+          // eslint-disable-next-line functional/no-expression-statement
+          resolve({
+            status: "authorised",
+            accessToken,
+            accessSecret,
+          });
+        }
+      }
+    );
+  });
+};
+
+/**
+ * Create a Jira Client using OAuth to authenticate. The access token and access
+ * secret are created with getOAuthAccessToken.
+ *
+ * This is the recommended authentication method.
+ *
+ * @param jiraProtocol the protocol to use to connect to Jira: http or https
+ * @param jiraHost the Jira hostname: e.g. jira.example.com
+ * @param jiraConsumerKey the Jira consumer key name set when creating the key
+ * @param jiraConsumerSecret Jira consumer secret - the full text of PEM file
+ * @param accessToken the Jira OAuth access token
+ * @param accessSecret the Jira OAuth access secret
+ * @returns The Jira API abstraction.
+ */
+export const jiraClientWithOAuth = (
+  jiraProtocol: "http" | "https",
+  jiraHost: string,
+  jiraConsumerKey: string,
+  jiraConsumerSecret: string,
+  accessToken: string,
+  accessSecret: string
+): JiraClient => {
+  const jiraApi: JiraApi = new JiraApi({
+    protocol: jiraProtocol,
+    host: jiraHost,
+    oauth: {
+      consumer_key: jiraConsumerKey,
+      consumer_secret: jiraConsumerSecret,
+      access_token: accessToken,
+      access_token_secret: accessSecret,
+    },
+  });
+
+  return jiraClient(jiraProtocol, jiraHost, jiraApi);
+};
+
+/**
+ * Create a Jira Client using a user's personal access token. To create a
+ * personal access token, see:
+ * https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html
+ *
+ * This is the preferred authentication method when OAuth is unavailable because
+ * you don't have the Jira privileges to create a consumer token.
+ *
+ * @param personalAccessToken user personal access token
+ * @param jiraProtocol the protocol to use to connect to Jira: http or https
+ * @param jiraHost the Jira hostname: e.g. jira.example.com
+ * @returns The Jira API abstraction.
+ */
+export const jiraClientWithPersonnelAccessToken = (
+  jiraProtocol: "http" | "https",
+  jiraHost: string,
+  personalAccessToken: string
+): JiraClient => {
+  const jiraApi: JiraApi = new JiraApi({
+    protocol: jiraProtocol,
+    host: jiraHost,
+    bearer: personalAccessToken,
+  });
+
+  return jiraClient(jiraProtocol, jiraHost, jiraApi);
+};
+
+/**
+ * Create a Jira Client using a user's username and password which they use to
+ * log into Jira. We recommend avoiding this method if possible.
+ *
+ * @param personalAccessToken user personal access token
+ * @param jiraProtocol the protocol to use to connect to Jira: http or https
+ * @param jiraHost the Jira hostname: e.g. jira.example.com
+ * @returns The Jira API abstraction.
+ */
+export const jiraClientWithUserCredentials = (
+  jiraProtocol: "http" | "https",
+  jiraHost: string,
+  username: string,
+  password: string
+): JiraClient => {
+  const jiraApi: JiraApi = new JiraApi({
+    protocol: jiraProtocol,
+    host: jiraHost,
+    username,
+    password,
+    apiVersion: "2",
+  });
+
+  return jiraClient(jiraProtocol, jiraHost, jiraApi);
+};
+
+/**
+ * An abstraction over the raw Jira API, with useful functions in the context of this project.
+ * @param jiraProtocol
+ * @param jiraHost
+ * @param jiraApi
+ * @returns The Jira API abstraction.
+ */
+const jiraClient = (
+  jiraProtocol: "http" | "https",
+  jiraHost: string,
+  jiraApi: JiraApi
+): JiraClient => {
   /**
    * Maps the left side of a validation error into a human readable form. Leaves the right as is.
    *
@@ -207,7 +364,6 @@ export const jiraClient = (
 
   const boardsByProject = (
     issues: ReadonlyArray<Issue>,
-    jiraApi: JiraApi,
     boardNamesToIgnore: readonly string[]
   ): TE.TaskEither<string, ReadonlyRecord<string, ReadonlyArray<Board>>> => {
     const projectKeys: readonly string[] = issues
@@ -233,8 +389,7 @@ export const jiraClient = (
   };
 
   const fetchMostRecentWorklogs = (
-    issueKey: string,
-    jiraApi: JiraApi
+    issueKey: string
   ): TE.TaskEither<string, ReadonlyArray<IssueWorklog>> => {
     const fetch = TE.tryCatch(
       () => jiraApi.genericGet(`issue/${encodeURIComponent(issueKey)}/worklog`),
@@ -262,8 +417,7 @@ export const jiraClient = (
   };
 
   const fetchMostRecentComments = (
-    issueKey: string,
-    jiraApi: JiraApi
+    issueKey: string
   ): TE.TaskEither<string, ReadonlyArray<IssueComment>> => {
     const fetch = TE.tryCatch(
       () =>
@@ -299,97 +453,7 @@ export const jiraClient = (
     `${jiraProtocol}://${jiraHost}/browse/${encodeURIComponent(issue.key)}`;
 
   return {
-    /**
-     * Requests a temporary token from Jira for the user to authorise access.
-     *
-     * Once the user follows the request url and receives a verification code, this
-     * temporary token can be exchange for access tokens.
-     *
-     * @see getAccessToken
-     *
-     * @returns the temporary request tokens.
-     */
-    startSignIn: async (): Promise<Requested> =>
-      new Promise((resolve, reject) => {
-        // eslint-disable-next-line functional/no-expression-statement
-        oauth.getOAuthRequestToken(
-          (err: unknown, requestToken: string, requestSecret: string) => {
-            // eslint-disable-next-line functional/no-conditional-statement
-            if (err !== null) {
-              // eslint-disable-next-line functional/no-expression-statement
-              reject(`Failed to get request token [${JSON.stringify(err)}].`);
-            } else {
-              const requestUrl = `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/authorize?oauth_token=${requestToken}`;
-
-              // eslint-disable-next-line functional/no-expression-statement
-              resolve({
-                status: "requested",
-                requestUrl,
-                requestSecret,
-                requestToken,
-              });
-            }
-          }
-        );
-      }),
-
-    /**
-     * Exchanges the temporary request token and secret for an access token and secret, using
-     * the verification code to prove that the user authorised the application to use the API.
-     *
-     * @see startSignIn
-     *
-     * @param request the request details
-     * @param verificationCode the verification code supplied to the user by Jira.
-     * @returns the access tokens.
-     */
-    getAccessToken: async (
-      request: Requested,
-      verificationCode: string
-    ): Promise<Authorised> =>
-      new Promise((resolve, reject) => {
-        // eslint-disable-next-line functional/no-expression-statement
-        oauth.getOAuthAccessToken(
-          request.requestToken,
-          request.requestSecret,
-          verificationCode,
-          (err: unknown, accessToken: string, accessSecret: string) => {
-            // eslint-disable-next-line functional/no-conditional-statement
-            if (err !== null) {
-              // eslint-disable-next-line functional/no-expression-statement
-              reject(JSON.stringify(err, null, 2));
-            } else {
-              // eslint-disable-next-line functional/no-expression-statement
-              resolve({
-                status: "authorised",
-                accessToken,
-                accessSecret,
-              });
-            }
-          }
-        );
-      }),
-
-    /**
-     * Creates a Jira API client that is configured to use authorised access tokens.
-     *
-     * @param consumerSecret Jira consumer secret.
-     * @param accessToken users access token.
-     * @param accessSecret users access secret.
-     * @returns the new Jira API client.
-     */
-    jiraApi: (accessToken: string, accessSecret: string): JiraApi =>
-      new JiraApi({
-        protocol: jiraProtocol,
-        host: jiraHost,
-        oauth: {
-          consumer_key: jiraConsumerKey,
-          consumer_secret: jiraConsumerSecret,
-          access_token: accessToken,
-          access_token_secret: accessSecret,
-        },
-      }),
-
+    jiraApi,
     /**
      * Updates the rated quality of an issue.
      *
@@ -405,7 +469,6 @@ export const jiraClient = (
       key: string,
       quality: string,
       reason: string,
-      jiraApi: JiraApi,
       qualityField: string,
       qualityReasonField: string
     ): Promise<Either<string | FieldNotEditable | JiraError, JsonResponse>> => {
@@ -475,7 +538,6 @@ export const jiraClient = (
      */
     searchIssues: async (
       jql: string,
-      jiraApi: JiraApi,
       boardNamesToIgnore: readonly string[],
       qualityField: string,
       qualityReasonField: string,
@@ -549,7 +611,7 @@ export const jiraClient = (
               );
             });
           }
-        )(boardsByProject(issues, jiraApi, boardNamesToIgnore));
+        )(boardsByProject(issues, boardNamesToIgnore));
       };
 
       const issueWithComment = (
@@ -571,7 +633,7 @@ export const jiraClient = (
         return pipe(
           mostRecentCommentLoaded
             ? TE.right(issue.fields.comment?.comments)
-            : fetchMostRecentComments(issue.key, jiraApi),
+            : fetchMostRecentComments(issue.key),
           TE.map((comments) => ({
             ...issue,
             mostRecentComment: recentComment(comments),
@@ -598,7 +660,7 @@ export const jiraClient = (
         return pipe(
           mostRecentWorklogLoaded
             ? TE.right(issue.fields.worklog?.worklogs)
-            : fetchMostRecentWorklogs(issue.key, jiraApi),
+            : fetchMostRecentWorklogs(issue.key),
           TE.map((worklogs) => ({
             ...issue,
             mostRecentWorklog: recentWorklog(worklogs),
@@ -621,7 +683,7 @@ export const jiraClient = (
      * @param jiraApi API used to retrieve the user details.
      * @returns either an error or the user details.
      */
-    currentUser: async (jiraApi: JiraApi): Promise<Either<string, User>> => {
+    currentUser: async (): Promise<Either<string, User>> => {
       const fetchUser = TE.tryCatch(
         () => jiraApi.getCurrentUser(),
         (error: unknown) =>
