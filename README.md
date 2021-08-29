@@ -84,7 +84,7 @@ cli/dist/jiralint search -h [JIRA HOST] -j "project=MF order by created" \
   --jira.personalAccessToken [PERSONAL ACCESS TOKEN]
 ```
 
-### 3. Personal Access Token
+### 3. User Credentials
 
 We recommend using one of the previous two options. However, if you want to
 quickly run `jiralint` without having to create any extra secrets, you can use
@@ -103,20 +103,27 @@ your current working directory and searching up the file tree until a
 `.jiralintrc` file is (or isn’t) found.
 
 * Common Parameters:
-  * jiraProtocol: the protocol to use to connect to Jira - http or https
-  * jiraHost: the Jira hostname - e.g. jira.example.com
-  * qualityFieldName: the name of the field to store the quality in - customfield_12345
-  * qualityReasonFieldName: the name of the field to store the quality in - customfield_12346
+  * __jiraProtocol__: the protocol to use to connect to Jira - http or https
+  * __jiraHost__: the Jira hostname - e.g. jira.example.com
+  * __qualityFieldName__: the name of the field to store the quality in - customfield_12345
+  * __qualityReasonFieldName__: the name of the field to store the quality in - customfield_12346
 * OAuth connection:
-  * jiraConsumerKey: the name of the consumer secret you created in Jira
-  * jiraConsumerSecret: the consumer secret you created in Jira
-  * accessToken: the access token you crated with `jiralint auth`
-  * accessSecret: the access secret you crated with `jiralint auth`
+  * __jiraConsumerKey__: the name of the consumer secret you created in Jira
+  * __jiraConsumerSecret__: the consumer secret you created in Jira
+  * __accessToken__: the access token you crated with `jiralint auth`
+  * __accessSecret__: the access secret you crated with `jiralint auth`
 * Personal access token connection:
-  * personalAccessToken: the personal access token you created in Jira
+  * __personalAccessToken__: the personal access token you created in Jira
 * User credentials connection:
-  * username: your jira username
-  * password: your jira password
+  * __username__: your jira username
+  * __password__: your jira password
+
+If you set all of the common parameters and a full set of connection parameters,
+you can now run jiralint search like this:
+
+```sh
+cli/dist/jiralint search -j "project=MF order by created"
+```
 
 #### Example OAuth `.jirilintrc`
 
