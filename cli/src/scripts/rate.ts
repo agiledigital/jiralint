@@ -47,7 +47,6 @@ export default ({ command }: RootCommand): Argv<unknown> =>
     (args) => {
       // eslint-disable-next-line functional/no-expression-statement
       void rate(
-        // yargs will error before passing a null client
         args.jira,
         args.key,
         args.quality,

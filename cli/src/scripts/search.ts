@@ -245,7 +245,6 @@ export default ({ command }: RootCommand): Argv<unknown> =>
     (args) => {
       // eslint-disable-next-line functional/no-expression-statement
       void search(
-        // yargs will error before passing a null client
         args.jira,
         args.jql,
         args.output,
