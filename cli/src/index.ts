@@ -1,5 +1,4 @@
-import { tryCatch, toUndefined } from "fp-ts/lib/Option";
-import { pipe } from "fp-ts/lib/function";
+import { pipe, flow } from "fp-ts/lib/function";
 import {
   JiraClient,
   jiraClientWithOAuth,
@@ -10,11 +9,13 @@ import yargs from "yargs";
 import auth from "./scripts/auth";
 import rate from "./scripts/rate";
 import search from "./scripts/search";
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { dirname, parse, join } from "path";
-
-const tryOrUndefined = <T>(f: () => T): T | undefined =>
-  pipe(tryCatch(f), toUndefined);
+import * as T from "io-ts";
+import { PathReporter } from "io-ts/PathReporter";
+import * as E from "fp-ts/lib/Either";
+import * as J from "fp-ts/Json";
+import clc from "cli-color";
 
 /**
  * Dynamic type for global arguments. This needs to be its own as we use a
@@ -28,49 +29,77 @@ export type RootCommand = typeof rootCommand;
  */
 const rootCommand = yargs;
 
-/**
- * Common parameters used by most jiralint requests
- */
-type CliCommonConfig = {
-  readonly jiraProtocol?: string;
-  readonly jiraHost: string;
-  readonly qualityFieldName: string;
-  readonly qualityReasonFieldName: string;
-};
-
-type CliAuthPersonalAccessToken = {
-  readonly personalAccessToken?: string;
-};
-
-type CliAuthOAuth = {
-  readonly jiraConsumerKey?: string;
-  readonly jiraConsumerSecret?: string;
-  readonly accessToken?: string;
-  readonly accessSecret?: string;
-};
-
-type CliAuthUserCredentials = {
-  readonly username?: string;
-  readonly password?: string;
-};
-
-type CliConfig = CliCommonConfig &
-  CliAuthOAuth &
-  CliAuthPersonalAccessToken &
-  CliAuthUserCredentials;
+const CliConfig = T.type({
+  jiraProtocol: T.union([T.string, T.undefined]),
+  jiraHost: T.union([T.string, T.undefined]),
+  qualityFieldName: T.union([T.string, T.undefined]),
+  qualityReasonFieldName: T.union([T.string, T.undefined]),
+  personalAccessToken: T.union([T.string, T.undefined]),
+  jiraConsumerKey: T.union([T.string, T.undefined]),
+  jiraConsumerSecret: T.union([T.string, T.undefined]),
+  accessToken: T.union([T.string, T.undefined]),
+  accessSecret: T.union([T.string, T.undefined]),
+  username: T.union([T.string, T.undefined]),
+  password: T.union([T.string, T.undefined]),
+});
+type CliConfig = T.TypeOf<typeof CliConfig>;
 
 const currentDirectory = process.cwd();
 const rootPath = parse(currentDirectory).root;
+const jiralintConfigFileName = ".jiralintrc";
+
+/**
+ * Decode a JSON string using an io-ts decoder.
+ *
+ * @param name the name of the object being parsed
+ * @param decoder the io-ts decoder to decode the object
+ * @param input the input object to decode
+ * @returns either the decoded object or an error string
+ */
+const decodeJson =
+  <O>(name: string, decoder: (i: J.Json) => T.Validation<O>) =>
+  (input: string): E.Either<string, O> =>
+    pipe(
+      input,
+      flow(J.parse, E.mapLeft(String)),
+      E.chain(
+        flow(
+          decoder,
+          E.mapLeft(
+            (error) =>
+              `Failed to decode ${name} [${JSON.stringify(
+                PathReporter.report(E.left(error))
+              )}] [${JSON.stringify(input, null, 2)}].`
+          )
+        )
+      )
+    );
 
 const configIfExists = (dir: string): CliConfig | undefined => {
-  // eslint-disable-next-line functional/functional-parameters
-  return tryOrUndefined((): CliConfig => {
-    const configPath = join(dir, ".jiralintrc");
-    const configFile = readFileSync(configPath);
-    // TODO - make this an io-ts codec
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    return <CliConfig>JSON.parse(configFile.toString());
-  });
+  const configPath = join(dir, jiralintConfigFileName);
+  return existsSync(configPath)
+    ? pipe(
+        E.tryCatch(
+          // eslint-disable-next-line functional/functional-parameters
+          () => readFileSync(configPath).toString(),
+          (error) => String(error)
+        ),
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        E.chain(decodeJson(jiralintConfigFileName, CliConfig.decode)),
+        E.fold(
+          (error) => {
+            // eslint-disable-next-line functional/no-expression-statement
+            console.error(
+              `\n${clc.red.bold(
+                jiralintConfigFileName
+              )} found at ${configPath} but failed to parse:\n${error}\n`
+            );
+            return undefined;
+          },
+          (config: CliConfig) => config
+        )
+      )
+    : undefined;
 };
 
 const findConfig = (dir: string): CliConfig | undefined => {
