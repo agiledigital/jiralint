@@ -1,34 +1,19 @@
+import { JiraClient } from "./../../../lib/src/services/jira_api";
 import { Argv } from "yargs";
 import { RootCommand, withQualityFieldsOption } from "..";
-import { makeJiraClient } from "./common";
 
 const rate = async (
-  jiraProtocol: string,
-  jiraHost: string,
-  jiraConsumerKey: string,
-  jiraConsumerSecret: string,
+  jira: JiraClient,
   key: string,
   quality: string,
   reason: string,
-  accessToken: string,
-  accessSecret: string,
   qualityFieldName: string,
   reasonFieldName: string
 ): Promise<void> => {
-  const jira = makeJiraClient(
-    jiraProtocol,
-    jiraHost,
-    jiraConsumerKey,
-    jiraConsumerSecret
-  );
-
-  const jiraApi = jira.jiraApi(accessToken, accessSecret);
-
   const update = await jira.updateIssueQuality(
     key,
     quality,
     reason,
-    jiraApi,
     qualityFieldName,
     reasonFieldName
   );
@@ -62,15 +47,10 @@ export default ({ command }: RootCommand): Argv<unknown> =>
     (args) => {
       // eslint-disable-next-line functional/no-expression-statement
       void rate(
-        args.jiraProtocol,
-        args.jiraHost,
-        args.jiraConsumerKey,
-        args.jiraConsumerSecret,
+        args.jira,
         args.key,
         args.quality,
         args.reason,
-        args.accessToken,
-        args.accessSecret,
         args.qualityFieldName,
         args.qualityReasonFieldName
       );
