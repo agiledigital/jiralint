@@ -28,7 +28,7 @@
     "newtype-ts": "0.3.4",
     "oauth": "0.9.15",
     "readonly-types": "2.0.0",
-    "string-length": "4.0.2",
+    "string-length": "5.0.0",
     "ts-pattern": "3.2.4",
     "yargs": "17.0.1"
   },
