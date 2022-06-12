@@ -24,7 +24,7 @@
     "inquirer": "8.1.2",
     "io-ts": "2.2.16",
     "io-ts-types": "0.5.16",
-    "monocle-ts": "2.3.10",
+    "monocle-ts": "2.3.13",
     "newtype-ts": "0.3.4",
     "oauth": "0.9.15",
     "readonly-types": "2.0.0",
