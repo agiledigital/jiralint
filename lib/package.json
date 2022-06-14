@@ -48,7 +48,7 @@
     "ts-pattern": "^3.2.2"
   },
   "devDependencies": {
-    "@semantic-release/git": "9.0.1",
+    "@semantic-release/git": "10.0.1",
     "@types/jest": "26.0.24",
     "@types/jira-client": "6.21.3",
     "@types/oauth": "0.9.1",
