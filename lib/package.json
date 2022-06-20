@@ -50,7 +50,7 @@
   "devDependencies": {
     "@semantic-release/git": "9.0.1",
     "@types/jest": "26.0.24",
-    "@types/jira-client": "6.21.3",
+    "@types/jira-client": "7.1.4",
     "@types/oauth": "0.9.1",
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
