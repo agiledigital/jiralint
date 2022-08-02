@@ -12,6 +12,7 @@ Contains simple issue checks that can be applied to individual issues and a bare
 
 * [npm](https://www.npmjs.com/get-npm) for building and testing.
 * [nvm](https://github.com/nvm-sh/nvm#deeper-shell-integration) for automatic node version switching (optional).
+* A unix shell like bash or zsh. The examples below all assume such a shell. If you're using something else (e.g. Windows cmd) you'll need to either translate in your head or move to a unix shell.
 
 ### Step-by-step instructions
 
