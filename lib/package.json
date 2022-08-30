@@ -67,7 +67,7 @@
     "semantic-release": "17.4.4",
     "ts-jest": "27.1.5",
     "type-coverage": "2.22.0",
-    "typescript": "4.7.4"
+    "typescript": "4.8.2"
   },
   "typeCoverage": {
     "atLeast": 100,
