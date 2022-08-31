@@ -1,6 +1,6 @@
 {
   "name": "@agiledigital/jiralint-lib",
-  "version": "2.2.9",
+  "version": "2.2.10",
   "main": "dist",
   "license": "MIT",
   "repository": {
