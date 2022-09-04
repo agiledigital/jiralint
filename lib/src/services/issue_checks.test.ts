@@ -265,7 +265,7 @@ describe("checking that dependencies have a due date", () => {
       { outcome: "not applied", reasons: ["not a dependency"] },
     ],
     [
-      "not a dependnecy",
+      "not a dependency",
       new Date("2019/06/1"),
       { outcome: "not applied", reasons: ["not a dependency"] },
     ],

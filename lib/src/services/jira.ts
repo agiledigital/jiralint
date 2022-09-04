@@ -254,7 +254,7 @@ const issueClosed = (issue: Issue, board?: Board): boolean => {
 };
 
 /**
- * Finds the changelogs where teh status of the issue was changed (i.e. there was a transition).
+ * Finds the changelogs where the status of the issue was changed (i.e. there was a transition).
  * @param issue the issue whose transitions should be found.
  * @returns the changelogs where the status changed.
  */
