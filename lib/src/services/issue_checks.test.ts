@@ -1,10 +1,9 @@
-/* eslint-disable jest/expect-expect */
 /* eslint-disable functional/no-return-void */
 /* eslint-disable sonarjs/no-duplicate-string */
 /* eslint-disable no-restricted-globals */
 /* eslint-disable functional/functional-parameters */
 /* eslint-disable functional/no-expression-statement */
-/* eslint-disable-next-line functional/no-return-void */
+
 import {
   validateInProgressHasEstimate,
   validateInProgressHasWorklog,
@@ -266,7 +265,7 @@ describe("checking that dependencies have a due date", () => {
       { outcome: "not applied", reasons: ["not a dependency"] },
     ],
     [
-      "not a dependnecy",
+      "not a dependency",
       new Date("2019/06/1"),
       { outcome: "not applied", reasons: ["not a dependency"] },
     ],

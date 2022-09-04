@@ -7,7 +7,6 @@ import { RootCommand, withAuthenticationOptions } from "..";
 import { isLeft } from "fp-ts/lib/Either";
 import inquirer from "inquirer";
 
-// eslint-disable-next-line functional/functional-parameters
 const auth = async (
   jiraProtocol: "http" | "https",
   jiraHost: string,
@@ -55,7 +54,6 @@ export default ({ command }: RootCommand): Argv<unknown> =>
     "auth",
     "authorises the linter to call Jira APIs and outputs the access token and secret",
     (yargs) => withAuthenticationOptions(yargs),
-    // eslint-disable-next-line functional/functional-parameters
     (args) => {
       const protocol = args["jira.protocol"];
       // eslint-disable-next-line functional/no-expression-statement
