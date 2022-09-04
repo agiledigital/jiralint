@@ -1,7 +1,6 @@
 # jiralint
 
 ![CI Status](https://github.com/agiledigital/jiralint/actions/workflows/build-test-release.yml/badge.svg)
-[![deepcode](https://www.deepcode.ai/api/gh/badge?key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF0Zm9ybTEiOiJnaCIsIm93bmVyMSI6ImFnaWxlZGlnaXRhbC1sYWJzIiwicmVwbzEiOiJqaXJhbGludCIsImluY2x1ZGVMaW50IjpmYWxzZSwiYXV0aG9ySWQiOjI4ODQyLCJpYXQiOjE2MTk3NjA0MzB9.anWHb7UXuFHml-A38LNTusPapunRivmNYSYJq1lu_2c)](https://www.deepcode.ai/app/gh/agiledigital/jiralint/_/dashboard?utm_content=gh%2Fagiledigital%2Fjiralint)
 
 Contains simple issue checks that can be applied to individual issues and a bare-bones CLI tool for applying them.
 
