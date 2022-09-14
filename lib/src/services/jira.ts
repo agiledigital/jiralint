@@ -13,7 +13,7 @@ export const PaginatedResults = T.readonly(
 );
 
 export const Author = T.type({
-  name: T.string,
+  name: nullOrMissingToUndefined(T.string),
 });
 
 export const IssueComment = T.type({
@@ -47,7 +47,7 @@ export const IssueWorklog = T.type({
   comment: nullOrMissingToUndefined(T.string),
 });
 
-export const Issue = T.type({
+export const OnPremJiraIssue = T.type({
   key: T.string,
   self: T.string,
   fields: T.intersection([
@@ -146,7 +146,212 @@ export const Issue = T.type({
   ),
 });
 
-export type Issue = T.TypeOf<typeof Issue>;
+export const CloudJiraIssue = T.type({
+  key: T.string,
+  self: T.string,
+  fields: T.intersection([
+    T.type({
+      summary: T.string,
+      description: nullOrMissingToUndefined(T.string),
+      created: readOnlyDateFromISOString,
+      project: T.type({
+        key: T.string,
+      }),
+      timetracking: ITT.fromNullable(
+        T.partial({
+          originalEstimateSeconds: T.number,
+          timeSpentSeconds: T.number,
+          remainingEstimateSeconds: T.number,
+          originalEstimate: T.string,
+          timeSpent: T.string,
+        }),
+        {
+          originalEstimateSeconds: 0,
+          timeSpentSeconds: 0,
+          remainingEstimateSeconds: 0,
+          originalEstimate: "0d",
+          timeSpent: "0d",
+        }
+      ),
+      fixVersions: T.readonlyArray(
+        T.type({
+          id: T.string,
+          name: T.string,
+          released: T.boolean,
+        })
+      ),
+      aggregateprogress: T.type({
+        progress: nullOrMissingToUndefined(T.number),
+        total: nullOrMissingToUndefined(T.number),
+        percent: nullOrMissingToUndefined(T.number),
+      }),
+      issuetype: T.type({
+        name: T.string,
+        subtask: T.boolean,
+      }),
+      assignee: T.type({
+        accountId: T.string,
+        displayName: T.string,
+      }),
+      status: T.type({
+        id: T.string,
+        name: T.string,
+        statusCategory: T.type({
+          id: nullOrMissingToUndefined(T.number),
+          name: nullOrMissingToUndefined(T.string),
+          colorName: nullOrMissingToUndefined(T.string),
+        }),
+      }),
+      comment: nullOrMissingToUndefined(
+        T.readonly(
+          T.intersection([
+            PaginatedResults,
+            T.type({
+              comments: T.readonlyArray(IssueComment),
+            }),
+          ])
+        )
+      ),
+      worklog: nullOrMissingToUndefined(
+        T.readonly(
+          T.intersection([
+            PaginatedResults,
+            T.type({
+              worklogs: T.readonlyArray(IssueWorklog),
+            }),
+          ])
+        )
+      ),
+      duedate: nullOrMissingToUndefined(ITT.DateFromISOString),
+    }),
+    T.partial({
+      aggregatetimeestimate: nullOrMissingToUndefined(T.number),
+      aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
+      aggregatetimespent: nullOrMissingToUndefined(T.number),
+      parent: T.type({
+        id: T.string,
+        key: T.string,
+      }),
+    }),
+    // Required to model custom fields whose names cannot be known at compile time
+    T.readonly(T.record(T.string, T.unknown)),
+  ]),
+  changelog: ITT.fromNullable(
+    T.type({
+      histories: T.readonlyArray(ChangeLog),
+    }),
+    {
+      histories: [],
+    }
+  ),
+});
+
+/*Type that can represent both On-prem Jira and Cloud Jira */
+export const GenericJiraIssue = T.type({
+  key: T.string,
+  self: T.string,
+  fields: T.intersection([
+    T.type({
+      summary: T.string,
+      description: nullOrMissingToUndefined(T.string),
+      created: readOnlyDateFromISOString,
+      project: T.type({
+        key: T.string,
+      }),
+      timetracking: ITT.fromNullable(
+        T.partial({
+          originalEstimateSeconds: T.number,
+          timeSpentSeconds: T.number,
+          remainingEstimateSeconds: T.number,
+          originalEstimate: T.string,
+          timeSpent: T.string,
+        }),
+        {
+          originalEstimateSeconds: 0,
+          timeSpentSeconds: 0,
+          remainingEstimateSeconds: 0,
+          originalEstimate: "0d",
+          timeSpent: "0d",
+        }
+      ),
+      fixVersions: T.readonlyArray(
+        T.type({
+          id: T.string,
+          name: T.string,
+          released: T.boolean,
+        })
+      ),
+      aggregateprogress: T.type({
+        progress: nullOrMissingToUndefined(T.number),
+        total: nullOrMissingToUndefined(T.number),
+        percent: nullOrMissingToUndefined(T.number),
+      }),
+      issuetype: T.type({
+        name: T.string,
+        subtask: T.boolean,
+        // hierarchyLevel: T.string,
+      }),
+      assignee: T.type({
+        assigneeName: T.string,
+      }),
+      status: T.type({
+        id: T.string,
+        name: T.string,
+        statusCategory: T.type({
+          id: nullOrMissingToUndefined(T.number),
+          name: nullOrMissingToUndefined(T.string),
+          colorName: nullOrMissingToUndefined(T.string),
+        }),
+      }),
+      comment: nullOrMissingToUndefined(
+        T.readonly(
+          T.intersection([
+            PaginatedResults,
+            T.type({
+              comments: T.readonlyArray(IssueComment),
+            }),
+          ])
+        )
+      ),
+      worklog: nullOrMissingToUndefined(
+        T.readonly(
+          T.intersection([
+            PaginatedResults,
+            T.type({
+              worklogs: T.readonlyArray(IssueWorklog),
+            }),
+          ])
+        )
+      ),
+      duedate: nullOrMissingToUndefined(ITT.DateFromISOString),
+    }),
+    T.partial({
+      aggregatetimeestimate: nullOrMissingToUndefined(T.number),
+      aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
+      aggregatetimespent: nullOrMissingToUndefined(T.number),
+      parent: T.type({
+        id: T.string,
+        key: T.string,
+      }),
+    }),
+    // Required to model custom fields whose names cannot be known at compile time
+    T.readonly(T.record(T.string, T.unknown)),
+  ]),
+  changelog: ITT.fromNullable(
+    T.type({
+      histories: T.readonlyArray(ChangeLog),
+    }),
+    {
+      histories: [],
+    }
+  ),
+});
+
+export type OnPremJiraIssue = T.TypeOf<typeof OnPremJiraIssue>;
+
+export type CloudJiraIssue = T.TypeOf<typeof CloudJiraIssue>;
+
+export type GenericJiraIssue = T.TypeOf<typeof GenericJiraIssue>;
 
 export type IssueComment = T.TypeOf<typeof IssueComment>;
 
@@ -184,7 +389,7 @@ export const BoardSummary = T.type({
 
 export type BoardSummary = T.TypeOf<typeof BoardSummary>;
 
-export type EnhancedIssue = Issue & {
+export type EnhancedIssue = GenericJiraIssue & {
   readonly board?: Board;
   readonly inProgress: boolean;
   readonly stalled: boolean;
@@ -225,7 +430,7 @@ export const JiraError = T.type({
 export type JiraError = T.TypeOf<typeof JiraError>;
 
 const columnForIssue = (
-  issue: Issue,
+  issue: GenericJiraIssue,
   board: Board
 ): BoardColumn | undefined => {
   return board.columnConfig.columns.find((column) =>
@@ -233,13 +438,13 @@ const columnForIssue = (
   );
 };
 
-const issueInProgress = (issue: Issue, board?: Board): boolean => {
+const issueInProgress = (issue: GenericJiraIssue, board?: Board): boolean => {
   return board !== undefined
     ? columnForIssue(issue, board)?.name.toLowerCase() === "in progress"
     : issue.fields.status.name.toLowerCase() === "in progress";
 };
 
-const issueStalled = (issue: Issue, board?: Board): boolean => {
+const issueStalled = (issue: GenericJiraIssue, board?: Board): boolean => {
   return board !== undefined
     ? (columnForIssue(issue, board)?.name ?? "")
         .toLowerCase()
@@ -247,7 +452,7 @@ const issueStalled = (issue: Issue, board?: Board): boolean => {
     : issue.fields.status.name.toLowerCase().startsWith("stalled");
 };
 
-const issueClosed = (issue: Issue, board?: Board): boolean => {
+const issueClosed = (issue: GenericJiraIssue, board?: Board): boolean => {
   return board !== undefined
     ? columnForIssue(issue, board)?.name.toLowerCase() === "release ready"
     : issue.fields.status.statusCategory.name?.toLowerCase() === "done";
@@ -259,7 +464,7 @@ const issueClosed = (issue: Issue, board?: Board): boolean => {
  * @returns the changelogs where the status changed.
  */
 export const issueTransitions = (
-  issue: Issue
+  issue: GenericJiraIssue
 ): ReadonlyArray<IssueChangeLog> => {
   const changelogs: readonly IssueChangeLog[] = [...issue.changelog.histories];
 
@@ -276,7 +481,7 @@ export const issueTransitions = (
  * @returns the most recent transition, or undefined if no transitions have occurred.
  */
 export const mostRecentIssueTransition = (
-  issue: Issue
+  issue: GenericJiraIssue
 ): IssueChangeLog | undefined => {
   const transitions = issueTransitions(issue);
 
@@ -291,7 +496,7 @@ export const mostRecentIssueTransition = (
  * @returns the most recent comment, or undefined if no comments have been made.
  */
 export const mostRecentIssueComment = (
-  issue: Issue
+  issue: GenericJiraIssue
 ): IssueComment | undefined => {
   const comments =
     issue.fields.comment === undefined ? [] : issue.fields.comment.comments;
@@ -307,7 +512,7 @@ export const mostRecentIssueComment = (
  * @returns the most recent worklog, or undefined if no work has been logged.
  */
 export const mostRecentIssueWorklog = (
-  issue: Issue
+  issue: GenericJiraIssue
 ): IssueWorklog | undefined => {
   const worklogs =
     issue.fields.worklog === undefined ? [] : issue.fields.worklog.worklogs;
@@ -323,7 +528,9 @@ export const mostRecentIssueWorklog = (
  * @param issue the issue.
  * @returns the time that the issue was last worked, or undefined if it has never been worked.
  */
-export const issueLastWorked = (issue: Issue): ReadonlyDate | undefined => {
+export const issueLastWorked = (
+  issue: GenericJiraIssue
+): ReadonlyDate | undefined => {
   const mostRecentTransition = mostRecentIssueTransition(issue);
 
   const mostRecentComment = mostRecentIssueComment(issue);
@@ -340,7 +547,7 @@ export const issueLastWorked = (issue: Issue): ReadonlyDate | undefined => {
 };
 
 export const enhancedIssue = (
-  issue: Issue,
+  issue: GenericJiraIssue,
   viewLink: string,
   qualityFieldName: string,
   qualityReasonFieldName: string,

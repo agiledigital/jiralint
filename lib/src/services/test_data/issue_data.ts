@@ -1,7 +1,7 @@
-import type { EnhancedIssue, Issue, IssueWorklog } from "../jira";
+import type { EnhancedIssue, GenericJiraIssue, IssueWorklog } from "../jira";
 import { readonlyDate } from "readonly-types";
 
-export const issue: Issue = {
+export const issue: GenericJiraIssue = {
   key: "ABC-123",
   self: "self",
   fields: {
@@ -11,6 +11,7 @@ export const issue: Issue = {
     project: {
       key: "project",
     },
+    // hierarchyLevel:0,
     timetracking: {},
     fixVersions: [],
     aggregateprogress: {
@@ -23,7 +24,7 @@ export const issue: Issue = {
       subtask: false,
     },
     assignee: {
-      name: "assignee",
+      assigneeName: "assignee",
     },
     status: {
       id: "id",

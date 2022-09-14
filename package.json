@@ -39,6 +39,7 @@
     }
   },
   "dependencies": {
+    "io-ts-reporters": "^2.0.1",
     "semantic-release": "19.0.3"
   }
 }

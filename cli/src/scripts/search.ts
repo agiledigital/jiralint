@@ -135,7 +135,7 @@ const renderTable = (
       [issue.column ?? "", noFormat],
       [issue.fields.status.name, noFormat],
       [timeSinceLastTransition, noFormat],
-      [issue.fields.assignee.name, noFormat],
+      [issue.fields.assignee.assigneeName, noFormat],
       [progressGauge, noFormat],
       [
         `${jiraFormattedSeconds(issue.fields.aggregateprogress.progress ?? 0)}`,

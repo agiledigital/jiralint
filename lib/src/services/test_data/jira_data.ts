@@ -17,6 +17,7 @@ export const nullDescription = {
       subtask: true,
       avatarId: 11606,
     },
+    hierarchyLevel: 0,
     subtasks: [],
     created: "2014-09-08T12:50:57.000+1000",
     description: null,
@@ -26,6 +27,7 @@ export const nullDescription = {
       key: "ABC",
       name: "Acme Inc Project",
       projectTypeKey: "software",
+      simplified: false,
       avatarUrls: {
         "48x48":
           "https://jira.example.com/secure/projectavatar?pid=12080&avatarId=10011",
@@ -75,8 +77,9 @@ export const nullDescription = {
     },
     assignee: {
       self: "https://jira.example.com/rest/api/2/user?username=sxguy",
-      name: "sxguy",
+      assigneeName: "sxguy",
       key: "sxguy",
+      accountId: "557058:10f6981f-4b59-40ef-b049-28ee1acb3293",
       emailAddress: "sxguy@example.com",
       avatarUrls: {
         "48x48":
@@ -137,7 +140,9 @@ export const regular = {
     subtasks: [],
     created: "2014-09-08T12:50:57.000+1000",
     description: "some description",
+    hierarchyLevel: 0,
     project: {
+      simplified: false,
       self: "https://jira.example.com/rest/api/2/project/12080",
       id: "12080",
       key: "ABC",
@@ -192,8 +197,9 @@ export const regular = {
     },
     assignee: {
       self: "https://jira.example.com/rest/api/2/user?username=sxguy",
-      name: "sxguy",
+      assigneeName: "sxguy",
       key: "sxguy",
+      accountId: "557058:10f6981f-4b59-40ef-b049-28ee1acb3293",
       emailAddress: "sxguy@example.com",
       avatarUrls: {
         "48x48":
@@ -241,6 +247,7 @@ export const withParent = {
   key: "ABC-433",
   fields: {
     summary: "Implement fetch /v1/shopping-cart API in backend.",
+    hierarchyLevel: 0,
     issuetype: {
       self: "https://jira.example.com/rest/api/2/issuetype/5",
       id: "5",
@@ -257,6 +264,7 @@ export const withParent = {
       self: "https://jira.example.com/rest/api/2/issue/121082",
       fields: {
         summary: "APIs are proxied.",
+        hierarchyLevel: 0,
         status: {
           self: "https://jira.example.com/rest/api/2/status/3",
           description:
@@ -302,6 +310,7 @@ export const withParent = {
       key: "ABC",
       name: "Acme Inc Project",
       projectTypeKey: "software",
+      simplified: false,
       avatarUrls: {
         "48x48":
           "https://jira.example.com/secure/projectavatar?pid=12080&avatarId=10011",
@@ -336,7 +345,8 @@ export const withParent = {
     comment: { comments: [], maxResults: 0, total: 0, startAt: 0 },
     assignee: {
       self: "https://jira.example.com/rest/api/2/user?username=sxguy",
-      name: "sxguy",
+      accountId: "557058:10f6981f-4b59-40ef-b049-28ee1acb3293",
+      assigneeName: "sxguy",
       key: "sxguy",
       emailAddress: "sxguy@example.com",
       avatarUrls: {
