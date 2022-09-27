@@ -17,9 +17,9 @@ import {
   User,
   JiraError,
   IssueWorklog,
-  // OnPremJiraIssue,
   GenericJiraIssue,
-  // CloudJiraIssue,
+  OnPremJiraIssue,
+  CloudJiraIssue,
 } from "./jira";
 import * as T from "io-ts";
 import { ReadonlyRecord } from "readonly-types";
@@ -27,6 +27,7 @@ import { pipe, flow } from "fp-ts/lib/function";
 import { PathReporter } from "io-ts/PathReporter";
 import { isLeft } from "fp-ts/lib/These";
 import { compareDesc } from "date-fns";
+// import { issue } from "./test_data/issue_data";
 // import reporter from "io-ts-reporters";
 
 export type Authorised = {
@@ -241,22 +242,6 @@ export const jiraClientWithUserCredentials = (
 
   return jiraClient(jiraProtocol, jiraHost, jiraApi);
 };
-
-// export const jiraClientWithCloud = (
-//   jiraProtocol: "http" | "https",
-//   jiraHost: string,
-//   username: string,
-//   password: string
-// ): JiraClient => {
-//   const jiraApi: JiraApi = new JiraApi({
-//     protocol: jiraProtocol,
-//     host: jiraHost,
-//     username: username,
-//     password: password
-//   });
-
-//   return jiraClient(jiraProtocol, jiraHost, jiraApi);
-// };
 
 /**
  * An abstraction over the raw Jira API, with useful functions in the context of this project.
@@ -616,7 +601,7 @@ const jiraClient = (
         //   console.error(error);
         // }
 
-        //   return result;
+        // return result;
         // },
 
         (error: unknown) =>
@@ -625,168 +610,175 @@ const jiraClient = (
           )}].`
       );
 
-      const parsed = (
+      // const parsed = (
+      //   response: JiraApi.JsonResponse
+      // ): TE.TaskEither<string, ReadonlyArray<GenericJiraIssue>> =>
+      //   TE.fromEither(
+      //     decode(
+      //       "issues",
+      //       response["issues"],
+      //       // eslint-disable-next-line @typescript-eslint/unbound-method
+      //       T.readonly(T.array(GenericJiraIssue)).decode
+      //     )
+      //   );
+
+      const isCloud = jiraHost.includes("atlassian") ? true : false; //parseCloudJira(response) : parseOnPremJira(response);
+
+      const convertIssueType = (
         response: JiraApi.JsonResponse
-      ): TE.TaskEither<string, ReadonlyArray<GenericJiraIssue>> =>
+      ): TE.TaskEither<string, ReadonlyArray<GenericJiraIssue>> => {
+        // if (isCloud) {
+        return isCloud
+          ? pipe(
+              parseCloudJira(response), //reponse to cloudIssueType
+              TE.chain(
+                TE.traverseSeqArray((cloudJiraIssue) =>
+                  cloudJiraToGeneric(cloudJiraIssue)
+                )
+              )
+            )
+          : pipe(
+              parseOnPremJira(response),
+              TE.chain(
+                TE.traverseSeqArray((onPremJiraIssue) =>
+                  onPremJiraToGeneric(onPremJiraIssue)
+                )
+              )
+            );
+        // }
+      };
+
+      const parseOnPremJira = (
+        response: JiraApi.JsonResponse
+      ): TE.TaskEither<string, ReadonlyArray<OnPremJiraIssue>> =>
         TE.fromEither(
           decode(
-            "issues",
-            response["issues"],
+            "issues", //name
+            response["issues"], //input
             // eslint-disable-next-line @typescript-eslint/unbound-method
-            T.readonly(T.array(GenericJiraIssue)).decode
+            T.array(OnPremJiraIssue).decode //decoder
           )
         );
 
-      // const isCloud = (response: JiraApi.JsonResponse) => {
-      //   // return parseOnPremJira(response);
-      //   return jiraHost.includes("atlassian")? parseCloudJira(response) : parseOnPremJira(response);
-      // }
+      const parseCloudJira = (
+        response: JiraApi.JsonResponse
+      ): TE.TaskEither<string, ReadonlyArray<CloudJiraIssue>> =>
+        TE.fromEither(
+          decode(
+            "issues", //name
+            response["issues"], //input
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            T.array(CloudJiraIssue).decode //decoder)
+          )
+        );
 
-      // const parseOnPremJira = (
-      //   response: JiraApi.JsonResponse,
-      // ): TE.TaskEither<string, ReadonlyArray<OnPremJiraIssue>> =>
-      //       TE.fromEither(
-      //         decode(
-      //           "issues", //name
-      //           response["issues"], //input
-      //           // eslint-disable-next-line @typescript-eslint/unbound-method
-      //           T.readonly(T.array(OnPremJiraIssue)).decode, //decoder
+      // const getFieldInfo:(onPremJiraIssue: OnPremJiraIssue) =>return onPremJiraIssue
 
-      //         )
-      //   );
+      /**
+       * @param onPremJiraIssue - an instance of OnPremJiraIssue
+       * @returns GenericJiraIssue
+       */
+      const onPremJiraToGeneric = (
+        onPremJiraIssue: OnPremJiraIssue
+      ): TE.TaskEither<string, GenericJiraIssue> =>
+        TE.fromEither(
+          decode(
+            "onpremconversion",
+            {
+              key: onPremJiraIssue.key,
+              self: onPremJiraIssue.self,
+              fields: {
+                summary: onPremJiraIssue.fields.summary,
+                description: onPremJiraIssue.fields.description,
+                created: onPremJiraIssue.fields.created,
+                project: onPremJiraIssue.fields.project,
+                timetracking: onPremJiraIssue.fields.timetracking,
+                fixVersions: onPremJiraIssue.fields.fixVersions,
+                aggregateprogress: onPremJiraIssue.fields.aggregateprogress,
+                issuetype: onPremJiraIssue.fields.issuetype,
+                assignee: {
+                  assigneeName: onPremJiraIssue.fields.assignee.name,
+                },
+                status: onPremJiraIssue.fields.status,
+                comment: onPremJiraIssue.fields.comment,
+                worklog: onPremJiraIssue.fields.worklog,
+                duedate: onPremJiraIssue.fields.duedate,
 
-      // const parseCloudJira = (
-      //   response: JiraApi.JsonResponse,
-      // ): TE.TaskEither<string, ReadonlyArray<CloudJiraIssue>> =>
-      //       TE.fromEither(
-      //         decode(
-      //           "issues", //name
-      //           response["issues"], //input
-      //           // eslint-disable-next-line @typescript-eslint/unbound-method
-      //           T.readonly(T.array(CloudJiraIssue)).decode //decoder)
-      //         )
-      //   );
+                ...onPremJiraIssue,
+              },
 
-      // const changeAssignee: (response: JiraApi.JsonResponse,
-      // ) => (JiraApi.JsonResponse) = {
-      //   response["issues"]
-      // }
+              changelog: onPremJiraIssue.changelog,
+            },
+            GenericJiraIssue.decode
+          )
+        );
 
-      // const convertOnPremArrayToGeneric: (
-      //     onpremIssues: ReadonlyArray<OnPremJiraIssue>
-      //   ) => TE.TaskEither<string, ReadonlyArray<GenericJiraIssue>> =
-      //   onpremIssues => TE.fromEither(
-      //   );
+      /**
+       *
+       *
+       * @param cloudJiraIssue - an instance of CloudJiraIssue
+       * @returns GenericJiraIssue
+       */
+      const cloudJiraToGeneric = (
+        cloudJiraIssue: CloudJiraIssue
+      ): TE.TaskEither<string, GenericJiraIssue> =>
+        TE.fromEither(
+          decode(
+            "cloudconversion",
+            {
+              ...cloudJiraIssue,
+              key: cloudJiraIssue.key,
+              self: cloudJiraIssue.self,
+              fields: {
+                summary: cloudJiraIssue.fields.summary,
+                description: cloudJiraIssue.fields.description,
+                created: cloudJiraIssue.fields.created,
+                project: {
+                  key: cloudJiraIssue.fields.project.key,
+                },
+                timetracking: cloudJiraIssue.fields.timetracking,
+                fixVersions: cloudJiraIssue.fields.fixVersions,
+                aggregateprogress: {
+                  progress: cloudJiraIssue.fields.aggregateprogress.progress,
+                  total: cloudJiraIssue.fields.aggregateprogress.total,
+                  percent: cloudJiraIssue.fields.aggregateprogress.percent,
+                },
+                issuetype: {
+                  name: cloudJiraIssue.fields.issuetype.name,
+                  subtask: cloudJiraIssue.fields.issuetype.subtask,
+                },
+                assignee: {
+                  assigneeName: cloudJiraIssue.fields.assignee.displayName,
+                },
+                status: {
+                  id: cloudJiraIssue.fields.status.id,
+                  name: cloudJiraIssue.fields.status.name,
+                  statusCategory: {
+                    id: cloudJiraIssue.fields.status.statusCategory.id,
+                    name: cloudJiraIssue.fields.status.statusCategory.name,
+                    colorName:
+                      cloudJiraIssue.fields.status.statusCategory.colorName,
+                  },
+                },
+                comment: cloudJiraIssue.fields.comment,
+                worklog: cloudJiraIssue.fields.worklog,
+                duedate: cloudJiraIssue.fields.duedate,
 
-      // /**
-      //  *
-      //  *
-      //  * @param onPremJiraIssue - an instance of OnPremJiraIssue
-      //  * @returns GenericJiraIssue
-      //  */
-      //   const convertOnPremJiraToGeneric: (onPremJiraIssue: OnPremJiraIssue) => GenericJiraIssue
-      //   = (onPremJiraIssue) =>
-      //     ({
-      //       key: onPremJiraIssue.key.toString(),
-      //       self: onPremJiraIssue.self.toString(),
-      //       fields: {
-      //         summary: onPremJiraIssue.fields.summary.toString(),
-      //         description: onPremJiraIssue.fields.description?.toString(),
-      //         created: onPremJiraIssue.fields.created,
-      //         project: {
-      //           key: onPremJiraIssue.fields.project.key.toString(),
-      //         },
-      //         timetracking: onPremJiraIssue.fields.timetracking,
-      //         fixVersions: onPremJiraIssue.fields.fixVersions,
-      //         aggregateprogress: {
-      //           progress: onPremJiraIssue.fields.aggregateprogress.progress,
-      //           total: onPremJiraIssue.fields.aggregateprogress.total,
-      //           percent: onPremJiraIssue.fields.aggregateprogress.percent,
-      //         },
-      //         issuetype: {
-      //           name: onPremJiraIssue.fields.issuetype.name,
-      //           subtask: onPremJiraIssue.fields.issuetype.subtask,
-      //         },
-      //         assignee: {
-      //           assigneeName: onPremJiraIssue.fields.assignee.name.toString(),
-      //         },
-      //         status: {
-      //           id: onPremJiraIssue.fields.status.id,
-      //           name: onPremJiraIssue.fields.status.name,
-      //           statusCategory: {
-      //             id: onPremJiraIssue.fields.status.statusCategory.id,
-      //             name: onPremJiraIssue.fields.status.statusCategory.name,
-      //             colorName: onPremJiraIssue.fields.status.statusCategory.colorName,
-      //           }
-      //         },
-      //         comment: onPremJiraIssue.fields.comment,
-      //         worklog: onPremJiraIssue.fields.worklog,
-      //         duedate: onPremJiraIssue.fields.duedate,
+                aggregatetimeestimate:
+                  cloudJiraIssue.fields.aggregatetimeestimate,
+                aggregatetimeoriginalestimate:
+                  cloudJiraIssue.fields.aggregatetimeoriginalestimate,
+                aggregatetimespent: cloudJiraIssue.fields.aggregatetimespent,
+                parent: cloudJiraIssue.fields.parent,
 
-      //         aggregatetimeestimate: onPremJiraIssue.fields.aggregatetimeestimate,
-      //         aggregatetimeoriginalestimate: onPremJiraIssue.fields.aggregatetimeoriginalestimate,
-      //         aggregatetimespent: onPremJiraIssue.fields.aggregatetimespent,
-      //         parent: onPremJiraIssue.fields.parent,
-      //       },
+                ...cloudJiraIssue,
+              },
 
-      //       changelog: onPremJiraIssue.changelog,
-
-      //   }as const);
-
-      // /**
-      //  *
-      //  *
-      //  * @param cloudJiraIssue - an instance of CloudJiraIssue
-      //  * @returns GenericJiraIssue
-      //  */
-      //  const convertCloudJiraToGeneric: (cloudJiraIssue: CloudJiraIssue) => GenericJiraIssue
-      //  = (cloudJiraIssue) =>
-      //    ({
-      //      key: cloudJiraIssue.key.toString(),
-      //      self: cloudJiraIssue.self.toString(),
-      //      fields: {
-      //        summary: cloudJiraIssue.fields.summary.toString(),
-      //        description: cloudJiraIssue.fields.description?.toString(),
-      //        created: cloudJiraIssue.fields.created,
-      //        project: {
-      //          key: cloudJiraIssue.fields.project.key.toString(),
-      //        },
-      //        timetracking: cloudJiraIssue.fields.timetracking,
-      //        fixVersions: cloudJiraIssue.fields.fixVersions,
-      //        aggregateprogress: {
-      //          progress: cloudJiraIssue.fields.aggregateprogress.progress,
-      //          total: cloudJiraIssue.fields.aggregateprogress.total,
-      //          percent: cloudJiraIssue.fields.aggregateprogress.percent,
-      //        },
-      //        issuetype: {
-      //          name: cloudJiraIssue.fields.issuetype.name,
-      //          subtask: cloudJiraIssue.fields.issuetype.subtask,
-      //        },
-      //        assignee: {
-      //          assigneeName: cloudJiraIssue.fields.assignee.displayName.toString(),
-      //        },
-      //        status: {
-      //          id: cloudJiraIssue.fields.status.id,
-      //          name: cloudJiraIssue.fields.status.name,
-      //          statusCategory: {
-      //            id: cloudJiraIssue.fields.status.statusCategory.id,
-      //            name: cloudJiraIssue.fields.status.statusCategory.name,
-      //            colorName: cloudJiraIssue.fields.status.statusCategory.colorName,
-      //          }
-      //        },
-      //        comment: cloudJiraIssue.fields.comment,
-      //        worklog: cloudJiraIssue.fields.worklog,
-      //        duedate: cloudJiraIssue.fields.duedate,
-
-      //        aggregatetimeestimate: cloudJiraIssue.fields.aggregatetimeestimate,
-      //        aggregatetimeoriginalestimate: cloudJiraIssue.fields.aggregatetimeoriginalestimate,
-      //        aggregatetimespent: cloudJiraIssue.fields.aggregatetimespent,
-      //        parent: cloudJiraIssue.fields.parent,
-      //      },
-
-      //      changelog: cloudJiraIssue.changelog,
-
-      //  }as const);
+              changelog: cloudJiraIssue.changelog,
+            },
+            GenericJiraIssue.decode
+          )
+        );
 
       const enhancedIssues = (
         issues: ReadonlyArray<GenericJiraIssue>
@@ -870,9 +862,8 @@ const jiraClient = (
 
       return pipe(
         fetchIssues,
-        TE.chain(parsed),
-        // TE.chain(isCloud),
-        // TE.chain(convertToGeneric),
+        // TE.chain(parsed),
+        TE.chain(convertIssueType),
         TE.chain(enhancedIssues),
         TE.chain(TE.traverseSeqArray((issue) => issueWithComment(issue))),
         TE.chain(TE.traverseSeqArray((issue) => issueWithWorklog(issue)))
