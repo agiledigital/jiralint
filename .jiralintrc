@@ -1,8 +1,0 @@
-{
-  "JiraProtocol": "https",
-  "jiraHost": "agiledigital.atlassian.net",
-  "username": "yxhong@agiledigital.com.au",
-  "password": "C2cflWNoV67fP8RCFzDGB39E",
-  "qualityFieldName": "customfield_12345",
-  "qualityReasonFieldName": "customfield_12346"
-}
