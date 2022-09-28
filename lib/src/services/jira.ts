@@ -18,7 +18,7 @@ export const Author = T.type({
 
 export const IssueComment = T.type({
   id: T.string,
-  author: Author,
+  author: nullOrMissingToUndefined(Author),
   body: T.string,
   created: readOnlyDateFromISOString,
   updated: readOnlyDateFromISOString,

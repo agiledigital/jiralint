@@ -78,6 +78,7 @@ export const nullDescription = {
     assignee: {
       self: "https://jira.example.com/rest/api/2/user?username=sxguy",
       assigneeName: "sxguy",
+      name: "sxguy",
       key: "sxguy",
       accountId: "557058:10f6981f-4b59-40ef-b049-28ee1acb3293",
       emailAddress: "sxguy@example.com",
@@ -198,6 +199,7 @@ export const regular = {
     assignee: {
       self: "https://jira.example.com/rest/api/2/user?username=sxguy",
       assigneeName: "sxguy",
+      name: "sxguy",
       key: "sxguy",
       accountId: "557058:10f6981f-4b59-40ef-b049-28ee1acb3293",
       emailAddress: "sxguy@example.com",
@@ -347,6 +349,7 @@ export const withParent = {
       self: "https://jira.example.com/rest/api/2/user?username=sxguy",
       accountId: "557058:10f6981f-4b59-40ef-b049-28ee1acb3293",
       assigneeName: "sxguy",
+      name: "sxguy",
       key: "sxguy",
       emailAddress: "sxguy@example.com",
       avatarUrls: {
