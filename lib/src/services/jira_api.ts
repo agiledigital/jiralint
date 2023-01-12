@@ -27,8 +27,6 @@ import { pipe, flow } from "fp-ts/lib/function";
 import { PathReporter } from "io-ts/PathReporter";
 import { isLeft } from "fp-ts/lib/These";
 import { compareDesc } from "date-fns";
-// import { issue } from "./test_data/issue_data";
-// import reporter from "io-ts-reporters";
 
 export type Authorised = {
   readonly status: "authorised";

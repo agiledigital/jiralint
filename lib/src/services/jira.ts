@@ -2,7 +2,11 @@ import * as T from "io-ts";
 import * as ITT from "io-ts-types";
 import { compareDesc } from "date-fns";
 import { ReadonlyDate } from "readonly-types/dist";
-import { nullOrMissingToUndefined, readOnlyDateFromISOString } from "../codecs";
+import {
+  dateToDate,
+  nullOrMissingToUndefined,
+  readOnlyDateFromISOString,
+} from "../codecs";
 
 export const PaginatedResults = T.readonly(
   T.type({
@@ -24,6 +28,14 @@ export const IssueComment = T.type({
   updated: readOnlyDateFromISOString,
 });
 
+export const IssueCommentGeneric = T.type({
+  id: T.string,
+  author: nullOrMissingToUndefined(Author),
+  body: T.string,
+  created: dateToDate,
+  updated: dateToDate,
+});
+
 export const ChangeLog = T.type({
   id: T.string,
   author: Author,
@@ -40,9 +52,32 @@ export const ChangeLog = T.type({
   ),
 });
 
+export const ChangeLogGeneric = T.type({
+  id: T.string,
+  author: Author,
+  created: dateToDate,
+  items: T.readonlyArray(
+    T.type({
+      field: T.string,
+      fieldtype: T.string,
+      from: T.union([T.string, T.null]),
+      fromString: T.union([T.string, T.null]),
+      to: T.union([T.string, T.null]),
+      toString: T.union([T.string, T.null]),
+    })
+  ),
+});
+
 export const IssueWorklog = T.type({
   author: Author,
   started: readOnlyDateFromISOString,
+  timeSpentSeconds: T.number,
+  comment: nullOrMissingToUndefined(T.string),
+});
+
+export const IssueWorklogGeneric = T.type({
+  author: Author,
+  started: dateToDate,
   timeSpentSeconds: T.number,
   comment: nullOrMissingToUndefined(T.string),
 });
@@ -254,7 +289,7 @@ export const GenericJiraIssue = T.type({
     T.type({
       summary: T.string,
       description: nullOrMissingToUndefined(T.string),
-      created: readOnlyDateFromISOString,
+      created: dateToDate,
       project: T.type({
         key: T.string,
       }),
@@ -308,7 +343,7 @@ export const GenericJiraIssue = T.type({
           T.intersection([
             PaginatedResults,
             T.type({
-              comments: T.readonlyArray(IssueComment),
+              comments: T.readonlyArray(IssueCommentGeneric),
             }),
           ])
         )
@@ -318,7 +353,7 @@ export const GenericJiraIssue = T.type({
           T.intersection([
             PaginatedResults,
             T.type({
-              worklogs: T.readonlyArray(IssueWorklog),
+              worklogs: T.readonlyArray(IssueWorklogGeneric),
             }),
           ])
         )
@@ -339,7 +374,7 @@ export const GenericJiraIssue = T.type({
   ]),
   changelog: ITT.fromNullable(
     T.type({
-      histories: T.readonlyArray(ChangeLog),
+      histories: T.readonlyArray(ChangeLogGeneric),
     }),
     {
       histories: [],

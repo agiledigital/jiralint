@@ -4,7 +4,7 @@
 /* eslint-disable functional/no-conditional-statement */
 /* eslint-disable jest/no-conditional-expect */
 import {
-  GenericJiraIssue,
+  // GenericJiraIssue,
   // mostRecentIssueComment,
   mostRecentIssueTransition,
   IssueChangeLog,
@@ -12,6 +12,7 @@ import {
   // issueLastWorked,
   // IssueWorklog,
   enhancedIssue,
+  CloudJiraIssue,
 } from "./jira";
 import { PathReporter } from "io-ts/PathReporter";
 import * as E from "fp-ts/lib/Either";
@@ -93,7 +94,7 @@ describe("decoding well-formed tickets", () => {
     // Given a well-formed bit of data.
 
     // When it is decoded.
-    const actual = GenericJiraIssue.decode(data);
+    const actual = CloudJiraIssue.decode(data);
 
     // Then no errors should be reported.
     const actualErrors = E.isLeft(actual)
@@ -111,111 +112,6 @@ describe("decoding well-formed tickets", () => {
     }
   });
 });
-
-//   describe("finding the most recent work date", () => {
-//     const issueWithTransition = {
-//       ...IssueData.issue,
-//       changelog: {
-//         histories: [mixedChangeFrom2022],
-//       },
-//     };
-
-//     const issueWithComment = {
-//       ...IssueData.issue,
-//       fields: {
-//         ...IssueData.issue.fields,
-//         comment: {
-//           comments: [commentFrom2000],
-//           maxResults: 0,
-//           total: 0,
-//           startAt: 0,
-//         },
-//       },
-//     };
-
-//     const issueWithWorklog = {
-//       ...IssueData.issue,
-//       fields: {
-//         ...IssueData.issue.fields,
-//         worklog: {
-//           worklogs: [worklogFrom2019],
-//           maxResults: 0,
-//           total: 0,
-//           startAt: 0,
-//         },
-//       },
-//     };
-
-//     const issueWithEverything = {
-//       ...IssueData.issue,
-//       fields: {
-//         ...IssueData.issue.fields,
-//         worklog: {
-//           worklogs: [worklogFrom2019],
-//           maxResults: 0,
-//           total: 0,
-//           startAt: 0,
-//         },
-//         comment: {
-//           comments: [commentFrom2000],
-//           maxResults: 0,
-//           total: 0,
-//           startAt: 0,
-//         },
-//       },
-//       changelog: {
-//         histories: [mixedChangeFrom2022],
-//       },
-//     };
-
-//     it.each([
-//       ["not worked", IssueData.issue, undefined],
-//       ["with a transition", issueWithTransition, mixedChangeFrom2022.created],
-//       ["with a comment", issueWithComment, commentFrom2000.created],
-//       ["with a worklog", issueWithWorklog, worklogFrom2019.started],
-//       ["with all three", issueWithEverything, mixedChangeFrom2022.created],
-//     ])(
-//       "should returned for expected result for an issue %s",
-//       (_desc, issue, expected) => {
-//         // Given an issue.
-
-//         // When the time it was last worked is found.
-//         const lastWorked = issueLastWorked(issue);
-
-//         // Then it should match the expected value.
-//         expect(lastWorked).toEqual(expected);
-//       }
-//     );
-//   });
-
-//   describe("finding the most recent comment", () => {
-//     it.each([
-//       [[], undefined],
-//       [[commentFrom2000], commentFrom2000],
-//       [[commentFrom2000, commentFrom2021], commentFrom2021],
-//       [[commentFrom2000, commentFrom2021, commentFrom2000], commentFrom2021],
-//     ])("should be found as expected", (comments, expected) => {
-//       // Given an issue with the provided comments
-//       const issue = {
-//         ...IssueData.issue,
-//         fields: {
-//           ...IssueData.issue.fields,
-//           comment: {
-//             comments,
-//             maxResults: 0,
-//             total: 0,
-//             startAt: 0,
-//           },
-//         },
-//       };
-
-//       // When the most recent comment is found.
-//       const actual = mostRecentIssueComment(issue);
-
-//       // Then it should be expected value.
-//       expect(actual).toEqual(expected);
-//     });
-//   });
 
 describe("finding transitions", () => {
   it.each([
