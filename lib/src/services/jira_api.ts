@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
+/* eslint-disable spellcheck/spell-checker */
+/* eslint-disable @typescript-eslint/prefer-includes */
 /* eslint-disable functional/functional-parameters */
 import { Either } from "fp-ts/lib/Either";
 import * as E from "fp-ts/lib/Either";
@@ -41,7 +44,7 @@ export type Requested = {
 };
 
 type FieldNotEditable = {
-  readonly fields: ReadonlyArray<string>;
+  readonly fields: readonly string[];
 };
 
 // FIXME:  turn this into a class so your editor "go to source" works and you
@@ -61,7 +64,7 @@ export type JiraClient = {
     qualityField: string,
     qualityReasonField: string,
     customFieldNames: readonly string[]
-  ) => Promise<Either<string, ReadonlyArray<EnhancedIssue>>>;
+  ) => Promise<Either<string, readonly EnhancedIssue[]>>;
   readonly currentUser: () => Promise<Either<string, User>>;
 };
 
@@ -101,9 +104,11 @@ export const getOAuthAccessToken = async (
   const { requestToken, requestSecret } = await new Promise<{
     readonly requestSecret: string;
     readonly requestToken: string;
+    // eslint-disable-next-line functional/no-return-void
   }>((resolve, reject) => {
     // eslint-disable-next-line functional/no-expression-statement
     oauth.getOAuthRequestToken(
+      // eslint-disable-next-line functional/no-return-void
       (err: unknown, requestToken: string, requestSecret: string) => {
         // eslint-disable-next-line functional/no-conditional-statement
         if (err !== null) {
@@ -127,12 +132,14 @@ export const getOAuthAccessToken = async (
 
   // Exchanges the temporary request token and secret for an access token and secret, using
   //the verification code to prove that the user authorised the application to use the API.
+  // eslint-disable-next-line functional/no-return-void
   return new Promise<Authorised>((resolve, reject) => {
     // eslint-disable-next-line functional/no-expression-statement
     oauth.getOAuthAccessToken(
       requestToken,
       requestSecret,
       verificationCode,
+      // eslint-disable-next-line functional/no-return-void
       (err: unknown, accessToken: string, accessSecret: string) => {
         // eslint-disable-next-line functional/no-conditional-statement
         if (err !== null) {
@@ -316,7 +323,7 @@ const jiraClient = (
     (jiraApi: JiraApi, boardNamesToIgnore: readonly string[]) =>
     (
       projectKey: string
-    ): TE.TaskEither<string, ReadonlyRecord<string, ReadonlyArray<Board>>> => {
+    ): TE.TaskEither<string, ReadonlyRecord<string, readonly Board[]>> => {
       const fetch = TE.tryCatch(
         () =>
           jiraApi.getAllBoards(
@@ -334,20 +341,20 @@ const jiraClient = (
 
       const parsed = (
         response: JiraApi.JsonResponse
-      ): TE.TaskEither<string, ReadonlyArray<BoardSummary>> =>
+      ): TE.TaskEither<string, readonly BoardSummary[]> =>
         TE.fromEither(
           decode(
             "board summaries",
-            response["values"],
+            response.values,
             // eslint-disable-next-line @typescript-eslint/unbound-method
             T.array(BoardSummary).decode
           )
         );
 
       const boardIds = (
-        boards: ReadonlyArray<BoardSummary>
-      ): TE.TaskEither<string, ReadonlyArray<number>> => {
-        const ids: ReadonlyArray<number> = boards
+        boards: readonly BoardSummary[]
+      ): TE.TaskEither<string, readonly number[]> => {
+        const ids: readonly number[] = boards
           .filter(
             (board) =>
               !boardNamesToIgnore.some((prefix) =>
@@ -370,34 +377,33 @@ const jiraClient = (
     };
 
   const boardsByProject = (
-    issues: ReadonlyArray<GenericJiraIssue>,
+    issues: readonly GenericJiraIssue[],
     boardNamesToIgnore: readonly string[]
-  ): TE.TaskEither<string, ReadonlyRecord<string, ReadonlyArray<Board>>> => {
+  ): TE.TaskEither<string, ReadonlyRecord<string, readonly Board[]>> => {
     const projectKeys: readonly string[] = issues
       .map((issue) => issue.fields.project.key)
       .filter((value, index, self) => self.indexOf(value) === index);
     const boards: TE.TaskEither<
       string,
-      ReadonlyArray<ReadonlyRecord<string, ReadonlyArray<Board>>>
+      readonly ReadonlyRecord<string, readonly Board[]>[]
     > = TE.traverseSeqArray(boardsForProject(jiraApi, boardNamesToIgnore))(
       projectKeys
     );
 
-    return TE.map(
-      (bs: ReadonlyArray<ReadonlyRecord<string, ReadonlyArray<Board>>>) =>
-        bs.reduce(
-          (prev, current) => ({
-            ...prev,
-            ...current,
-          }),
-          {}
-        )
+    return TE.map((bs: readonly ReadonlyRecord<string, readonly Board[]>[]) =>
+      bs.reduce(
+        (prev, current) => ({
+          ...prev,
+          ...current,
+        }),
+        {}
+      )
     )(boards);
   };
 
   const fetchMostRecentWorklogs = (
     issueKey: string
-  ): TE.TaskEither<string, ReadonlyArray<IssueWorklog>> => {
+  ): TE.TaskEither<string, readonly IssueWorklog[]> => {
     const fetch = TE.tryCatch(
       () => jiraApi.genericGet(`issue/${encodeURIComponent(issueKey)}/worklog`),
       (error) =>
@@ -410,11 +416,11 @@ const jiraClient = (
 
     const parsed = (
       response: JiraApi.JsonResponse
-    ): TE.TaskEither<string, ReadonlyArray<IssueWorklog>> =>
+    ): TE.TaskEither<string, readonly IssueWorklog[]> =>
       TE.fromEither(
         decode(
           "worklogs",
-          response["worklogs"],
+          response.worklogs,
           // eslint-disable-next-line @typescript-eslint/unbound-method
           T.readonlyArray(IssueWorklog).decode
         )
@@ -425,7 +431,7 @@ const jiraClient = (
 
   const fetchMostRecentComments = (
     issueKey: string
-  ): TE.TaskEither<string, ReadonlyArray<IssueComment>> => {
+  ): TE.TaskEither<string, readonly IssueComment[]> => {
     const fetch = TE.tryCatch(
       () =>
         jiraApi.genericGet(
@@ -443,11 +449,11 @@ const jiraClient = (
 
     const parsed = (
       response: JiraApi.JsonResponse
-    ): TE.TaskEither<string, ReadonlyArray<IssueComment>> =>
+    ): TE.TaskEither<string, readonly IssueComment[]> =>
       TE.fromEither(
         decode(
           "comments",
-          response["comments"],
+          response.comments,
           // eslint-disable-next-line @typescript-eslint/unbound-method
           T.readonlyArray(IssueComment).decode
         )
@@ -549,7 +555,7 @@ const jiraClient = (
       qualityField: string,
       qualityReasonField: string,
       customFieldNames: readonly string[]
-    ): Promise<Either<string, ReadonlyArray<EnhancedIssue>>> => {
+    ): Promise<Either<string, readonly EnhancedIssue[]>> => {
       const fetchIssues = TE.tryCatch(
         // async () => {
         //   const result = await jiraApi.searchJira(jql, {
@@ -618,7 +624,7 @@ const jiraClient = (
 
       const convertIssueType = (
         response: JiraApi.JsonResponse
-      ): TE.TaskEither<string, ReadonlyArray<GenericJiraIssue>> => {
+      ): TE.TaskEither<string, readonly GenericJiraIssue[]> => {
         return jiraHost.includes("atlassian")
           ? pipe(
               parseCloudJira(response), //reponse to cloudIssueType
@@ -640,11 +646,11 @@ const jiraClient = (
 
       const parseOnPremJira = (
         response: JiraApi.JsonResponse
-      ): TE.TaskEither<string, ReadonlyArray<OnPremJiraIssue>> =>
+      ): TE.TaskEither<string, readonly OnPremJiraIssue[]> =>
         TE.fromEither(
           decode(
             "issues", //name
-            response["issues"], //input
+            response.issues, //input
             // eslint-disable-next-line @typescript-eslint/unbound-method
             T.readonly(T.array(OnPremJiraIssue)).decode //decoder
           )
@@ -652,11 +658,11 @@ const jiraClient = (
 
       const parseCloudJira = (
         response: JiraApi.JsonResponse
-      ): TE.TaskEither<string, ReadonlyArray<CloudJiraIssue>> =>
+      ): TE.TaskEither<string, readonly CloudJiraIssue[]> =>
         TE.fromEither(
           decode(
             "issues", //name
-            response["issues"], //input
+            response.issues, //input
             // eslint-disable-next-line @typescript-eslint/unbound-method
             T.readonly(T.array(CloudJiraIssue)).decode //decoder)
           )
@@ -714,29 +720,27 @@ const jiraClient = (
         );
 
       const enhancedIssues = (
-        issues: ReadonlyArray<GenericJiraIssue>
-      ): TE.TaskEither<string, ReadonlyArray<EnhancedIssue>> => {
-        return TE.map(
-          (boards: ReadonlyRecord<string, ReadonlyArray<Board>>) => {
-            return issues.map((issue) => {
-              const issueBoards = boards[issue.fields.project.key] ?? [];
-              const boardByStatus = issueBoards.find((board) =>
-                board.columnConfig.columns.some((column) =>
-                  column.statuses.some(
-                    (status) => status.id === issue.fields.status.id
-                  )
+        issues: readonly GenericJiraIssue[]
+      ): TE.TaskEither<string, readonly EnhancedIssue[]> => {
+        return TE.map((boards: ReadonlyRecord<string, readonly Board[]>) => {
+          return issues.map((issue) => {
+            const issueBoards = boards[issue.fields.project.key] ?? [];
+            const boardByStatus = issueBoards.find((board) =>
+              board.columnConfig.columns.some((column) =>
+                column.statuses.some(
+                  (status) => status.id === issue.fields.status.id
                 )
-              );
-              return enhancedIssue(
-                issue,
-                issueLink(issue),
-                qualityField,
-                qualityReasonField,
-                boardByStatus
-              );
-            });
-          }
-        )(boardsByProject(issues, boardNamesToIgnore));
+              )
+            );
+            return enhancedIssue(
+              issue,
+              issueLink(issue),
+              qualityField,
+              qualityReasonField,
+              boardByStatus
+            );
+          });
+        })(boardsByProject(issues, boardNamesToIgnore));
       };
 
       const issueWithComment = (
@@ -747,7 +751,7 @@ const jiraClient = (
           issue.fields.comment.total === issue.fields.comment.comments.length;
 
         const recentComment = (
-          worklogs: ReadonlyArray<IssueComment> | undefined
+          worklogs: readonly IssueComment[] | undefined
         ): IssueComment | undefined =>
           worklogs === undefined
             ? undefined
@@ -774,7 +778,7 @@ const jiraClient = (
           issue.fields.worklog.total === issue.fields.worklog.worklogs.length;
 
         const recentWorklog = (
-          worklogs: ReadonlyArray<IssueWorklog> | undefined
+          worklogs: readonly IssueWorklog[] | undefined
         ): IssueWorklog | undefined =>
           worklogs === undefined
             ? undefined

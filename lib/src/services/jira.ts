@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
+/* eslint-disable spellcheck/spell-checker */
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";
 import { compareDesc } from "date-fns";
@@ -500,7 +502,7 @@ const issueClosed = (issue: GenericJiraIssue, board?: Board): boolean => {
  */
 export const issueTransitions = (
   issue: GenericJiraIssue
-): ReadonlyArray<IssueChangeLog> => {
+): readonly IssueChangeLog[] => {
   const changelogs: readonly IssueChangeLog[] = [...issue.changelog.histories];
 
   return changelogs.filter((changelog) =>
