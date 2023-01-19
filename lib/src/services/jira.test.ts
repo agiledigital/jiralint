@@ -5,7 +5,7 @@
 /* eslint-disable jest/no-conditional-expect */
 import {
   // GenericJiraIssue,
-  // mostRecentIssueComment,
+  mostRecentIssueComment,
   mostRecentIssueTransition,
   IssueChangeLog,
   issueTransitions,
@@ -13,6 +13,7 @@ import {
   // IssueWorklog,
   enhancedIssue,
   CloudJiraIssue,
+  issueLastWorked,
 } from "./jira";
 import { PathReporter } from "io-ts/PathReporter";
 import * as E from "fp-ts/lib/Either";
@@ -23,21 +24,21 @@ import * as IssueData from "./test_data/issue_data";
 import { readonlyDate } from "readonly-types/dist";
 import fc from "fast-check";
 
-//   const commentFrom2021 = {
-//     id: "5",
-//     author: IssueData.issue.fields.assignee,
-//     body: "new comment",
-//     created: readonlyDate("2021-04-03"),
-//     updated: readonlyDate("2000-04-03"),
-//   };
+const commentFrom2021 = {
+  id: "5",
+  author: { name: IssueData.issue.fields.assignee.assigneeName },
+  body: "new comment",
+  created: readonlyDate("2021-04-03"),
+  updated: readonlyDate("2000-04-03"),
+};
 
-//   const commentFrom2000 = {
-//     id: "1",
-//     author: IssueData.issue.fields.assignee,
-//     body: "old comment",
-//     created: readonlyDate("2000-02-03"),
-//     updated: readonlyDate("2030-04-03"),
-//   };
+const commentFrom2000 = {
+  id: "1",
+  author: { name: IssueData.issue.fields.assignee.assigneeName },
+  body: "old comment",
+  created: readonlyDate("2000-02-03"),
+  updated: readonlyDate("2030-04-03"),
+};
 
 const descriptionChangeItem = {
   field: "description",
@@ -57,33 +58,33 @@ const statusChangeItem = {
   toString: "In Progress",
 };
 
-const descriptionHistoryFrom2021: IssueChangeLog = {
+const descriptionHistoryFrom2021 = {
   id: "1",
   author: { name: IssueData.issue.fields.assignee.assigneeName },
   created: readonlyDate("2021-06-03"),
   items: [descriptionChangeItem],
 };
 
-const statusChangeFrom2000: IssueChangeLog = {
+const statusChangeFrom2000 = {
   id: "2",
   author: { name: IssueData.issue.fields.assignee.assigneeName },
   created: readonlyDate("2000-03-03"),
   items: [statusChangeItem],
 };
 
-const mixedChangeFrom2022: IssueChangeLog = {
+const mixedChangeFrom2022 = {
   id: "4",
   author: { name: IssueData.issue.fields.assignee.assigneeName },
   created: readonlyDate("2022-03-03"),
   items: [statusChangeItem, descriptionChangeItem],
 };
 
-//   const worklogFrom2019: IssueWorklog = {
-//     author: {name: IssueData.issue.fields.assignee.assigneeName},
-//     started: readonlyDate("2019-03-03"),
-//     timeSpentSeconds: 1000,
-//     comment: "no comment",
-//   };
+const worklogFrom2019 = {
+  author: { name: IssueData.issue.fields.assignee.assigneeName },
+  started: readonlyDate("2019-03-03"),
+  timeSpentSeconds: 1000,
+  comment: "no comment",
+};
 
 describe("decoding well-formed tickets", () => {
   it.each([
@@ -110,6 +111,111 @@ describe("decoding well-formed tickets", () => {
     } else {
       expect(actual.right.key).toEqual(expectedKey);
     }
+  });
+});
+
+describe("finding the most recent work date", () => {
+  const issueWithTransition = {
+    ...IssueData.issue,
+    changelog: {
+      histories: [mixedChangeFrom2022],
+    },
+  };
+
+  const issueWithComment = {
+    ...IssueData.issue,
+    fields: {
+      ...IssueData.issue.fields,
+      comment: {
+        comments: [commentFrom2000],
+        maxResults: 0,
+        total: 0,
+        startAt: 0,
+      },
+    },
+  };
+
+  const issueWithWorklog = {
+    ...IssueData.issue,
+    fields: {
+      ...IssueData.issue.fields,
+      worklog: {
+        worklogs: [worklogFrom2019],
+        maxResults: 0,
+        total: 0,
+        startAt: 0,
+      },
+    },
+  };
+
+  const issueWithEverything = {
+    ...IssueData.issue,
+    fields: {
+      ...IssueData.issue.fields,
+      worklog: {
+        worklogs: [worklogFrom2019],
+        maxResults: 0,
+        total: 0,
+        startAt: 0,
+      },
+      comment: {
+        comments: [commentFrom2000],
+        maxResults: 0,
+        total: 0,
+        startAt: 0,
+      },
+    },
+    changelog: {
+      histories: [mixedChangeFrom2022],
+    },
+  };
+
+  it.each([
+    ["not worked", IssueData.issue, undefined],
+    ["with a transition", issueWithTransition, mixedChangeFrom2022.created],
+    ["with a comment", issueWithComment, commentFrom2000.created],
+    ["with a worklog", issueWithWorklog, worklogFrom2019.started],
+    ["with all three", issueWithEverything, mixedChangeFrom2022.created],
+  ])(
+    "should returned for expected result for an issue %s",
+    (_desc, issue, expected) => {
+      // Given an issue.
+
+      // When the time it was last worked is found.
+      const lastWorked = issueLastWorked(issue);
+
+      // Then it should match the expected value.
+      expect(lastWorked).toEqual(expected);
+    }
+  );
+});
+
+describe("finding the most recent comment", () => {
+  it.each([
+    [[], undefined],
+    [[commentFrom2000], commentFrom2000],
+    [[commentFrom2000, commentFrom2021], commentFrom2021],
+    [[commentFrom2000, commentFrom2021, commentFrom2000], commentFrom2021],
+  ])("should be found as expected", (comments, expected) => {
+    // Given an issue with the provided comments
+    const issue = {
+      ...IssueData.issue,
+      fields: {
+        ...IssueData.issue.fields,
+        comment: {
+          comments,
+          maxResults: 0,
+          total: 0,
+          startAt: 0,
+        },
+      },
+    };
+
+    // When the most recent comment is found.
+    const actual = mostRecentIssueComment(issue);
+
+    // Then it should be expected value.
+    expect(actual).toEqual(expected);
   });
 });
 
