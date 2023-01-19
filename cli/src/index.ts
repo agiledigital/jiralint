@@ -295,7 +295,6 @@ const verifyClient = (builder: JiraClientBuilder): JiraClient =>
  */
 const config: CliConfig | undefined = findConfig(process.cwd());
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const withCommonOptions = <C extends RootCommand>(command: C) =>
   command
     .option(jiraProtocolOptionKey, {
@@ -325,13 +324,11 @@ export const withCommonOptions = <C extends RootCommand>(command: C) =>
     })
     .group([jiraHostOptionKey, jiraProtocolOptionKey], "Common Required:");
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const withAuthenticationOptions = <C extends RootCommand>(command: C) =>
   withCommonOptions(command)
     .group([jiraConsumerKeyOptionKey, jiraConsumerSecretOptionKey], "Auth:")
     .demandOption([jiraHostOptionKey, jiraConsumerSecretOptionKey]);
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const withAuthOptions = <C extends RootCommand>(command: C) =>
   withCommonOptions(command)
     .option(jiraAccessTokenOptionKey, {
@@ -403,7 +400,6 @@ export const withAuthOptions = <C extends RootCommand>(command: C) =>
     )
     .demandOption("jira");
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const withQualityFieldsOption = <C extends RootCommand>(command: C) =>
   withAuthOptions(command)
     .option("qualityFieldName", {
@@ -424,5 +420,6 @@ auth(rootCommand);
 rate(rootCommand);
 search(rootCommand);
 
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 rootCommand.demandCommand().strict().help().argv;
 /* eslint-enable functional/no-expression-statement */

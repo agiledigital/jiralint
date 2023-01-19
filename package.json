@@ -28,8 +28,9 @@
   "devDependencies": {
     "@commitlint/cli": "13.2.1",
     "@commitlint/config-conventional": "13.2.0",
-    "commitizen": "4.2.4",
+    "commitizen": "4.2.5",
     "cz-conventional-changelog": "3.3.0",
+    "eslint-config-agile-digital": "^1.2.1",
     "fast-check": "2.25.0",
     "husky": "7.0.4"
   },
@@ -40,7 +41,7 @@
   },
   "dependencies": {
     "io-ts-reporters": "^2.0.1",
-    "semantic-release": "19.0.3",
+    "semantic-release": "19.0.5",
     "ts-node": "^10.9.1"
   }
 }

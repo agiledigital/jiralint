@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-globals */
 /* eslint-disable functional/functional-parameters */
 /* eslint-disable functional/no-expression-statement */
 /* eslint-disable functional/no-throw-statement */
