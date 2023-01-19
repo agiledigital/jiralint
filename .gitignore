@@ -108,3 +108,4 @@ dist
 
 # personalised useage
 .npmrc
+.jiralintrc
