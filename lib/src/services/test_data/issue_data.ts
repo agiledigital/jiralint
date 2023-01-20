@@ -25,7 +25,7 @@ export const issue: GenericJiraIssue = {
       subtask: false,
     },
     assignee: {
-      assigneeName: "assignee",
+      name: "assignee",
     },
     status: {
       id: "id",

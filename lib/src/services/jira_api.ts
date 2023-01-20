@@ -2,10 +2,6 @@
 /* eslint-disable spellcheck/spell-checker */
 import { Either } from "fp-ts/lib/Either";
 import * as E from "fp-ts/lib/Either";
-// import * as O from "fp-ts/lib/Option";
-// import * as RA from "fp-ts/ReadonlyArray";
-// import * as RR from "fp-ts/ReadonlyRecord";
-// import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
 import { OAuth } from "oauth";
 import JiraApi, { JsonResponse } from "jira-client";
@@ -560,8 +556,6 @@ const jiraClient = (
       customFieldNames: readonly string[]
     ): Promise<Either<string, readonly EnhancedIssue[]>> => {
       const fetchIssues = TE.tryCatch(
-        // async () => {
-        //   const result = await jiraApi.searchJira(jql, {
         // eslint-disable-next-line functional/functional-parameters
         () =>
           jiraApi.searchJira(jql, {
@@ -590,41 +584,11 @@ const jiraClient = (
             expand: ["changelog"],
           }),
 
-        //   const fs = require("fs");
-        //   const data = JSON.stringify(
-        //     reporter.report(T.array(GenericJiraIssue).decode(result["issues"])),
-        //     null,
-        //     4
-        //   );
-        //   try {
-        //     fs.writeFileSync("issues_cloud.json", data);
-        //     console.log("JSON data is saved.");
-        //   } catch (error) {
-        //     console.error(error);
-        //   }
-
-        //   return result;
-        // },
-
         (error: unknown) =>
           `Error fetching details from jira with query [${jql}] - [${JSON.stringify(
             error
           )}].`
       );
-
-      // const parsed = (
-      //   response: JiraApi.JsonResponse
-      // ): TE.TaskEither<string, ReadonlyArray<GenericJiraIssue>> =>
-      //   TE.fromEither(
-      //     decode(
-      //       "issues",
-      //       response["issues"],
-      //       // eslint-disable-next-line @typescript-eslint/unbound-method
-      //       T.readonly(T.array(GenericJiraIssue)).decode
-      //     )
-      //   );
-
-      // const isCloud = jiraHost.includes("atlassian") ? true : false; //parseCloudJira(response) : parseOnPremJira(response);
 
       const convertIssueType = (
         response: JiraApi.JsonResponse
@@ -687,7 +651,7 @@ const jiraClient = (
               fields: {
                 ...onPremJiraIssue.fields,
                 assignee: {
-                  assigneeName: onPremJiraIssue.fields.assignee.name.toString(),
+                  name: onPremJiraIssue.fields.assignee.name.toString(),
                 },
               },
             },
@@ -697,8 +661,6 @@ const jiraClient = (
         );
 
       /**
-       *
-       *
        * @param cloudJiraIssue - an instance of CloudJiraIssue
        * @returns GenericJiraIssue
        */
@@ -713,8 +675,7 @@ const jiraClient = (
               fields: {
                 ...cloudJiraIssue.fields,
                 assignee: {
-                  assigneeName:
-                    cloudJiraIssue.fields.assignee.displayName.toString(),
+                  name: cloudJiraIssue.fields.assignee.displayName.toString(),
                 },
               },
             },
@@ -803,7 +764,6 @@ const jiraClient = (
 
       return pipe(
         fetchIssues,
-        // TE.chain(parsed),
         TE.chain(convertIssueType),
         TE.chain(enhancedIssues),
         TE.chain(TE.traverseSeqArray((issue) => issueWithComment(issue))),

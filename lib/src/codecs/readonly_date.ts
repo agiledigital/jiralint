@@ -30,7 +30,7 @@ export const ReadonlyDateC = new T.Type<ReadonlyDate, Date, Date>(
 );
 
 /**
- * Codec to convert between a readonly and a readonly date.
+ * Identity codec to convert between a readonly date and a readonly date. Will work if input is either date or readonly * date.
  */
 export const dateToDate = ITT.date.pipe(
   ReadonlyDateC,

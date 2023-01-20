@@ -140,7 +140,7 @@ const renderTable = (
       [issue.column ?? "", noFormat],
       [issue.fields.status.name, noFormat],
       [timeSinceLastTransition, noFormat],
-      [issue.fields.assignee.assigneeName, noFormat],
+      [issue.fields.assignee.name, noFormat],
       [progressGauge, noFormat],
       [
         // eslint-disable-next-line spellcheck/spell-checker

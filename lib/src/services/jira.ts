@@ -329,7 +329,7 @@ export const GenericJiraIssue = T.type({
         // hierarchyLevel: T.string,
       }),
       assignee: T.type({
-        assigneeName: T.string,
+        name: T.string,
       }),
       status: T.type({
         id: T.string,
