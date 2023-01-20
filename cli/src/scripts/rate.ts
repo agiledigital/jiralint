@@ -32,13 +32,12 @@ export default ({ command }: RootCommand): Argv<unknown> =>
     (yargs) =>
       withQualityFieldsOption(yargs)
         .option("key", {
-          alias: "k",
           type: "string",
           describe: "issue key",
         })
         .option("quality", {
+          type: "string",
           alias: "q",
-          choices: ["A", "B"],
           description: "assessed quality",
         })
         .option("reason", {
