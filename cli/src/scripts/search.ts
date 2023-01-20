@@ -60,6 +60,9 @@ const renderTable = (
   qualityFieldName: string
   // eslint-disable-next-line functional/no-return-void
 ): void => {
+  // eslint-disable-next-line functional/no-expression-statement
+  console.clear();
+
   const tableHeaders: readonly string[] = [
     "Action",
     "Quality",
