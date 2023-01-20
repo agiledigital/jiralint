@@ -22,373 +22,182 @@ export const Author = T.type({
   name: nullOrMissingToUndefined(T.string),
 });
 
-export const IssueComment = T.type({
-  id: T.string,
-  author: nullOrMissingToUndefined(Author),
-  body: T.string,
-  created: readOnlyDateFromISOString,
-  updated: readOnlyDateFromISOString,
-});
+export const IssueCommentGeneric = (convertISO = true) =>
+  T.type({
+    id: T.string,
+    author: nullOrMissingToUndefined(Author),
+    body: T.string,
+    created: convertISO ? readOnlyDateFromISOString : dateToDate,
+    updated: convertISO ? readOnlyDateFromISOString : dateToDate,
+  });
 
-export const IssueCommentGeneric = T.type({
-  id: T.string,
-  author: nullOrMissingToUndefined(Author),
-  body: T.string,
-  created: dateToDate,
-  updated: dateToDate,
-});
+export const ChangeLogGeneric = (convertISO = true) =>
+  T.type({
+    id: T.string,
+    author: Author,
+    created: convertISO ? readOnlyDateFromISOString : dateToDate,
+    items: T.readonlyArray(
+      T.type({
+        field: T.string,
+        fieldtype: T.string,
+        from: T.union([T.string, T.null]),
+        fromString: T.union([T.string, T.null]),
+        to: T.union([T.string, T.null]),
+        toString: T.union([T.string, T.null]),
+      })
+    ),
+  });
 
-export const ChangeLog = T.type({
-  id: T.string,
-  author: Author,
-  created: readOnlyDateFromISOString,
-  items: T.readonlyArray(
-    T.type({
-      field: T.string,
-      fieldtype: T.string,
-      from: T.union([T.string, T.null]),
-      fromString: T.union([T.string, T.null]),
-      to: T.union([T.string, T.null]),
-      toString: T.union([T.string, T.null]),
-    })
-  ),
-});
+export const IssueWorklogGeneric = (convertISO = true) =>
+  T.type({
+    author: Author,
+    started: convertISO ? readOnlyDateFromISOString : dateToDate,
+    timeSpentSeconds: T.number,
+    comment: nullOrMissingToUndefined(T.string),
+  });
 
-export const ChangeLogGeneric = T.type({
-  id: T.string,
-  author: Author,
-  created: dateToDate,
-  items: T.readonlyArray(
-    T.type({
-      field: T.string,
-      fieldtype: T.string,
-      from: T.union([T.string, T.null]),
-      fromString: T.union([T.string, T.null]),
-      to: T.union([T.string, T.null]),
-      toString: T.union([T.string, T.null]),
-    })
-  ),
-});
-
-export const IssueWorklog = T.type({
-  author: Author,
-  started: readOnlyDateFromISOString,
-  timeSpentSeconds: T.number,
-  comment: nullOrMissingToUndefined(T.string),
-});
-
-export const IssueWorklogGeneric = T.type({
-  author: Author,
-  started: dateToDate,
-  timeSpentSeconds: T.number,
-  comment: nullOrMissingToUndefined(T.string),
-});
-
-export const OnPremJiraIssue = T.type({
-  key: T.string,
-  self: T.string,
-  fields: T.intersection([
-    T.type({
-      summary: T.string,
-      description: nullOrMissingToUndefined(T.string),
-      created: readOnlyDateFromISOString,
-      project: T.type({
-        key: T.string,
-      }),
-      timetracking: ITT.fromNullable(
-        T.partial({
-          originalEstimateSeconds: T.number,
-          timeSpentSeconds: T.number,
-          remainingEstimateSeconds: T.number,
-          originalEstimate: T.string,
-          timeSpent: T.string,
+export const JiraIssue = (convertISO = true) =>
+  T.type({
+    key: T.string,
+    self: T.string,
+    fields: T.intersection([
+      T.type({
+        summary: T.string,
+        description: nullOrMissingToUndefined(T.string),
+        created: convertISO ? readOnlyDateFromISOString : dateToDate,
+        project: T.type({
+          key: T.string,
         }),
-        {
-          originalEstimateSeconds: 0,
-          timeSpentSeconds: 0,
-          remainingEstimateSeconds: 0,
-          originalEstimate: "0d",
-          timeSpent: "0d",
-        }
-      ),
-      fixVersions: T.readonlyArray(
-        T.type({
+        timetracking: ITT.fromNullable(
+          T.partial({
+            originalEstimateSeconds: T.number,
+            timeSpentSeconds: T.number,
+            remainingEstimateSeconds: T.number,
+            originalEstimate: T.string,
+            timeSpent: T.string,
+          }),
+          {
+            originalEstimateSeconds: 0,
+            timeSpentSeconds: 0,
+            remainingEstimateSeconds: 0,
+            originalEstimate: "0d",
+            timeSpent: "0d",
+          }
+        ),
+        fixVersions: T.readonlyArray(
+          T.type({
+            id: T.string,
+            name: T.string,
+            released: T.boolean,
+          })
+        ),
+        aggregateprogress: T.type({
+          progress: nullOrMissingToUndefined(T.number),
+          total: nullOrMissingToUndefined(T.number),
+          percent: nullOrMissingToUndefined(T.number),
+        }),
+        issuetype: T.type({
+          name: T.string,
+          subtask: T.boolean,
+        }),
+        status: T.type({
           id: T.string,
           name: T.string,
-          released: T.boolean,
-        })
-      ),
-      aggregateprogress: T.type({
-        progress: nullOrMissingToUndefined(T.number),
-        total: nullOrMissingToUndefined(T.number),
-        percent: nullOrMissingToUndefined(T.number),
+          statusCategory: T.type({
+            id: nullOrMissingToUndefined(T.number),
+            name: nullOrMissingToUndefined(T.string),
+            colorName: nullOrMissingToUndefined(T.string),
+          }),
+        }),
+        comment: nullOrMissingToUndefined(
+          T.readonly(
+            T.intersection([
+              PaginatedResults,
+              T.type({
+                comments: T.readonlyArray(IssueCommentGeneric(convertISO)),
+              }),
+            ])
+          )
+        ),
+        worklog: nullOrMissingToUndefined(
+          T.readonly(
+            T.intersection([
+              PaginatedResults,
+              T.type({
+                worklogs: T.readonlyArray(IssueWorklogGeneric(convertISO)),
+              }),
+            ])
+          )
+        ),
+        duedate: nullOrMissingToUndefined(ITT.DateFromISOString),
       }),
-      issuetype: T.type({
-        name: T.string,
-        subtask: T.boolean,
+      T.partial({
+        aggregatetimeestimate: nullOrMissingToUndefined(T.number),
+        aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
+        aggregatetimespent: nullOrMissingToUndefined(T.number),
+        parent: T.type({
+          id: T.string,
+          key: T.string,
+        }),
       }),
+      // Required to model custom fields whose names cannot be known at compile time
+      T.readonly(T.record(T.string, T.unknown)),
+    ]),
+    changelog: ITT.fromNullable(
+      T.type({
+        histories: T.readonlyArray(ChangeLogGeneric(convertISO)),
+      }),
+      {
+        histories: [],
+      }
+    ),
+  });
+
+export const OnPremJiraIssue = T.intersection([
+  JiraIssue(),
+  T.type({
+    fields: T.type({
       assignee: T.type({
         name: T.string,
       }),
-      status: T.type({
-        id: T.string,
-        name: T.string,
-        statusCategory: T.type({
-          id: nullOrMissingToUndefined(T.number),
-          name: nullOrMissingToUndefined(T.string),
-          colorName: nullOrMissingToUndefined(T.string),
-        }),
-      }),
-      comment: nullOrMissingToUndefined(
-        T.readonly(
-          T.intersection([
-            PaginatedResults,
-            T.type({
-              comments: T.readonlyArray(IssueComment),
-            }),
-          ])
-        )
-      ),
-      worklog: nullOrMissingToUndefined(
-        T.readonly(
-          T.intersection([
-            PaginatedResults,
-            T.type({
-              worklogs: T.readonlyArray(IssueWorklog),
-            }),
-          ])
-        )
-      ),
-      duedate: nullOrMissingToUndefined(ITT.DateFromISOString),
     }),
-    T.partial({
-      aggregatetimeestimate: nullOrMissingToUndefined(T.number),
-      aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
-      aggregatetimespent: nullOrMissingToUndefined(T.number),
-      parent: T.type({
-        id: T.string,
-        key: T.string,
-      }),
-    }),
-    // Required to model custom fields whose names cannot be known at compile time
-    T.readonly(T.record(T.string, T.unknown)),
-  ]),
-  changelog: ITT.fromNullable(
-    T.type({
-      histories: T.readonlyArray(ChangeLog),
-    }),
-    {
-      histories: [],
-    }
-  ),
-});
+  }),
+]);
 
-export const CloudJiraIssue = T.type({
-  key: T.string,
-  self: T.string,
-  fields: T.intersection([
-    T.type({
-      summary: T.string,
-      description: nullOrMissingToUndefined(T.string),
-      created: readOnlyDateFromISOString,
-      project: T.type({
-        key: T.string,
-      }),
-      timetracking: ITT.fromNullable(
-        T.partial({
-          originalEstimateSeconds: T.number,
-          timeSpentSeconds: T.number,
-          remainingEstimateSeconds: T.number,
-          originalEstimate: T.string,
-          timeSpent: T.string,
-        }),
-        {
-          originalEstimateSeconds: 0,
-          timeSpentSeconds: 0,
-          remainingEstimateSeconds: 0,
-          originalEstimate: "0d",
-          timeSpent: "0d",
-        }
-      ),
-      fixVersions: T.readonlyArray(
-        T.type({
-          id: T.string,
-          name: T.string,
-          released: T.boolean,
-        })
-      ),
-      aggregateprogress: T.type({
-        progress: nullOrMissingToUndefined(T.number),
-        total: nullOrMissingToUndefined(T.number),
-        percent: nullOrMissingToUndefined(T.number),
-      }),
-      issuetype: T.type({
-        name: T.string,
-        subtask: T.boolean,
-      }),
+export const CloudJiraIssue = T.intersection([
+  JiraIssue(),
+  T.type({
+    fields: T.type({
       assignee: T.type({
         accountId: T.string,
         displayName: T.string,
       }),
-      status: T.type({
-        id: T.string,
-        name: T.string,
-        statusCategory: T.type({
-          id: nullOrMissingToUndefined(T.number),
-          name: nullOrMissingToUndefined(T.string),
-          colorName: nullOrMissingToUndefined(T.string),
-        }),
-      }),
-      comment: nullOrMissingToUndefined(
-        T.readonly(
-          T.intersection([
-            PaginatedResults,
-            T.type({
-              comments: T.readonlyArray(IssueComment),
-            }),
-          ])
-        )
-      ),
-      worklog: nullOrMissingToUndefined(
-        T.readonly(
-          T.intersection([
-            PaginatedResults,
-            T.type({
-              worklogs: T.readonlyArray(IssueWorklog),
-            }),
-          ])
-        )
-      ),
-      duedate: nullOrMissingToUndefined(ITT.DateFromISOString),
     }),
-    T.partial({
-      aggregatetimeestimate: nullOrMissingToUndefined(T.number),
-      aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
-      aggregatetimespent: nullOrMissingToUndefined(T.number),
-      parent: T.type({
-        id: T.string,
-        key: T.string,
-      }),
-    }),
-    // Required to model custom fields whose names cannot be known at compile time
-    T.readonly(T.record(T.string, T.unknown)),
-  ]),
-  changelog: ITT.fromNullable(
-    T.type({
-      histories: T.readonlyArray(ChangeLog),
-    }),
-    {
-      histories: [],
-    }
-  ),
-});
+  }),
+]);
 
-/*Type that can represent both On-prem Jira and Cloud Jira */
-export const GenericJiraIssue = T.type({
-  key: T.string,
-  self: T.string,
-  fields: T.intersection([
-    T.type({
-      summary: T.string,
-      description: nullOrMissingToUndefined(T.string),
-      created: dateToDate,
-      project: T.type({
-        key: T.string,
-      }),
-      timetracking: ITT.fromNullable(
-        T.partial({
-          originalEstimateSeconds: T.number,
-          timeSpentSeconds: T.number,
-          remainingEstimateSeconds: T.number,
-          originalEstimate: T.string,
-          timeSpent: T.string,
-        }),
-        {
-          originalEstimateSeconds: 0,
-          timeSpentSeconds: 0,
-          remainingEstimateSeconds: 0,
-          originalEstimate: "0d",
-          timeSpent: "0d",
-        }
-      ),
-      fixVersions: T.readonlyArray(
-        T.type({
-          id: T.string,
-          name: T.string,
-          released: T.boolean,
-        })
-      ),
-      aggregateprogress: T.type({
-        progress: nullOrMissingToUndefined(T.number),
-        total: nullOrMissingToUndefined(T.number),
-        percent: nullOrMissingToUndefined(T.number),
-      }),
-      issuetype: T.type({
-        name: T.string,
-        subtask: T.boolean,
-        // hierarchyLevel: T.string,
-      }),
+export const GenericJiraIssue = T.intersection([
+  JiraIssue(false),
+  T.type({
+    fields: T.type({
       assignee: T.type({
         name: T.string,
       }),
-      status: T.type({
-        id: T.string,
-        name: T.string,
-        statusCategory: T.type({
-          id: nullOrMissingToUndefined(T.number),
-          name: nullOrMissingToUndefined(T.string),
-          colorName: nullOrMissingToUndefined(T.string),
-        }),
-      }),
-      comment: nullOrMissingToUndefined(
-        T.readonly(
-          T.intersection([
-            PaginatedResults,
-            T.type({
-              comments: T.readonlyArray(IssueCommentGeneric),
-            }),
-          ])
-        )
-      ),
-      worklog: nullOrMissingToUndefined(
-        T.readonly(
-          T.intersection([
-            PaginatedResults,
-            T.type({
-              worklogs: T.readonlyArray(IssueWorklogGeneric),
-            }),
-          ])
-        )
-      ),
-      duedate: nullOrMissingToUndefined(ITT.DateFromISOString),
     }),
-    T.partial({
-      aggregatetimeestimate: nullOrMissingToUndefined(T.number),
-      aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
-      aggregatetimespent: nullOrMissingToUndefined(T.number),
-      parent: T.type({
-        id: T.string,
-        key: T.string,
-      }),
-    }),
-    // Required to model custom fields whose names cannot be known at compile time
-    T.readonly(T.record(T.string, T.unknown)),
-  ]),
-  changelog: ITT.fromNullable(
-    T.type({
-      histories: T.readonlyArray(ChangeLogGeneric),
-    }),
-    {
-      histories: [],
-    }
-  ),
-});
+  }),
+]);
 
 export type OnPremJiraIssue = T.TypeOf<typeof OnPremJiraIssue>;
 
 export type CloudJiraIssue = T.TypeOf<typeof CloudJiraIssue>;
 
 export type GenericJiraIssue = T.TypeOf<typeof GenericJiraIssue>;
+
+export const IssueComment = IssueCommentGeneric();
+
+export const ChangeLog = ChangeLogGeneric();
+
+export const IssueWorklog = IssueWorklogGeneric();
 
 export type IssueComment = T.TypeOf<typeof IssueComment>;
 
