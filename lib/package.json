@@ -70,7 +70,7 @@
     "typescript": "4.8.2"
   },
   "typeCoverage": {
-    "atLeast": 95,
+    "atLeast": 99,
     "ignoreCatch": false,
     "strict": true,
     "detail": true

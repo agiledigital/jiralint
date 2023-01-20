@@ -14,6 +14,7 @@ export const issue: GenericJiraIssue = {
     // hierarchyLevel:0,
     timetracking: {},
     fixVersions: [],
+    // eslint-disable-next-line spellcheck/spell-checker
     aggregateprogress: {
       progress: undefined,
       total: undefined,
@@ -41,6 +42,7 @@ export const issue: GenericJiraIssue = {
       total: 0,
       startAt: 0,
     },
+    // eslint-disable-next-line spellcheck/spell-checker
     duedate: undefined,
     worklog: {
       worklogs: [],
@@ -60,6 +62,7 @@ export const enhancedIssue: EnhancedIssue = {
   stalled: false,
   closed: false,
   released: false,
+  // eslint-disable-next-line spellcheck/spell-checker
   viewLink: "viewlink",
   lastWorked: undefined,
   quality: "A",
@@ -68,6 +71,7 @@ export const enhancedIssue: EnhancedIssue = {
 
 export const worklog: IssueWorklog = {
   author: {
+    // eslint-disable-next-line spellcheck/spell-checker
     name: "danixon",
   },
   comment: "Working on issue ESGT-13",

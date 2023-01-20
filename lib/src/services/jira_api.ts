@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 /* eslint-disable spellcheck/spell-checker */
-/* eslint-disable @typescript-eslint/prefer-includes */
-/* eslint-disable functional/functional-parameters */
 import { Either } from "fp-ts/lib/Either";
 import * as E from "fp-ts/lib/Either";
 // import * as O from "fp-ts/lib/Option";
@@ -305,6 +303,7 @@ const jiraClient = (
     (id: number): TE.TaskEither<string, Board> => {
       const fetch = (id: number): TE.TaskEither<string, JiraApi.JsonResponse> =>
         TE.tryCatch(
+          // eslint-disable-next-line functional/functional-parameters
           () => jiraApi.getConfiguration(id.toString()),
           (reason: unknown) =>
             `Failed to fetch board [${id}] for [${JSON.stringify(reason)}].`
@@ -325,6 +324,7 @@ const jiraClient = (
       projectKey: string
     ): TE.TaskEither<string, ReadonlyRecord<string, readonly Board[]>> => {
       const fetch = TE.tryCatch(
+        // eslint-disable-next-line functional/functional-parameters
         () =>
           jiraApi.getAllBoards(
             undefined,
@@ -405,6 +405,7 @@ const jiraClient = (
     issueKey: string
   ): TE.TaskEither<string, readonly IssueWorklog[]> => {
     const fetch = TE.tryCatch(
+      // eslint-disable-next-line functional/functional-parameters
       () => jiraApi.genericGet(`issue/${encodeURIComponent(issueKey)}/worklog`),
       (error) =>
         `Failed to fetch worklogs for [${issueKey}] - [${JSON.stringify(
@@ -433,6 +434,7 @@ const jiraClient = (
     issueKey: string
   ): TE.TaskEither<string, readonly IssueComment[]> => {
     const fetch = TE.tryCatch(
+      // eslint-disable-next-line functional/functional-parameters
       () =>
         jiraApi.genericGet(
           `issue/${encodeURIComponent(
@@ -486,6 +488,7 @@ const jiraClient = (
       qualityReasonField: string
     ): Promise<Either<string | FieldNotEditable | JiraError, JsonResponse>> => {
       const updateIssue = TE.tryCatch(
+        // eslint-disable-next-line functional/functional-parameters
         () =>
           jiraApi.updateIssue(key, {
             fields: {
@@ -512,9 +515,9 @@ const jiraClient = (
         ): boolean => {
           const field = jiraError.error.errors[fieldName];
           return typeof field === "string"
-            ? field.indexOf(
+            ? field.includes(
                 "cannot be set. It is not on the appropriate screen"
-              ) > -1
+              )
             : false;
         };
 
@@ -559,6 +562,7 @@ const jiraClient = (
       const fetchIssues = TE.tryCatch(
         // async () => {
         //   const result = await jiraApi.searchJira(jql, {
+        // eslint-disable-next-line functional/functional-parameters
         () =>
           jiraApi.searchJira(jql, {
             fields: [
@@ -813,8 +817,10 @@ const jiraClient = (
      * @param jiraApi API used to retrieve the user details.
      * @returns either an error or the user details.
      */
+    // eslint-disable-next-line functional/functional-parameters
     currentUser: async (): Promise<Either<string, User>> => {
       const fetchUser = TE.tryCatch(
+        // eslint-disable-next-line functional/functional-parameters
         () => jiraApi.getCurrentUser(),
         (error: unknown) =>
           `Error fetching current user - [${JSON.stringify(error)}]`

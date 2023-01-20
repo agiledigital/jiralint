@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";
 
@@ -9,5 +10,5 @@ import * as ITT from "io-ts-types";
 export const nullOrMissingToUndefined = <P, O = P>(
   t: T.Type<P, O>
   // eslint-disable-next-line functional/prefer-readonly-type
-): T.UnionC<[T.Type<P, O, unknown>, T.UndefinedC]> =>
+): T.UnionC<[T.Type<P, O>, T.UndefinedC]> =>
   ITT.fromNullable(T.union([t, T.undefined]), undefined);

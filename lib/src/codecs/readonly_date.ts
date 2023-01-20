@@ -3,7 +3,7 @@ import * as ITT from "io-ts-types";
 import * as E from "fp-ts/Either";
 import { readonlyDate, ReadonlyDate } from "readonly-types/dist";
 
-/* eslint-disable no-restricted-globals, @typescript-eslint/ban-types */
+/* eslint-disable no-restricted-globals, @typescript-eslint/ban-types, @typescript-eslint/prefer-readonly-parameter-types */
 /**
  * Codec to convert between a `Date` and a `ReadonlyDate`.
  */
@@ -37,4 +37,4 @@ export const dateToDate = ITT.date.pipe(
   "ReadonlyDate from Date"
 );
 
-/* eslint-enable no-restricted-globals, @typescript-eslint/ban-types */
+/* eslint-enable no-restricted-globals, @typescript-eslint/ban-types, @typescript-eslint/prefer-readonly-parameter-types */

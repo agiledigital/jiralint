@@ -93,6 +93,7 @@ const reallyBad: IssueAction = {
   ],
 };
 
+// eslint-disable-next-line functional/no-return-void
 describe("issue quality", () => {
   it.each([
     [allGood, "A+"],
@@ -100,6 +101,7 @@ describe("issue quality", () => {
     [bad, "B"],
     [worrisome, "C"],
     [reallyBad, "F"],
+    // eslint-disable-next-line functional/no-return-void, @typescript-eslint/prefer-readonly-parameter-types
   ])("should be assessed as expected", (action, expected) => {
     const actual = quality(action);
 

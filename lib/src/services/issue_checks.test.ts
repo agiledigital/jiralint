@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
+/* eslint-disable spellcheck/spell-checker */
 /* eslint-disable functional/no-return-void */
 /* eslint-disable sonarjs/no-duplicate-string */
 /* eslint-disable no-restricted-globals */

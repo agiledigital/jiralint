@@ -151,6 +151,20 @@ cli/dist/jiralint search -j "project=MF order by created"
 
 #### Example User Credentials `.jirilintrc`
 
+Note that Cloud Jira access using usernames and passwords is now depreciated. Furthermore, Jira cloud does not allow for custom field creation. When trying to access Jira Cloud using user credentials, use the following:
+
+```json
+{
+    "username": "[username]:",
+    "password": "[API token]",
+    "jiraHost": "agiledigital.atlassian.net",
+    "qualityFieldName": "Quality",
+    "qualityReasonFieldName": "Quality Reason"
+  }
+```
+
+You can create a Jira API token for your account [here](https://id.atlassian.com/manage-profile/security/api-tokens). Note that the colon after your login email is neccesary. Below is how you can sign in using a standard username and password via OnPrem
+
 ```json
 {
   "username": "username",
