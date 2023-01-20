@@ -1,7 +1,0 @@
-{
-    "username": "[name here]@agiledigital.com.au:",
-    "password": "[Jira API token]",
-    "jiraHost": "agiledigital.atlassian.net",
-    "qualityFieldName": "Quality",
-    "qualityReasonFieldName": "Quality Reason"
-  }
