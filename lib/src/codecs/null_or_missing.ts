@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";
 

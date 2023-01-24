@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-return-void */
 /* eslint-disable functional/functional-parameters */
 /* eslint-disable functional/no-expression-statement */
 /* eslint-disable functional/no-throw-statement */
@@ -22,13 +23,11 @@ const presentValue = {
   b: "hi",
 };
 
-// eslint-disable-next-line functional/no-return-void
 describe("null or missing codec", () => {
   it.each([
     [nullValue, undefined],
     [missingValue, undefined],
     [presentValue, "hi"],
-    // eslint-disable-next-line functional/no-return-void, @typescript-eslint/prefer-readonly-parameter-types
   ])("should decode as expected", (value, expected) => {
     // Given a codec that expects an `a` and is tolerant of 'missing' `b`.
     const codec = T.type({
@@ -50,7 +49,6 @@ describe("null or missing codec", () => {
     }
   });
 
-  // eslint-disable-next-line functional/no-return-void
   test("should fail if the value of b does not match the expected type", () => {
     // Given a codec that expects a string but tolerates 'missing' values.
     const codec = nullOrMissingToUndefined(T.string);

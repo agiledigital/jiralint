@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 /* eslint-disable functional/no-return-void */
-/* eslint-disable spellcheck/spell-checker */
 /* eslint-disable functional/functional-parameters */
 /* eslint-disable functional/no-expression-statement */
 /* eslint-disable functional/no-throw-statement */

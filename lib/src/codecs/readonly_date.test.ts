@@ -1,4 +1,3 @@
-/* eslint-disable spellcheck/spell-checker */
 /* eslint-disable functional/no-return-void */
 /* eslint-disable functional/functional-parameters */
 /* eslint-disable functional/no-expression-statement */
@@ -16,7 +15,6 @@ import fc from "fast-check";
 describe("decoding a Date", () => {
   it("should decode a date to a readonly date", () => {
     fc.assert(
-      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
       fc.property(fc.date(), (d) => {
         // Given a date,
 
@@ -40,7 +38,6 @@ describe("decoding a Date", () => {
 describe("decoding a string", () => {
   it("should always pass issues in review or completed that have a non-empty statement", () => {
     fc.assert(
-      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
       fc.property(fc.date(), (d) => {
         // Given a date,
 

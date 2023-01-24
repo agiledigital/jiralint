@@ -55,9 +55,8 @@ export default ({ command }: RootCommand): Argv<unknown> =>
     "auth",
     // eslint-disable-next-line spellcheck/spell-checker
     "authorises the linter to call Jira APIs and outputs the access token and secret",
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     (yargs) => withAuthenticationOptions(yargs),
-    // eslint-disable-next-line functional/no-return-void, @typescript-eslint/prefer-readonly-parameter-types
+    // eslint-disable-next-line functional/no-return-void
     (args) => {
       const protocol = args["jira.protocol"];
       // eslint-disable-next-line functional/no-expression-statement

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 /* eslint-disable spellcheck/spell-checker */
 import { Either } from "fp-ts/lib/Either";
 import * as E from "fp-ts/lib/Either";

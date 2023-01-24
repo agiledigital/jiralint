@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 import { JiraClient } from "../../../lib/src/services/jira_api";
 import { Argv } from "yargs";
 import { RootCommand, withQualityFieldsOption } from "..";
@@ -143,7 +142,6 @@ const renderTable = (
       [issue.fields.assignee.name, noFormat],
       [progressGauge, noFormat],
       [
-        // eslint-disable-next-line spellcheck/spell-checker
         `${jiraFormattedSeconds(issue.fields.aggregateprogress.progress ?? 0)}`,
         noFormat,
       ],

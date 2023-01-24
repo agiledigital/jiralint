@@ -1,5 +1,4 @@
 /* eslint-disable spellcheck/spell-checker */
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 /* eslint-disable functional/functional-parameters */
 import { EnhancedIssue as EnhancedIssue } from "./jira";
 import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
