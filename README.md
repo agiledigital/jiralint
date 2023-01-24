@@ -125,7 +125,7 @@ you can now run jiralint search like this:
 cli/dist/jiralint search -j "project=MF order by created"
 ```
 
-#### Example OAuth `.jirilintrc`
+#### Example OAuth `.jiralintrc`
 
 ```json
 {
@@ -138,7 +138,7 @@ cli/dist/jiralint search -j "project=MF order by created"
 }
 ```
 
-#### Example Personal Access Token `.jirilintrc`
+#### Example Personal Access Token `.jiralintrc`
 
 ```json
 {
@@ -149,7 +149,7 @@ cli/dist/jiralint search -j "project=MF order by created"
 }
 ```
 
-#### Example User Credentials `.jirilintrc`
+#### Example User Credentials `.jiralintrc`
 
 Note that Cloud Jira access using usernames and passwords is now deprecated. Furthermore, a specific quality and quality reason field has been added for Jiralint usage. When trying to access Jira Cloud using user credentials, use the following:
 
