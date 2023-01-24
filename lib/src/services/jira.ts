@@ -22,20 +22,26 @@ export const Author = T.type({
   name: nullOrMissingToUndefined(T.string),
 });
 
-export const IssueCommentGeneric = (convertISO = true) =>
+export const IssueCommentBuilder = (
+  dateCodec: // eslint-disable-next-line @typescript-eslint/ban-types, no-restricted-globals
+  T.Type<ReadonlyDate, Date> | T.Type<ReadonlyDate, string>
+) =>
   T.type({
     id: T.string,
     author: nullOrMissingToUndefined(Author),
     body: T.string,
-    created: convertISO ? readOnlyDateFromISOString : dateToDate,
-    updated: convertISO ? readOnlyDateFromISOString : dateToDate,
+    created: dateCodec,
+    updated: dateCodec,
   });
 
-export const ChangeLogGeneric = (convertISO = true) =>
+export const ChangeLogBuilder = (
+  dateCodec: // eslint-disable-next-line @typescript-eslint/ban-types, no-restricted-globals
+  T.Type<ReadonlyDate, Date> | T.Type<ReadonlyDate, string>
+) =>
   T.type({
     id: T.string,
     author: Author,
-    created: convertISO ? readOnlyDateFromISOString : dateToDate,
+    created: dateCodec,
     items: T.readonlyArray(
       T.type({
         field: T.string,
@@ -48,15 +54,21 @@ export const ChangeLogGeneric = (convertISO = true) =>
     ),
   });
 
-export const IssueWorklogGeneric = (convertISO = true) =>
+export const IssueWorklogBuilder = (
+  dateCodec: // eslint-disable-next-line @typescript-eslint/ban-types, no-restricted-globals
+  T.Type<ReadonlyDate, Date> | T.Type<ReadonlyDate, string>
+) =>
   T.type({
     author: Author,
-    started: convertISO ? readOnlyDateFromISOString : dateToDate,
+    started: dateCodec,
     timeSpentSeconds: T.number,
     comment: nullOrMissingToUndefined(T.string),
   });
 
-export const JiraIssue = (convertISO = true) =>
+export const JiraIssueBuilder = (
+  dateCodec: // eslint-disable-next-line @typescript-eslint/ban-types, no-restricted-globals
+  T.Type<ReadonlyDate, Date> | T.Type<ReadonlyDate, string>
+) =>
   T.type({
     key: T.string,
     self: T.string,
@@ -64,7 +76,7 @@ export const JiraIssue = (convertISO = true) =>
       T.type({
         summary: T.string,
         description: nullOrMissingToUndefined(T.string),
-        created: convertISO ? readOnlyDateFromISOString : dateToDate,
+        created: dateCodec,
         project: T.type({
           key: T.string,
         }),
@@ -114,7 +126,7 @@ export const JiraIssue = (convertISO = true) =>
             T.intersection([
               PaginatedResults,
               T.type({
-                comments: T.readonlyArray(IssueCommentGeneric(convertISO)),
+                comments: T.readonlyArray(IssueCommentBuilder(dateCodec)),
               }),
             ])
           )
@@ -124,7 +136,7 @@ export const JiraIssue = (convertISO = true) =>
             T.intersection([
               PaginatedResults,
               T.type({
-                worklogs: T.readonlyArray(IssueWorklogGeneric(convertISO)),
+                worklogs: T.readonlyArray(IssueWorklogBuilder(dateCodec)),
               }),
             ])
           )
@@ -145,7 +157,7 @@ export const JiraIssue = (convertISO = true) =>
     ]),
     changelog: ITT.fromNullable(
       T.type({
-        histories: T.readonlyArray(ChangeLogGeneric(convertISO)),
+        histories: T.readonlyArray(ChangeLogBuilder(dateCodec)),
       }),
       {
         histories: [],
@@ -154,7 +166,7 @@ export const JiraIssue = (convertISO = true) =>
   });
 
 export const OnPremJiraIssue = T.intersection([
-  JiraIssue(),
+  JiraIssueBuilder(readOnlyDateFromISOString),
   T.type({
     fields: T.type({
       assignee: T.type({
@@ -165,7 +177,7 @@ export const OnPremJiraIssue = T.intersection([
 ]);
 
 export const CloudJiraIssue = T.intersection([
-  JiraIssue(),
+  JiraIssueBuilder(readOnlyDateFromISOString),
   T.type({
     fields: T.type({
       assignee: T.type({
@@ -175,9 +187,9 @@ export const CloudJiraIssue = T.intersection([
     }),
   }),
 ]);
-
+//convertISO ? readOnlyDateFromISOString : dateToDate
 export const GenericJiraIssue = T.intersection([
-  JiraIssue(false),
+  JiraIssueBuilder(dateToDate),
   T.type({
     fields: T.type({
       assignee: T.type({
@@ -193,11 +205,11 @@ export type CloudJiraIssue = T.TypeOf<typeof CloudJiraIssue>;
 
 export type GenericJiraIssue = T.TypeOf<typeof GenericJiraIssue>;
 
-export const IssueComment = IssueCommentGeneric();
+export const IssueComment = IssueCommentBuilder(readOnlyDateFromISOString);
 
-export const ChangeLog = ChangeLogGeneric();
+export const ChangeLog = ChangeLogBuilder(readOnlyDateFromISOString);
 
-export const IssueWorklog = IssueWorklogGeneric();
+export const IssueWorklog = IssueWorklogBuilder(readOnlyDateFromISOString);
 
 export type IssueComment = T.TypeOf<typeof IssueComment>;
 

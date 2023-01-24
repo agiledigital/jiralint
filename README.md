@@ -151,15 +151,15 @@ cli/dist/jiralint search -j "project=MF order by created"
 
 #### Example User Credentials `.jirilintrc`
 
-Note that Cloud Jira access using usernames and passwords is now depreciated. Furthermore, Jira cloud does not allow for custom field creation. When trying to access Jira Cloud using user credentials, use the following:
+Note that Cloud Jira access using usernames and passwords is now deprecated. Furthermore, a specific quality and quality reason field has been added for Jiralint usage. When trying to access Jira Cloud using user credentials, use the following:
 
 ```json
 {
     "username": "[username]:",
     "password": "[API token]",
     "jiraHost": "agiledigital.atlassian.net",
-    "qualityFieldName": "Quality",
-    "qualityReasonFieldName": "Quality Reason"
+    "qualityFieldName": "customfield_10147",
+    "qualityReasonFieldName": "customfield_10148"
   }
 ```
 
