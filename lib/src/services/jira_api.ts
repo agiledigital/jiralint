@@ -14,7 +14,7 @@ import {
   User,
   JiraError,
   IssueWorklog,
-  GenericJiraIssue,
+  JiraIssue,
   OnPremJiraIssue,
   CloudJiraIssue,
 } from "./jira";
@@ -373,7 +373,7 @@ const jiraClient = (
     };
 
   const boardsByProject = (
-    issues: readonly GenericJiraIssue[],
+    issues: readonly JiraIssue[],
     boardNamesToIgnore: readonly string[]
   ): TE.TaskEither<string, ReadonlyRecord<string, readonly Board[]>> => {
     const projectKeys: readonly string[] = issues
@@ -460,7 +460,7 @@ const jiraClient = (
     return pipe(fetch, TE.chain(parsed));
   };
 
-  const issueLink = (issue: GenericJiraIssue): string =>
+  const issueLink = (issue: JiraIssue): string =>
     `${jiraProtocol}://${jiraHost}/browse/${encodeURIComponent(issue.key)}`;
 
   return {
@@ -592,7 +592,7 @@ const jiraClient = (
 
       const convertIssueType = (
         response: JiraApi.JsonResponse
-      ): TE.TaskEither<string, readonly GenericJiraIssue[]> => {
+      ): TE.TaskEither<string, readonly JiraIssue[]> => {
         return jiraHost.includes("atlassian")
           ? pipe(
               parseCloudJira(response), //reponse to cloudIssueType
@@ -638,11 +638,11 @@ const jiraClient = (
 
       /**
        * @param onPremJiraIssue - an instance of OnPremJiraIssue
-       * @returns GenericJiraIssue
+       * @returns JiraIssue
        */
       const onPremJiraToGeneric = (
         onPremJiraIssue: OnPremJiraIssue
-      ): TE.TaskEither<string, GenericJiraIssue> =>
+      ): TE.TaskEither<string, JiraIssue> =>
         TE.fromEither(
           decode(
             "onpremconversion",
@@ -656,17 +656,17 @@ const jiraClient = (
               },
             },
             // eslint-disable-next-line @typescript-eslint/unbound-method
-            GenericJiraIssue.decode
+            JiraIssue.decode
           )
         );
 
       /**
        * @param cloudJiraIssue - an instance of CloudJiraIssue
-       * @returns GenericJiraIssue
+       * @returns JiraIssue
        */
       const cloudJiraToGeneric = (
         cloudJiraIssue: CloudJiraIssue
-      ): TE.TaskEither<string, GenericJiraIssue> =>
+      ): TE.TaskEither<string, JiraIssue> =>
         TE.fromEither(
           decode(
             "cloudconversion",
@@ -680,12 +680,12 @@ const jiraClient = (
               },
             },
             // eslint-disable-next-line @typescript-eslint/unbound-method
-            GenericJiraIssue.decode
+            JiraIssue.decode
           )
         );
 
       const enhancedIssues = (
-        issues: readonly GenericJiraIssue[]
+        issues: readonly JiraIssue[]
       ): TE.TaskEither<string, readonly EnhancedIssue[]> => {
         return TE.map((boards: ReadonlyRecord<string, readonly Board[]>) => {
           return issues.map((issue) => {

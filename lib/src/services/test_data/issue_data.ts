@@ -1,7 +1,7 @@
-import type { EnhancedIssue, GenericJiraIssue, IssueWorklog } from "../jira";
+import type { EnhancedIssue, JiraIssue, IssueWorklog } from "../jira";
 import { readonlyDate } from "readonly-types";
 
-export const issue: GenericJiraIssue = {
+export const issue: JiraIssue = {
   key: "ABC-123",
   self: "self",
   fields: {

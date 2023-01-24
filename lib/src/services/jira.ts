@@ -188,7 +188,7 @@ export const CloudJiraIssue = T.intersection([
   }),
 ]);
 //convertISO ? readOnlyDateFromISOString : dateToDate
-export const GenericJiraIssue = T.intersection([
+export const JiraIssue = T.intersection([
   JiraIssueBuilder(dateToDate),
   T.type({
     fields: T.type({
@@ -203,7 +203,7 @@ export type OnPremJiraIssue = T.TypeOf<typeof OnPremJiraIssue>;
 
 export type CloudJiraIssue = T.TypeOf<typeof CloudJiraIssue>;
 
-export type GenericJiraIssue = T.TypeOf<typeof GenericJiraIssue>;
+export type JiraIssue = T.TypeOf<typeof JiraIssue>;
 
 export const IssueComment = IssueCommentBuilder(readOnlyDateFromISOString);
 
@@ -247,7 +247,7 @@ export const BoardSummary = T.type({
 
 export type BoardSummary = T.TypeOf<typeof BoardSummary>;
 
-export type EnhancedIssue = GenericJiraIssue & {
+export type EnhancedIssue = JiraIssue & {
   readonly board?: Board;
   readonly inProgress: boolean;
   readonly stalled: boolean;
@@ -288,7 +288,7 @@ export const JiraError = T.type({
 export type JiraError = T.TypeOf<typeof JiraError>;
 
 const columnForIssue = (
-  issue: GenericJiraIssue,
+  issue: JiraIssue,
   board: Board
 ): BoardColumn | undefined => {
   return board.columnConfig.columns.find((column) =>
@@ -296,13 +296,13 @@ const columnForIssue = (
   );
 };
 
-const issueInProgress = (issue: GenericJiraIssue, board?: Board): boolean => {
+const issueInProgress = (issue: JiraIssue, board?: Board): boolean => {
   return board !== undefined
     ? columnForIssue(issue, board)?.name.toLowerCase() === "in progress"
     : issue.fields.status.name.toLowerCase() === "in progress";
 };
 
-const issueStalled = (issue: GenericJiraIssue, board?: Board): boolean => {
+const issueStalled = (issue: JiraIssue, board?: Board): boolean => {
   return board !== undefined
     ? (columnForIssue(issue, board)?.name ?? "")
         .toLowerCase()
@@ -310,7 +310,7 @@ const issueStalled = (issue: GenericJiraIssue, board?: Board): boolean => {
     : issue.fields.status.name.toLowerCase().startsWith("stalled");
 };
 
-const issueClosed = (issue: GenericJiraIssue, board?: Board): boolean => {
+const issueClosed = (issue: JiraIssue, board?: Board): boolean => {
   return board !== undefined
     ? columnForIssue(issue, board)?.name.toLowerCase() === "release ready"
     : issue.fields.status.statusCategory.name?.toLowerCase() === "done";
@@ -322,7 +322,7 @@ const issueClosed = (issue: GenericJiraIssue, board?: Board): boolean => {
  * @returns the changelogs where the status changed.
  */
 export const issueTransitions = (
-  issue: GenericJiraIssue
+  issue: JiraIssue
 ): readonly IssueChangeLog[] => {
   const changelogs: readonly IssueChangeLog[] = [...issue.changelog.histories];
 
@@ -339,7 +339,7 @@ export const issueTransitions = (
  * @returns the most recent transition, or undefined if no transitions have occurred.
  */
 export const mostRecentIssueTransition = (
-  issue: GenericJiraIssue
+  issue: JiraIssue
 ): IssueChangeLog | undefined => {
   const transitions = issueTransitions(issue);
 
@@ -354,7 +354,7 @@ export const mostRecentIssueTransition = (
  * @returns the most recent comment, or undefined if no comments have been made.
  */
 export const mostRecentIssueComment = (
-  issue: GenericJiraIssue
+  issue: JiraIssue
 ): IssueComment | undefined => {
   const comments =
     issue.fields.comment === undefined ? [] : issue.fields.comment.comments;
@@ -370,7 +370,7 @@ export const mostRecentIssueComment = (
  * @returns the most recent worklog, or undefined if no work has been logged.
  */
 export const mostRecentIssueWorklog = (
-  issue: GenericJiraIssue
+  issue: JiraIssue
 ): IssueWorklog | undefined => {
   const worklogs =
     issue.fields.worklog === undefined ? [] : issue.fields.worklog.worklogs;
@@ -386,9 +386,7 @@ export const mostRecentIssueWorklog = (
  * @param issue the issue.
  * @returns the time that the issue was last worked, or undefined if it has never been worked.
  */
-export const issueLastWorked = (
-  issue: GenericJiraIssue
-): ReadonlyDate | undefined => {
+export const issueLastWorked = (issue: JiraIssue): ReadonlyDate | undefined => {
   const mostRecentTransition = mostRecentIssueTransition(issue);
 
   const mostRecentComment = mostRecentIssueComment(issue);
@@ -405,7 +403,7 @@ export const issueLastWorked = (
 };
 
 export const enhancedIssue = (
-  issue: GenericJiraIssue,
+  issue: JiraIssue,
   viewLink: string,
   qualityFieldName: string,
   qualityReasonFieldName: string,
