@@ -10,7 +10,7 @@ import {
   IssueChangeLog,
   issueTransitions,
   enhancedIssue,
-  CloudJiraIssue,
+  CloudIssue,
   issueLastWorked,
 } from "./jira";
 import { PathReporter } from "io-ts/PathReporter";
@@ -93,7 +93,7 @@ describe("decoding well-formed tickets", () => {
     // Given a well-formed bit of data.
 
     // When it is decoded.
-    const actual = CloudJiraIssue.decode(data);
+    const actual = CloudIssue.decode(data);
 
     // Then no errors should be reported.
     const actualErrors = E.isLeft(actual)

@@ -13,9 +13,9 @@ import {
   User,
   JiraError,
   IssueWorklog,
-  JiraIssue,
-  OnPremJiraIssue,
-  CloudJiraIssue,
+  Issue,
+  OnPremIssue,
+  CloudIssue,
 } from "./jira";
 import * as T from "io-ts";
 import { ReadonlyRecord } from "readonly-types";
@@ -372,7 +372,7 @@ const jiraClient = (
     };
 
   const boardsByProject = (
-    issues: readonly JiraIssue[],
+    issues: readonly Issue[],
     boardNamesToIgnore: readonly string[]
   ): TE.TaskEither<string, ReadonlyRecord<string, readonly Board[]>> => {
     const projectKeys: readonly string[] = issues
@@ -459,7 +459,7 @@ const jiraClient = (
     return pipe(fetch, TE.chain(parsed));
   };
 
-  const issueLink = (issue: JiraIssue): string =>
+  const issueLink = (issue: Issue): string =>
     `${jiraProtocol}://${jiraHost}/browse/${encodeURIComponent(issue.key)}`;
 
   return {
@@ -591,21 +591,21 @@ const jiraClient = (
 
       const convertIssueType = (
         response: JiraApi.JsonResponse
-      ): TE.TaskEither<string, readonly JiraIssue[]> => {
+      ): TE.TaskEither<string, readonly Issue[]> => {
         return jiraHost.includes("atlassian")
           ? pipe(
               parseCloudJira(response), //reponse to cloudIssueType
               TE.chain(
-                TE.traverseSeqArray((cloudJiraIssue) =>
-                  cloudJiraToGeneric(cloudJiraIssue)
+                TE.traverseSeqArray((cloudIssue) =>
+                  cloudJiraToGeneric(cloudIssue)
                 )
               )
             )
           : pipe(
               parseOnPremJira(response),
               TE.chain(
-                TE.traverseSeqArray((onPremJiraIssue) =>
-                  onPremJiraToGeneric(onPremJiraIssue)
+                TE.traverseSeqArray((onPremIssue) =>
+                  onPremJiraToGeneric(onPremIssue)
                 )
               )
             );
@@ -613,78 +613,78 @@ const jiraClient = (
 
       const parseOnPremJira = (
         response: JiraApi.JsonResponse
-      ): TE.TaskEither<string, readonly OnPremJiraIssue[]> =>
+      ): TE.TaskEither<string, readonly OnPremIssue[]> =>
         TE.fromEither(
           decode(
             "issues", //name
             response.issues, //input
             // eslint-disable-next-line @typescript-eslint/unbound-method
-            T.readonly(T.array(OnPremJiraIssue)).decode //decoder
+            T.readonly(T.array(OnPremIssue)).decode //decoder
           )
         );
 
       const parseCloudJira = (
         response: JiraApi.JsonResponse
-      ): TE.TaskEither<string, readonly CloudJiraIssue[]> =>
+      ): TE.TaskEither<string, readonly CloudIssue[]> =>
         TE.fromEither(
           decode(
             "issues", //name
             response.issues, //input
             // eslint-disable-next-line @typescript-eslint/unbound-method
-            T.readonly(T.array(CloudJiraIssue)).decode //decoder)
+            T.readonly(T.array(CloudIssue)).decode //decoder)
           )
         );
 
       /**
-       * @param onPremJiraIssue - an instance of OnPremJiraIssue
-       * @returns JiraIssue
+       * @param onPremIssue - an instance of OnPremIssue
+       * @returns Issue
        */
       const onPremJiraToGeneric = (
-        onPremJiraIssue: OnPremJiraIssue
-      ): TE.TaskEither<string, JiraIssue> =>
+        onPremIssue: OnPremIssue
+      ): TE.TaskEither<string, Issue> =>
         TE.fromEither(
           decode(
             "onpremconversion",
             {
-              ...onPremJiraIssue,
+              ...onPremIssue,
               fields: {
-                ...onPremJiraIssue.fields,
+                ...onPremIssue.fields,
                 assignee: {
-                  name: onPremJiraIssue.fields.assignee.name.toString(),
+                  name: onPremIssue.fields.assignee.name.toString(),
                 },
               },
             },
             // eslint-disable-next-line @typescript-eslint/unbound-method
-            JiraIssue.decode
+            Issue.decode
           )
         );
 
       /**
-       * @param cloudJiraIssue - an instance of CloudJiraIssue
-       * @returns JiraIssue
+       * @param cloudIssue - an instance of CloudIssue
+       * @returns Issue
        */
       const cloudJiraToGeneric = (
-        cloudJiraIssue: CloudJiraIssue
-      ): TE.TaskEither<string, JiraIssue> =>
+        cloudIssue: CloudIssue
+      ): TE.TaskEither<string, Issue> =>
         TE.fromEither(
           decode(
             "cloudconversion",
             {
-              ...cloudJiraIssue,
+              ...cloudIssue,
               fields: {
-                ...cloudJiraIssue.fields,
+                ...cloudIssue.fields,
                 assignee: {
-                  name: cloudJiraIssue.fields.assignee.displayName.toString(),
+                  name: cloudIssue.fields.assignee.displayName.toString(),
                 },
               },
             },
             // eslint-disable-next-line @typescript-eslint/unbound-method
-            JiraIssue.decode
+            Issue.decode
           )
         );
 
       const enhancedIssues = (
-        issues: readonly JiraIssue[]
+        issues: readonly Issue[]
       ): TE.TaskEither<string, readonly EnhancedIssue[]> => {
         return TE.map((boards: ReadonlyRecord<string, readonly Board[]>) => {
           return issues.map((issue) => {

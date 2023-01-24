@@ -64,7 +64,7 @@ export const IssueWorklogBuilder = (
     comment: nullOrMissingToUndefined(T.string),
   });
 
-export const JiraIssueBuilder = (
+export const IssueBuilder = (
   dateCodec: // eslint-disable-next-line @typescript-eslint/ban-types, no-restricted-globals
   T.Type<ReadonlyDate, Date> | T.Type<ReadonlyDate, string>
 ) =>
@@ -164,8 +164,8 @@ export const JiraIssueBuilder = (
     ),
   });
 
-export const OnPremJiraIssue = T.intersection([
-  JiraIssueBuilder(readOnlyDateFromISOString),
+export const OnPremIssue = T.intersection([
+  IssueBuilder(readOnlyDateFromISOString),
   T.type({
     fields: T.type({
       assignee: T.type({
@@ -175,8 +175,8 @@ export const OnPremJiraIssue = T.intersection([
   }),
 ]);
 
-export const CloudJiraIssue = T.intersection([
-  JiraIssueBuilder(readOnlyDateFromISOString),
+export const CloudIssue = T.intersection([
+  IssueBuilder(readOnlyDateFromISOString),
   T.type({
     fields: T.type({
       assignee: T.type({
@@ -187,8 +187,8 @@ export const CloudJiraIssue = T.intersection([
   }),
 ]);
 //convertISO ? readOnlyDateFromISOString : dateToDate
-export const JiraIssue = T.intersection([
-  JiraIssueBuilder(dateToDate),
+export const Issue = T.intersection([
+  IssueBuilder(dateToDate),
   T.type({
     fields: T.type({
       assignee: T.type({
@@ -198,11 +198,11 @@ export const JiraIssue = T.intersection([
   }),
 ]);
 
-export type OnPremJiraIssue = T.TypeOf<typeof OnPremJiraIssue>;
+export type OnPremIssue = T.TypeOf<typeof OnPremIssue>;
 
-export type CloudJiraIssue = T.TypeOf<typeof CloudJiraIssue>;
+export type CloudIssue = T.TypeOf<typeof CloudIssue>;
 
-export type JiraIssue = T.TypeOf<typeof JiraIssue>;
+export type Issue = T.TypeOf<typeof Issue>;
 
 export const IssueComment = IssueCommentBuilder(readOnlyDateFromISOString);
 
@@ -246,7 +246,7 @@ export const BoardSummary = T.type({
 
 export type BoardSummary = T.TypeOf<typeof BoardSummary>;
 
-export type EnhancedIssue = JiraIssue & {
+export type EnhancedIssue = Issue & {
   readonly board?: Board;
   readonly inProgress: boolean;
   readonly stalled: boolean;
@@ -287,7 +287,7 @@ export const JiraError = T.type({
 export type JiraError = T.TypeOf<typeof JiraError>;
 
 const columnForIssue = (
-  issue: JiraIssue,
+  issue: Issue,
   board: Board
 ): BoardColumn | undefined => {
   return board.columnConfig.columns.find((column) =>
@@ -295,13 +295,13 @@ const columnForIssue = (
   );
 };
 
-const issueInProgress = (issue: JiraIssue, board?: Board): boolean => {
+const issueInProgress = (issue: Issue, board?: Board): boolean => {
   return board !== undefined
     ? columnForIssue(issue, board)?.name.toLowerCase() === "in progress"
     : issue.fields.status.name.toLowerCase() === "in progress";
 };
 
-const issueStalled = (issue: JiraIssue, board?: Board): boolean => {
+const issueStalled = (issue: Issue, board?: Board): boolean => {
   return board !== undefined
     ? (columnForIssue(issue, board)?.name ?? "")
         .toLowerCase()
@@ -309,7 +309,7 @@ const issueStalled = (issue: JiraIssue, board?: Board): boolean => {
     : issue.fields.status.name.toLowerCase().startsWith("stalled");
 };
 
-const issueClosed = (issue: JiraIssue, board?: Board): boolean => {
+const issueClosed = (issue: Issue, board?: Board): boolean => {
   return board !== undefined
     ? columnForIssue(issue, board)?.name.toLowerCase() === "release ready"
     : issue.fields.status.statusCategory.name?.toLowerCase() === "done";
@@ -320,9 +320,7 @@ const issueClosed = (issue: JiraIssue, board?: Board): boolean => {
  * @param issue the issue whose transitions should be found.
  * @returns the changelogs where the status changed.
  */
-export const issueTransitions = (
-  issue: JiraIssue
-): readonly IssueChangeLog[] => {
+export const issueTransitions = (issue: Issue): readonly IssueChangeLog[] => {
   const changelogs: readonly IssueChangeLog[] = [...issue.changelog.histories];
 
   return changelogs.filter((changelog) =>
@@ -338,7 +336,7 @@ export const issueTransitions = (
  * @returns the most recent transition, or undefined if no transitions have occurred.
  */
 export const mostRecentIssueTransition = (
-  issue: JiraIssue
+  issue: Issue
 ): IssueChangeLog | undefined => {
   const transitions = issueTransitions(issue);
 
@@ -353,7 +351,7 @@ export const mostRecentIssueTransition = (
  * @returns the most recent comment, or undefined if no comments have been made.
  */
 export const mostRecentIssueComment = (
-  issue: JiraIssue
+  issue: Issue
 ): IssueComment | undefined => {
   const comments =
     issue.fields.comment === undefined ? [] : issue.fields.comment.comments;
@@ -369,7 +367,7 @@ export const mostRecentIssueComment = (
  * @returns the most recent worklog, or undefined if no work has been logged.
  */
 export const mostRecentIssueWorklog = (
-  issue: JiraIssue
+  issue: Issue
 ): IssueWorklog | undefined => {
   const worklogs =
     issue.fields.worklog === undefined ? [] : issue.fields.worklog.worklogs;
@@ -385,7 +383,7 @@ export const mostRecentIssueWorklog = (
  * @param issue the issue.
  * @returns the time that the issue was last worked, or undefined if it has never been worked.
  */
-export const issueLastWorked = (issue: JiraIssue): ReadonlyDate | undefined => {
+export const issueLastWorked = (issue: Issue): ReadonlyDate | undefined => {
   const mostRecentTransition = mostRecentIssueTransition(issue);
 
   const mostRecentComment = mostRecentIssueComment(issue);
@@ -402,7 +400,7 @@ export const issueLastWorked = (issue: JiraIssue): ReadonlyDate | undefined => {
 };
 
 export const enhancedIssue = (
-  issue: JiraIssue,
+  issue: Issue,
   viewLink: string,
   qualityFieldName: string,
   qualityReasonFieldName: string,
