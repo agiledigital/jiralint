@@ -1,14 +1,16 @@
 import { JiraClient } from "../../../lib/src/services/jira_api";
 import { Argv } from "yargs";
 import { RootCommand, withQualityFieldsOption } from "..";
-import { EnhancedIssue, quality } from "@agiledigital/jiralint-lib";
-import { issueActionRequired, IssueAction } from "@agiledigital/jiralint-lib";
-import { isLeft } from "fp-ts/lib/Either";
-import { readonlyDate } from "readonly-types/dist";
 import {
+  EnhancedIssue,
+  quality,
+  issueActionRequired,
+  IssueAction,
   jiraFormattedDistance,
   jiraFormattedSeconds,
 } from "@agiledigital/jiralint-lib";
+import { isLeft } from "fp-ts/lib/Either";
+import { readonlyDate } from "readonly-types/dist";
 import stringLength from "string-length";
 
 import * as CLUI from "clui";
@@ -17,15 +19,15 @@ import * as clc from "cli-color";
 // eslint-disable-next-line functional/no-expression-statement
 require("cli-color");
 
+type CheckedIssue = EnhancedIssue & {
+  readonly action: IssueAction;
+  readonly reasons: readonly string[];
+  readonly issueQuality: string;
+};
+
 const checkedIssues = (
-  issues: ReadonlyArray<EnhancedIssue>
-): ReadonlyArray<
-  EnhancedIssue & {
-    readonly action: IssueAction;
-    readonly reasons: ReadonlyArray<string>;
-    readonly issueQuality: string;
-  }
-> => {
+  issues: readonly EnhancedIssue[]
+): readonly CheckedIssue[] => {
   // eslint-disable-next-line no-restricted-globals
   const now = readonlyDate(new Date());
   return issues.map((issue) => {
@@ -47,19 +49,22 @@ const checkedIssues = (
 };
 
 // eslint-disable-next-line functional/no-return-void
-const renderJson = (issues: ReadonlyArray<EnhancedIssue>): void => {
-  // eslint-disable-next-line functional/no-expression-statement
+const renderJson = (issues: readonly EnhancedIssue[]): void => {
+  // eslint-disable-next-line functional/no-expression-statement, functional/no-return-void
   checkedIssues(issues).forEach((issue) =>
     console.log(JSON.stringify(issue, null, 2))
   );
 };
 
 const renderTable = (
-  issues: ReadonlyArray<EnhancedIssue>,
+  issues: readonly EnhancedIssue[],
   qualityFieldName: string
   // eslint-disable-next-line functional/no-return-void
 ): void => {
-  const tableHeaders: ReadonlyArray<string> = [
+  // eslint-disable-next-line functional/no-expression-statement
+  console.clear();
+
+  const tableHeaders: readonly string[] = [
     "Action",
     "Quality",
     "Key",
@@ -79,7 +84,7 @@ const renderTable = (
   // unicode characters.
   const alarm = ["⠀", "⠁", "⠉", "⠋", "⠛", "⣿"] as const;
 
-  const tableHeaderWidths: ReadonlyArray<number> = tableHeaders.map(
+  const tableHeaderWidths: readonly number[] = tableHeaders.map(
     (header) => stringLength(header) + 1
   );
 
@@ -93,9 +98,10 @@ const renderTable = (
   // eslint-disable-next-line no-restricted-globals
   const now = readonlyDate(new Date());
 
-  const data: ReadonlyArray<
-    ReadonlyArray<readonly [string, ReadonlyArray<clc.Format>]>
-  > = checkedIssues(issues).map((issue) => {
+  const data: readonly (readonly (readonly [
+    string,
+    readonly clc.Format[]
+  ])[])[] = checkedIssues(issues).map((issue) => {
     const originalEstimateSeconds =
       issue.fields.timetracking.originalEstimateSeconds ?? 0;
     const timeSpentSeconds = issue.fields.timetracking.timeSpentSeconds ?? 0;
@@ -115,7 +121,7 @@ const renderTable = (
         ? jiraFormattedDistance(now, issue.mostRecentTransition.created)
         : "";
 
-    const noFormat: ReadonlyArray<clc.Format> = [clc.white];
+    const noFormat: readonly clc.Format[] = [clc.white];
     const quality = issue.fields[qualityFieldName];
 
     return [
@@ -152,7 +158,7 @@ const renderTable = (
   }, tableHeaderWidths);
 
   const renderRow = (
-    row: ReadonlyArray<readonly [string, ReadonlyArray<clc.Format>]>
+    row: readonly (readonly [string, readonly clc.Format[]])[]
     // eslint-disable-next-line functional/no-return-void
   ): void => {
     const columns = row.reduce((line, [text], index) => {
@@ -242,6 +248,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           default: [],
         })
         .demandOption(["jql"]),
+    // eslint-disable-next-line functional/no-return-void
     (args) => {
       // eslint-disable-next-line functional/no-expression-statement
       void search(

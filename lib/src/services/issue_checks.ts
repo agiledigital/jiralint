@@ -1,3 +1,4 @@
+/* eslint-disable spellcheck/spell-checker */
 /* eslint-disable functional/functional-parameters */
 import { EnhancedIssue as EnhancedIssue } from "./jira";
 import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
@@ -25,7 +26,7 @@ export type Action = "none" | "inspect";
 
 export type IssueAction = {
   readonly actionRequired: Action;
-  readonly checks: ReadonlyArray<CheckResult>;
+  readonly checks: readonly CheckResult[];
 };
 
 export type Checker = {
@@ -288,7 +289,7 @@ export const validateComment =
 
 const check = (
   issue: EnhancedIssue,
-  checks: ReadonlyArray<(t: EnhancedIssue) => CheckResult>
+  checks: readonly ((t: EnhancedIssue) => CheckResult)[]
 ): IssueAction => {
   const noAction: IssueAction = {
     actionRequired: "none",

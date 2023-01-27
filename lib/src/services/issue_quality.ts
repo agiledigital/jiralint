@@ -7,6 +7,7 @@ import { IssueAction } from "./issue_checks";
  * @param issueAction the actionable info about the issue.
  * @returns the overall quality.
  */
+
 export const quality = (issueAction: IssueAction): string => {
   const numberOfFailures = issueAction.checks.filter(
     (check) => check.outcome === "fail"

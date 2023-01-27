@@ -1,8 +1,13 @@
+/* eslint-disable spellcheck/spell-checker */
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";
 import { compareDesc } from "date-fns";
 import { ReadonlyDate } from "readonly-types/dist";
-import { nullOrMissingToUndefined, readOnlyDateFromISOString } from "../codecs";
+import {
+  dateToDate,
+  nullOrMissingToUndefined,
+  readOnlyDateFromISOString,
+} from "../codecs";
 
 export const PaginatedResults = T.readonly(
   T.type({
@@ -13,140 +18,197 @@ export const PaginatedResults = T.readonly(
 );
 
 export const Author = T.type({
-  name: T.string,
+  name: nullOrMissingToUndefined(T.string),
 });
 
-export const IssueComment = T.type({
-  id: T.string,
-  author: Author,
-  body: T.string,
-  created: readOnlyDateFromISOString,
-  updated: readOnlyDateFromISOString,
-});
+export const IssueCommentBuilder = (
+  dateCodec: // eslint-disable-next-line @typescript-eslint/ban-types, no-restricted-globals
+  T.Type<ReadonlyDate, Date> | T.Type<ReadonlyDate, string>
+) =>
+  T.type({
+    id: T.string,
+    author: nullOrMissingToUndefined(Author),
+    body: T.string,
+    created: dateCodec,
+    updated: dateCodec,
+  });
 
-export const ChangeLog = T.type({
-  id: T.string,
-  author: Author,
-  created: readOnlyDateFromISOString,
-  items: T.readonlyArray(
-    T.type({
-      field: T.string,
-      fieldtype: T.string,
-      from: T.union([T.string, T.null]),
-      fromString: T.union([T.string, T.null]),
-      to: T.union([T.string, T.null]),
-      toString: T.union([T.string, T.null]),
-    })
-  ),
-});
+export const ChangeLogBuilder = (
+  dateCodec: // eslint-disable-next-line @typescript-eslint/ban-types, no-restricted-globals
+  T.Type<ReadonlyDate, Date> | T.Type<ReadonlyDate, string>
+) =>
+  T.type({
+    id: T.string,
+    author: Author,
+    created: dateCodec,
+    items: T.readonlyArray(
+      T.type({
+        field: T.string,
+        fieldtype: T.string,
+        from: T.union([T.string, T.null]),
+        fromString: T.union([T.string, T.null]),
+        to: T.union([T.string, T.null]),
+        toString: T.union([T.string, T.null]),
+      })
+    ),
+  });
 
-export const IssueWorklog = T.type({
-  author: Author,
-  started: readOnlyDateFromISOString,
-  timeSpentSeconds: T.number,
-  comment: nullOrMissingToUndefined(T.string),
-});
+export const IssueWorklogBuilder = (
+  dateCodec: // eslint-disable-next-line @typescript-eslint/ban-types, no-restricted-globals
+  T.Type<ReadonlyDate, Date> | T.Type<ReadonlyDate, string>
+) =>
+  T.type({
+    author: Author,
+    started: dateCodec,
+    timeSpentSeconds: T.number,
+    comment: nullOrMissingToUndefined(T.string),
+  });
 
-export const Issue = T.type({
-  key: T.string,
-  self: T.string,
-  fields: T.intersection([
-    T.type({
-      summary: T.string,
-      description: nullOrMissingToUndefined(T.string),
-      created: readOnlyDateFromISOString,
-      project: T.type({
-        key: T.string,
-      }),
-      timetracking: ITT.fromNullable(
-        T.partial({
-          originalEstimateSeconds: T.number,
-          timeSpentSeconds: T.number,
-          remainingEstimateSeconds: T.number,
-          originalEstimate: T.string,
-          timeSpent: T.string,
+export const IssueBuilder = (
+  dateCodec: // eslint-disable-next-line @typescript-eslint/ban-types, no-restricted-globals
+  T.Type<ReadonlyDate, Date> | T.Type<ReadonlyDate, string>
+) =>
+  T.type({
+    key: T.string,
+    self: T.string,
+    fields: T.intersection([
+      T.type({
+        summary: T.string,
+        description: nullOrMissingToUndefined(T.string),
+        created: dateCodec,
+        project: T.type({
+          key: T.string,
         }),
-        {
-          originalEstimateSeconds: 0,
-          timeSpentSeconds: 0,
-          remainingEstimateSeconds: 0,
-          originalEstimate: "0d",
-          timeSpent: "0d",
-        }
-      ),
-      fixVersions: T.readonlyArray(
-        T.type({
+        timetracking: ITT.fromNullable(
+          T.partial({
+            originalEstimateSeconds: T.number,
+            timeSpentSeconds: T.number,
+            remainingEstimateSeconds: T.number,
+            originalEstimate: T.string,
+            timeSpent: T.string,
+          }),
+          {
+            originalEstimateSeconds: 0,
+            timeSpentSeconds: 0,
+            remainingEstimateSeconds: 0,
+            originalEstimate: "0d",
+            timeSpent: "0d",
+          }
+        ),
+        fixVersions: T.readonlyArray(
+          T.type({
+            id: T.string,
+            name: T.string,
+            released: T.boolean,
+          })
+        ),
+        aggregateprogress: T.type({
+          progress: nullOrMissingToUndefined(T.number),
+          total: nullOrMissingToUndefined(T.number),
+          percent: nullOrMissingToUndefined(T.number),
+        }),
+        issuetype: T.type({
+          name: T.string,
+          subtask: T.boolean,
+        }),
+        status: T.type({
           id: T.string,
           name: T.string,
-          released: T.boolean,
-        })
-      ),
-      aggregateprogress: T.type({
-        progress: nullOrMissingToUndefined(T.number),
-        total: nullOrMissingToUndefined(T.number),
-        percent: nullOrMissingToUndefined(T.number),
+          statusCategory: T.type({
+            id: nullOrMissingToUndefined(T.number),
+            name: nullOrMissingToUndefined(T.string),
+            colorName: nullOrMissingToUndefined(T.string),
+          }),
+        }),
+        comment: nullOrMissingToUndefined(
+          T.readonly(
+            T.intersection([
+              PaginatedResults,
+              T.type({
+                comments: T.readonlyArray(IssueCommentBuilder(dateCodec)),
+              }),
+            ])
+          )
+        ),
+        worklog: nullOrMissingToUndefined(
+          T.readonly(
+            T.intersection([
+              PaginatedResults,
+              T.type({
+                worklogs: T.readonlyArray(IssueWorklogBuilder(dateCodec)),
+              }),
+            ])
+          )
+        ),
+        duedate: nullOrMissingToUndefined(ITT.DateFromISOString),
       }),
-      issuetype: T.type({
-        name: T.string,
-        subtask: T.boolean,
+      T.partial({
+        aggregatetimeestimate: nullOrMissingToUndefined(T.number),
+        aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
+        aggregatetimespent: nullOrMissingToUndefined(T.number),
+        parent: T.type({
+          id: T.string,
+          key: T.string,
+        }),
       }),
+      // Required to model custom fields whose names cannot be known at compile time
+      T.readonly(T.record(T.string, T.unknown)),
+    ]),
+    changelog: ITT.fromNullable(
+      T.type({
+        histories: T.readonlyArray(ChangeLogBuilder(dateCodec)),
+      }),
+      {
+        histories: [],
+      }
+    ),
+  });
+
+export const OnPremIssue = T.intersection([
+  IssueBuilder(readOnlyDateFromISOString),
+  T.type({
+    fields: T.type({
       assignee: T.type({
         name: T.string,
       }),
-      status: T.type({
-        id: T.string,
+    }),
+  }),
+]);
+
+export const CloudIssue = T.intersection([
+  IssueBuilder(readOnlyDateFromISOString),
+  T.type({
+    fields: T.type({
+      assignee: T.type({
+        accountId: T.string,
+        displayName: T.string,
+      }),
+    }),
+  }),
+]);
+//convertISO ? readOnlyDateFromISOString : dateToDate
+export const Issue = T.intersection([
+  IssueBuilder(dateToDate),
+  T.type({
+    fields: T.type({
+      assignee: T.type({
         name: T.string,
-        statusCategory: T.type({
-          id: nullOrMissingToUndefined(T.number),
-          name: nullOrMissingToUndefined(T.string),
-          colorName: nullOrMissingToUndefined(T.string),
-        }),
-      }),
-      comment: nullOrMissingToUndefined(
-        T.readonly(
-          T.intersection([
-            PaginatedResults,
-            T.type({
-              comments: T.readonlyArray(IssueComment),
-            }),
-          ])
-        )
-      ),
-      worklog: nullOrMissingToUndefined(
-        T.readonly(
-          T.intersection([
-            PaginatedResults,
-            T.type({
-              worklogs: T.readonlyArray(IssueWorklog),
-            }),
-          ])
-        )
-      ),
-      duedate: nullOrMissingToUndefined(ITT.DateFromISOString),
-    }),
-    T.partial({
-      aggregatetimeestimate: nullOrMissingToUndefined(T.number),
-      aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
-      aggregatetimespent: nullOrMissingToUndefined(T.number),
-      parent: T.type({
-        id: T.string,
-        key: T.string,
       }),
     }),
-    // Required to model custom fields whose names cannot be known at compile time
-    T.readonly(T.record(T.string, T.unknown)),
-  ]),
-  changelog: ITT.fromNullable(
-    T.type({
-      histories: T.readonlyArray(ChangeLog),
-    }),
-    {
-      histories: [],
-    }
-  ),
-});
+  }),
+]);
+
+export type OnPremIssue = T.TypeOf<typeof OnPremIssue>;
+
+export type CloudIssue = T.TypeOf<typeof CloudIssue>;
 
 export type Issue = T.TypeOf<typeof Issue>;
+
+export const IssueComment = IssueCommentBuilder(readOnlyDateFromISOString);
+
+export const ChangeLog = ChangeLogBuilder(readOnlyDateFromISOString);
+
+export const IssueWorklog = IssueWorklogBuilder(readOnlyDateFromISOString);
 
 export type IssueComment = T.TypeOf<typeof IssueComment>;
 
@@ -258,9 +320,7 @@ const issueClosed = (issue: Issue, board?: Board): boolean => {
  * @param issue the issue whose transitions should be found.
  * @returns the changelogs where the status changed.
  */
-export const issueTransitions = (
-  issue: Issue
-): ReadonlyArray<IssueChangeLog> => {
+export const issueTransitions = (issue: Issue): readonly IssueChangeLog[] => {
   const changelogs: readonly IssueChangeLog[] = [...issue.changelog.histories];
 
   return changelogs.filter((changelog) =>

@@ -125,7 +125,7 @@ you can now run jiralint search like this:
 cli/dist/jiralint search -j "project=MF order by created"
 ```
 
-#### Example OAuth `.jirilintrc`
+#### Example OAuth `.jiralintrc`
 
 ```json
 {
@@ -138,7 +138,7 @@ cli/dist/jiralint search -j "project=MF order by created"
 }
 ```
 
-#### Example Personal Access Token `.jirilintrc`
+#### Example Personal Access Token `.jiralintrc`
 
 ```json
 {
@@ -149,7 +149,21 @@ cli/dist/jiralint search -j "project=MF order by created"
 }
 ```
 
-#### Example User Credentials `.jirilintrc`
+#### Example User Credentials `.jiralintrc`
+
+Note that Cloud Jira access using usernames and passwords is now deprecated. Furthermore, a specific quality and quality reason field has been added for Jiralint usage. When trying to access Jira Cloud using user credentials, use the following:
+
+```json
+{
+    "username": "[username]:",
+    "password": "[API token]",
+    "jiraHost": "agiledigital.atlassian.net",
+    "qualityFieldName": "customfield_10147",
+    "qualityReasonFieldName": "customfield_10148"
+  }
+```
+
+You can create a Jira API token for your account [here](https://id.atlassian.com/manage-profile/security/api-tokens). Note that the colon after your login email is neccesary. Below is how you can sign in using a standard username and password via OnPrem
 
 ```json
 {

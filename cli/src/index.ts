@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 import { pipe, flow } from "fp-ts/lib/function";
 import {
   JiraClient,
@@ -134,7 +135,7 @@ type JiraParameters = {
 };
 
 type JiraClientBuilder = JiraParameters & {
-  readonly missingParameters: ReadonlyArray<PropertyKey>;
+  readonly missingParameters: readonly PropertyKey[];
   readonly client?: JiraClient;
 };
 
@@ -162,7 +163,7 @@ const hasMandatoryParameter =
  */
 const addMissingParameters = (
   builder: JiraClientBuilder,
-  parameters: ReadonlyArray<keyof JiraParameters>
+  parameters: readonly (keyof JiraParameters)[]
 ): JiraClientBuilder => ({
   ...builder,
   missingParameters: [
@@ -266,7 +267,7 @@ const makeUserCredentialsClient = (
       }
     : builder;
 
-const jiraParamList = (params: ReadonlyArray<PropertyKey>): string =>
+const jiraParamList = (params: readonly PropertyKey[]): string =>
   params.map((p) => `  jira.${String(p)}`).join("\n");
 
 /**
@@ -314,6 +315,7 @@ export const withCommonOptions = <C extends RootCommand>(command: C) =>
       alias: "ck",
       type: "string",
       describe: "The Jira consumer key",
+      // eslint-disable-next-line spellcheck/spell-checker
       default: config?.jiraConsumerKey ?? "jiralintkey", // TODO remove this default?
     })
     .option(jiraConsumerSecretOptionKey, {
