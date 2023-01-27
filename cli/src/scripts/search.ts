@@ -19,13 +19,15 @@ import * as clc from "cli-color";
 // eslint-disable-next-line functional/no-expression-statement
 require("cli-color");
 
-const checkedIssues = (
-  issues: readonly EnhancedIssue[]
-): readonly (EnhancedIssue & {
+type CheckedIssue = EnhancedIssue & {
   readonly action: IssueAction;
   readonly reasons: readonly string[];
   readonly issueQuality: string;
-})[] => {
+};
+
+const checkedIssues = (
+  issues: readonly EnhancedIssue[]
+): readonly CheckedIssue[] => {
   // eslint-disable-next-line no-restricted-globals
   const now = readonlyDate(new Date());
   return issues.map((issue) => {
