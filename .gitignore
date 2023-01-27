@@ -106,6 +106,6 @@ dist
 # direnv config file
 .envrc
 
-# personalised useage
+# personalised usage
 .npmrc
 .jiralintrc
