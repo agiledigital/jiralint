@@ -8,4 +8,4 @@ import * as ITT from "io-ts-types";
  */
 // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
 export const nullOrMissingToUndefined = <P, O = P>(t: T.Type<P, O>) =>
-  ITT.fromNullable(T.union([t, T.readonly(T.undefined)]), undefined);
+  ITT.fromNullable(T.union([t, T.undefined]), undefined);
