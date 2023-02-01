@@ -103,10 +103,7 @@ describe("checking that tickets have a description", () => {
   ])("checks as expected", (description, expected) => {
     const input = {
       ...IssueData.enhancedIssue,
-      fields: {
-        ...IssueData.enhancedIssue.fields,
-        description,
-      },
+      description,
     };
 
     const actual = validateDescription(input);

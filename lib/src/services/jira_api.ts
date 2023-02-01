@@ -56,7 +56,8 @@ export type JiraClient = {
     boardNamesToIgnore: readonly string[],
     qualityField: string,
     qualityReasonField: string,
-    customFieldNames: readonly string[]
+    customFieldNames: readonly string[],
+    descriptionFields: ReadonlyRecord<string, string>
   ) => Promise<Either<string, readonly EnhancedIssue[]>>;
   readonly currentUser: () => Promise<Either<string, User>>;
 };
@@ -628,7 +629,8 @@ const jiraClient = (
       boardNamesToIgnore: readonly string[],
       qualityField: string,
       qualityReasonField: string,
-      customFieldNames: readonly string[]
+      customFieldNames: readonly string[],
+      descriptionFields: ReadonlyRecord<string, string>
     ): Promise<Either<string, readonly EnhancedIssue[]>> => {
       const fetchIssues = TE.tryCatch(
         // eslint-disable-next-line functional/functional-parameters
@@ -655,6 +657,8 @@ const jiraClient = (
               qualityField,
               qualityReasonField,
               ...customFieldNames,
+              // eslint-disable-next-line total-functions/no-unsafe-readonly-mutable-assignment
+              ...Object.values(descriptionFields),
             ],
             expand: ["changelog"],
           }),
@@ -732,6 +736,7 @@ const jiraClient = (
               issueLink(issue),
               qualityField,
               qualityReasonField,
+              descriptionFields,
               boardByStatus
             );
           });
