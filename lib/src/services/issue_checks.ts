@@ -141,7 +141,7 @@ export const validateNotClosedDependenciesNotPassedDueDate =
           __,
           when(
             (duedate) =>
-              duedate !== undefined && isAfter(duedate.valueOf(), at.valueOf())
+              duedate !== undefined && isAfter(at.valueOf(), duedate.valueOf())
           ),
         ],
         () => check.fail("due date has passed")
