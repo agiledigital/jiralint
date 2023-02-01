@@ -295,6 +295,66 @@ const jiraClient = (
       )
     );
 
+  /**
+   * @param onPremIssue - an instance of OnPremIssue
+   * @returns Issue
+   */
+  const onPremJiraToGeneric = (
+    onPremIssue: OnPremIssue
+  ): TE.TaskEither<string, Issue> => {
+    const assignee =
+      onPremIssue.fields.assignee === undefined
+        ? undefined
+        : {
+            name: onPremIssue.fields.assignee.name,
+          };
+
+    return TE.fromEither(
+      decode(
+        "onpremconversion",
+        {
+          ...onPremIssue,
+          fields: {
+            ...onPremIssue.fields,
+            assignee,
+          },
+        },
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        Issue.decode
+      )
+    );
+  };
+
+  /**
+   * @param cloudIssue - an instance of CloudIssue
+   * @returns Issue
+   */
+  const cloudJiraToGeneric = (
+    cloudIssue: CloudIssue
+  ): TE.TaskEither<string, Issue> => {
+    const assignee =
+      cloudIssue.fields.assignee === undefined
+        ? undefined
+        : {
+            name: cloudIssue.fields.assignee.displayName,
+          };
+
+    return TE.fromEither(
+      decode(
+        "cloudconversion",
+        {
+          ...cloudIssue,
+          fields: {
+            ...cloudIssue.fields,
+            assignee,
+          },
+        },
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        Issue.decode
+      )
+    );
+  };
+
   const boardDetails =
     (
       // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
@@ -651,54 +711,6 @@ const jiraClient = (
             response.issues, //input
             // eslint-disable-next-line @typescript-eslint/unbound-method
             T.readonly(T.array(CloudIssue)).decode //decoder)
-          )
-        );
-
-      /**
-       * @param onPremIssue - an instance of OnPremIssue
-       * @returns Issue
-       */
-      const onPremJiraToGeneric = (
-        onPremIssue: OnPremIssue
-      ): TE.TaskEither<string, Issue> =>
-        TE.fromEither(
-          decode(
-            "onpremconversion",
-            {
-              ...onPremIssue,
-              fields: {
-                ...onPremIssue.fields,
-                assignee: {
-                  name: onPremIssue.fields.assignee.name.toString(),
-                },
-              },
-            },
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            Issue.decode
-          )
-        );
-
-      /**
-       * @param cloudIssue - an instance of CloudIssue
-       * @returns Issue
-       */
-      const cloudJiraToGeneric = (
-        cloudIssue: CloudIssue
-      ): TE.TaskEither<string, Issue> =>
-        TE.fromEither(
-          decode(
-            "cloudconversion",
-            {
-              ...cloudIssue,
-              fields: {
-                ...cloudIssue.fields,
-                assignee: {
-                  name: cloudIssue.fields.assignee.displayName.toString(),
-                },
-              },
-            },
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            Issue.decode
           )
         );
 

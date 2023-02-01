@@ -6,10 +6,7 @@
 /* eslint-disable functional/no-conditional-statement */
 /* eslint-disable jest/no-conditional-expect */
 import { isLeft } from "fp-ts/lib/These";
-import {
-  readonlyDateFromDate,
-  readOnlyDateFromISOString,
-} from "./readonly_date";
+import { readonlyDateFromDate } from "./readonly_date";
 import * as ITT from "io-ts-types";
 import fc from "fast-check";
 
@@ -37,7 +34,7 @@ describe("decoding a Date", () => {
 });
 
 describe("decoding a string", () => {
-  it("should always pass issues in review or completed that have a non-empty statement", () => {
+  it("should decode an ISO formatted string to a readonly date", () => {
     fc.assert(
       fc.property(fc.date(), (d) => {
         // Given a date,
@@ -46,7 +43,7 @@ describe("decoding a string", () => {
         const isoDate = ITT.DateFromISOString.encode(d);
 
         // When it is decoded to a readonly date.
-        const actual = readOnlyDateFromISOString.decode(isoDate);
+        const actual = readonlyDateFromDate.decode(isoDate);
 
         // Then it should have been successfully decoded.
         if (isLeft(actual)) {
