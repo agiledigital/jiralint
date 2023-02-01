@@ -311,7 +311,8 @@ describe("enhancing issues", () => {
             issue,
             "viewlink",
             fieldName,
-            "not_reason"
+            "not_reason",
+            {}
           );
 
           // Then the quality field should have been set.
@@ -340,7 +341,8 @@ describe("enhancing issues", () => {
             issue,
             "viewlink",
             "not_quality",
-            fieldName
+            fieldName,
+            {}
           );
 
           // Then the quality field should have been set.

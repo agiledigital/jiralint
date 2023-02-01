@@ -2,7 +2,7 @@
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";
 import { compareDesc } from "date-fns";
-import { ReadonlyDate } from "readonly-types/dist";
+import { ReadonlyDate, ReadonlyRecord } from "readonly-types/dist";
 import { nullOrMissingToUndefined, readonlyDateFromDate } from "../codecs";
 
 export const PaginatedResults = T.readonly(
@@ -311,6 +311,7 @@ export type EnhancedIssue = Issue & {
   readonly lastWorked?: ReadonlyDate; // The last time that there was evidence the ticket was actively worked (e.g. there was a transition, worklog or comment added).
   readonly quality: string | undefined;
   readonly qualityReason: string | undefined; // The reason that the issue has the quality rating it does.
+  readonly description: string | undefined; // The effective description for the issue (taking into account any custom description fields).
 };
 
 export const User = T.readonly(
@@ -459,6 +460,7 @@ export const enhancedIssue = (
   viewLink: string,
   qualityFieldName: string,
   qualityReasonFieldName: string,
+  descriptionFields: ReadonlyRecord<string, string>,
   board?: Board
 ): EnhancedIssue => {
   const mostRecentTransition = mostRecentIssueTransition(issue);
@@ -477,6 +479,17 @@ export const enhancedIssue = (
     | string
     | undefined;
 
+  const descriptionField =
+    descriptionFields[issue.fields.issuetype.name.toLowerCase()];
+
+  const description = [
+    descriptionField === undefined
+      ? undefined
+      : // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        (issue.fields[descriptionField] as string | undefined),
+    issue.fields.description,
+  ].find((s) => s !== undefined && s.length > 0);
+
   return {
     ...issue,
     inProgress: issueInProgress(issue, board),
@@ -491,5 +504,6 @@ export const enhancedIssue = (
     lastWorked: lastWorked,
     quality,
     qualityReason,
+    description,
   };
 };

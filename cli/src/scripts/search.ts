@@ -204,7 +204,8 @@ const search = async (
     boardNamesToIgnore,
     qualityFieldName,
     qualityReasonFieldName,
-    customFieldNames
+    customFieldNames,
+    {}
   );
 
   // eslint-disable-next-line functional/no-expression-statement

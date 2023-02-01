@@ -177,8 +177,7 @@ export const validateInProgressHasEstimate = (
 export const validateDescription = (issue: EnhancedIssue): CheckResult => {
   const check = checker("Tickets have a description");
 
-  return issue.fields.description !== undefined &&
-    issue.fields.description.trim().length > 0
+  return issue.description !== undefined && issue.description.trim().length > 0
     ? check.ok("description isn't empty")
     : check.fail("description is empty");
 };
@@ -379,6 +378,7 @@ export const issueActionRequired = (
       }
     : check(issue, [
         validateComment(now),
+        validateDescription,
         validateInProgressHasEstimate,
         validateInProgressNotCloseToEstimate,
         validateNotStalledForMoreThanOneDay(now),

@@ -64,6 +64,7 @@ export const enhancedIssue: EnhancedIssue = {
   lastWorked: undefined,
   quality: "A",
   qualityReason: "for a good reason",
+  description: "description",
 };
 
 export const worklog: IssueWorklog = {
