@@ -241,6 +241,15 @@ export const regular = {
   },
 };
 
+export const missingAssignee = {
+  ...regular,
+  key: "Missing Assignee",
+  fields: {
+    ...regular.fields,
+    assignee: null,
+  },
+};
+
 export const withParent = {
   expand:
     "operations,versionedRepresentations,editmeta,changelog,renderedFields",

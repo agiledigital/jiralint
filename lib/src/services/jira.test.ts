@@ -25,7 +25,7 @@ import fc from "fast-check";
 
 const commentFrom2021 = {
   id: "5",
-  author: { name: IssueData.issue.fields.assignee.name },
+  author: { name: IssueData.issue.fields.assignee?.name },
   body: "new comment",
   created: readonlyDate("2021-04-03"),
   updated: readonlyDate("2000-04-03"),
@@ -33,7 +33,7 @@ const commentFrom2021 = {
 
 const commentFrom2000 = {
   id: "1",
-  author: { name: IssueData.issue.fields.assignee.name },
+  author: { name: IssueData.issue.fields.assignee?.name },
   body: "old comment",
   created: readonlyDate("2000-02-03"),
   updated: readonlyDate("2030-04-03"),
@@ -59,27 +59,27 @@ const statusChangeItem = {
 
 const descriptionHistoryFrom2021 = {
   id: "1",
-  author: { name: IssueData.issue.fields.assignee.name },
+  author: { name: IssueData.issue.fields.assignee?.name },
   created: readonlyDate("2021-06-03"),
   items: [descriptionChangeItem],
 };
 
 const statusChangeFrom2000 = {
   id: "2",
-  author: { name: IssueData.issue.fields.assignee.name },
+  author: { name: IssueData.issue.fields.assignee?.name },
   created: readonlyDate("2000-03-03"),
   items: [statusChangeItem],
 };
 
 const mixedChangeFrom2022 = {
   id: "4",
-  author: { name: IssueData.issue.fields.assignee.name },
+  author: { name: IssueData.issue.fields.assignee?.name },
   created: readonlyDate("2022-03-03"),
   items: [statusChangeItem, descriptionChangeItem],
 };
 
 const worklogFrom2019 = {
-  author: { name: IssueData.issue.fields.assignee.name },
+  author: { name: IssueData.issue.fields.assignee?.name },
   started: readonlyDate("2019-03-03"),
   timeSpentSeconds: 1000,
   comment: "no comment",
@@ -90,6 +90,7 @@ describe("decoding well-formed tickets", () => {
     [TestData.regular, TestData.regular.key],
     [TestData.nullDescription, TestData.nullDescription.key],
     [TestData.withParent, TestData.withParent.key],
+    [TestData.missingAssignee, TestData.missingAssignee.key],
   ])("decodes as expected", (data, expectedKey) => {
     // Given a well-formed bit of data.
 
@@ -253,7 +254,7 @@ describe("finding transitions", () => {
 describe("finding the most recent transition", () => {
   const statusChangeFrom2021: IssueChangeLog = {
     id: "3",
-    author: { name: IssueData.issue.fields.assignee.name },
+    author: { name: IssueData.issue.fields.assignee?.name },
     created: readonlyDate("2021-03-03"),
     items: [statusChangeItem],
   };

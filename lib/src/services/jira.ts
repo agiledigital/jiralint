@@ -3,11 +3,7 @@ import * as T from "io-ts";
 import * as ITT from "io-ts-types";
 import { compareDesc } from "date-fns";
 import { ReadonlyDate } from "readonly-types/dist";
-import {
-  dateToDate,
-  nullOrMissingToUndefined,
-  readOnlyDateFromISOString,
-} from "../codecs";
+import { nullOrMissingToUndefined, readonlyDateFromDate } from "../codecs";
 
 export const PaginatedResults = T.readonly(
   T.type({
@@ -23,196 +19,182 @@ export const Author = T.readonly(
   })
 );
 
-export const IssueCommentBuilder = (
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-  dateCodec: T.Type<ReadonlyDate, unknown>
-) =>
-  T.readonly(
-    T.type({
-      id: T.string,
-      author: nullOrMissingToUndefined(Author),
-      body: T.string,
-      created: dateCodec,
-      updated: dateCodec,
-    })
-  );
+export const IssueComment = T.readonly(
+  T.type({
+    id: T.string,
+    author: nullOrMissingToUndefined(Author),
+    body: T.string,
+    created: readonlyDateFromDate,
+    updated: readonlyDateFromDate,
+  })
+);
 
-export const ChangeLogBuilder = (
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-  dateCodec: T.Type<ReadonlyDate, unknown>
-) =>
-  T.readonly(
-    T.type({
-      id: T.string,
-      author: Author,
-      created: dateCodec,
-      items: T.readonlyArray(
-        T.readonly(
-          T.type({
-            field: T.string,
-            fieldtype: T.string,
-            from: T.union([T.string, T.null]),
-            fromString: T.union([T.string, T.null]),
-            to: T.union([T.string, T.null]),
-            toString: T.union([T.string, T.null]),
-          })
-        )
-      ),
-    })
-  );
+export const ChangeLog = T.readonly(
+  T.type({
+    id: T.string,
+    author: Author,
+    created: readonlyDateFromDate,
+    items: T.readonlyArray(
+      T.readonly(
+        T.type({
+          field: T.string,
+          fieldtype: T.string,
+          from: T.union([T.string, T.null]),
+          fromString: T.union([T.string, T.null]),
+          to: T.union([T.string, T.null]),
+          toString: T.union([T.string, T.null]),
+        })
+      )
+    ),
+  })
+);
 
-export const IssueWorklogBuilder = (
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-  dateCodec: T.Type<ReadonlyDate, unknown>
-) =>
-  T.readonly(
-    T.type({
-      author: Author,
-      started: dateCodec,
-      timeSpentSeconds: T.number,
-      comment: nullOrMissingToUndefined(T.string),
-    })
-  );
+export const IssueWorklog = T.readonly(
+  T.type({
+    author: Author,
+    started: readonlyDateFromDate,
+    timeSpentSeconds: T.number,
+    comment: nullOrMissingToUndefined(T.string),
+  })
+);
 
-export const IssueBuilder = (
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-  dateCodec: T.Type<ReadonlyDate, unknown>
-) =>
-  T.readonly(
-    T.type({
-      key: T.string,
-      self: T.string,
-      fields: T.intersection([
-        T.readonly(
-          T.type({
-            summary: T.string,
-            description: nullOrMissingToUndefined(T.string),
-            created: dateCodec,
-            project: T.readonly(
-              T.type({
-                key: T.string,
+export const BaseIssue = T.readonly(
+  T.type({
+    key: T.string,
+    self: T.string,
+    fields: T.intersection([
+      T.readonly(
+        T.type({
+          summary: T.string,
+          description: nullOrMissingToUndefined(T.string),
+          created: readonlyDateFromDate,
+          project: T.readonly(
+            T.type({
+              key: T.string,
+            })
+          ),
+          timetracking: ITT.fromNullable(
+            T.readonly(
+              T.partial({
+                originalEstimateSeconds: T.number,
+                timeSpentSeconds: T.number,
+                remainingEstimateSeconds: T.number,
+                originalEstimate: T.string,
+                timeSpent: T.string,
               })
             ),
-            timetracking: ITT.fromNullable(
-              T.readonly(
-                T.partial({
-                  originalEstimateSeconds: T.number,
-                  timeSpentSeconds: T.number,
-                  remainingEstimateSeconds: T.number,
-                  originalEstimate: T.string,
-                  timeSpent: T.string,
+            {
+              originalEstimateSeconds: 0,
+              timeSpentSeconds: 0,
+              remainingEstimateSeconds: 0,
+              originalEstimate: "0d",
+              timeSpent: "0d",
+            }
+          ),
+          fixVersions: T.readonlyArray(
+            T.readonly(
+              T.type({
+                id: T.string,
+                name: T.string,
+                released: T.boolean,
+              })
+            )
+          ),
+          aggregateprogress: T.readonly(
+            T.type({
+              progress: nullOrMissingToUndefined(T.number),
+              total: nullOrMissingToUndefined(T.number),
+              percent: nullOrMissingToUndefined(T.number),
+            })
+          ),
+          issuetype: T.readonly(
+            T.type({
+              name: T.string,
+              subtask: T.boolean,
+            })
+          ),
+          status: T.readonly(
+            T.type({
+              id: T.string,
+              name: T.string,
+              statusCategory: T.readonly(
+                T.type({
+                  id: nullOrMissingToUndefined(T.number),
+                  name: nullOrMissingToUndefined(T.string),
+                  colorName: nullOrMissingToUndefined(T.string),
                 })
               ),
-              {
-                originalEstimateSeconds: 0,
-                timeSpentSeconds: 0,
-                remainingEstimateSeconds: 0,
-                originalEstimate: "0d",
-                timeSpent: "0d",
-              }
-            ),
-            fixVersions: T.readonlyArray(
-              T.readonly(
-                T.type({
-                  id: T.string,
-                  name: T.string,
-                  released: T.boolean,
-                })
-              )
-            ),
-            aggregateprogress: T.readonly(
-              T.type({
-                progress: nullOrMissingToUndefined(T.number),
-                total: nullOrMissingToUndefined(T.number),
-                percent: nullOrMissingToUndefined(T.number),
-              })
-            ),
-            issuetype: T.readonly(
-              T.type({
-                name: T.string,
-                subtask: T.boolean,
-              })
-            ),
-            status: T.readonly(
-              T.type({
-                id: T.string,
-                name: T.string,
-                statusCategory: T.readonly(
+            })
+          ),
+          comment: nullOrMissingToUndefined(
+            T.readonly(
+              T.intersection([
+                PaginatedResults,
+                T.readonly(
                   T.type({
-                    id: nullOrMissingToUndefined(T.number),
-                    name: nullOrMissingToUndefined(T.string),
-                    colorName: nullOrMissingToUndefined(T.string),
+                    comments: T.readonlyArray(IssueComment),
                   })
                 ),
-              })
-            ),
-            comment: nullOrMissingToUndefined(
-              T.readonly(
-                T.intersection([
-                  PaginatedResults,
-                  T.readonly(
-                    T.type({
-                      comments: T.readonlyArray(IssueCommentBuilder(dateCodec)),
-                    })
-                  ),
-                ])
-              )
-            ),
-            worklog: nullOrMissingToUndefined(
-              T.readonly(
-                T.intersection([
-                  PaginatedResults,
-                  T.readonly(
-                    T.type({
-                      worklogs: T.readonlyArray(IssueWorklogBuilder(dateCodec)),
-                    })
-                  ),
-                ])
-              )
-            ),
-            duedate: nullOrMissingToUndefined(dateCodec),
-          })
-        ),
-        T.readonly(
-          T.partial({
-            aggregatetimeestimate: nullOrMissingToUndefined(T.number),
-            aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
-            aggregatetimespent: nullOrMissingToUndefined(T.number),
-            parent: T.readonly(
-              T.type({
-                id: T.string,
-                key: T.string,
-              })
-            ),
-          })
-        ),
-        // Required to model custom fields whose names cannot be known at compile time
-        T.readonly(T.record(T.string, T.unknown)),
-      ]),
-      changelog: ITT.fromNullable(
-        T.readonly(
-          T.type({
-            histories: T.readonlyArray(ChangeLogBuilder(dateCodec)),
-          })
-        ),
-        {
-          histories: [],
-        }
+              ])
+            )
+          ),
+          worklog: nullOrMissingToUndefined(
+            T.readonly(
+              T.intersection([
+                PaginatedResults,
+                T.readonly(
+                  T.type({
+                    worklogs: T.readonlyArray(IssueWorklog),
+                  })
+                ),
+              ])
+            )
+          ),
+          duedate: nullOrMissingToUndefined(readonlyDateFromDate),
+        })
       ),
-    })
-  );
+      T.readonly(
+        T.partial({
+          aggregatetimeestimate: nullOrMissingToUndefined(T.number),
+          aggregatetimeoriginalestimate: nullOrMissingToUndefined(T.number),
+          aggregatetimespent: nullOrMissingToUndefined(T.number),
+          parent: T.readonly(
+            T.type({
+              id: T.string,
+              key: T.string,
+            })
+          ),
+        })
+      ),
+      // Required to model custom fields whose names cannot be known at compile time
+      T.readonly(T.record(T.string, T.unknown)),
+    ]),
+    changelog: ITT.fromNullable(
+      T.readonly(
+        T.type({
+          histories: T.readonlyArray(ChangeLog),
+        })
+      ),
+      {
+        histories: [],
+      }
+    ),
+  })
+);
 
 export const OnPremIssue = T.readonly(
   T.intersection([
-    IssueBuilder(readOnlyDateFromISOString),
+    BaseIssue,
     T.readonly(
       T.type({
         fields: T.readonly(
           T.type({
-            assignee: T.readonly(
-              T.type({
-                name: T.string,
-              })
+            assignee: nullOrMissingToUndefined(
+              T.readonly(
+                T.type({
+                  name: T.string,
+                })
+              )
             ),
           })
         ),
@@ -223,16 +205,17 @@ export const OnPremIssue = T.readonly(
 
 export const CloudIssue = T.readonly(
   T.intersection([
-    IssueBuilder(readOnlyDateFromISOString),
+    BaseIssue,
     T.readonly(
       T.type({
         fields: T.readonly(
           T.type({
-            assignee: T.readonly(
-              T.type({
-                accountId: T.string,
-                displayName: T.string,
-              })
+            assignee: nullOrMissingToUndefined(
+              T.readonly(
+                T.type({
+                  displayName: T.string,
+                })
+              )
             ),
           })
         ),
@@ -243,15 +226,17 @@ export const CloudIssue = T.readonly(
 
 export const Issue = T.readonly(
   T.intersection([
-    IssueBuilder(dateToDate),
+    BaseIssue,
     T.readonly(
       T.type({
         fields: T.readonly(
           T.type({
-            assignee: T.readonly(
-              T.type({
-                name: T.string,
-              })
+            assignee: nullOrMissingToUndefined(
+              T.readonly(
+                T.type({
+                  name: T.string,
+                })
+              )
             ),
           })
         ),
@@ -265,12 +250,6 @@ export type OnPremIssue = T.TypeOf<typeof OnPremIssue>;
 export type CloudIssue = T.TypeOf<typeof CloudIssue>;
 
 export type Issue = T.TypeOf<typeof Issue>;
-
-export const IssueComment = IssueCommentBuilder(readOnlyDateFromISOString);
-
-export const ChangeLog = ChangeLogBuilder(readOnlyDateFromISOString);
-
-export const IssueWorklog = IssueWorklogBuilder(readOnlyDateFromISOString);
 
 export type IssueComment = T.TypeOf<typeof IssueComment>;
 
