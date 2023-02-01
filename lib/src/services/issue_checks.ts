@@ -86,12 +86,14 @@ export const validateInProgressHasWorklog =
         ? false
         : isBefore(lastBusinessDay(at).valueOf(), mostRecentWork.valueOf());
 
-    return match<readonly [boolean, boolean]>([
+    return match<readonly [boolean, boolean, boolean]>([
+      issue.fields.issuetype.name.toLowerCase() === "dependency",
       workedRecently,
       issue.inProgress,
     ])
-      .with([false, true], () => check.fail("no recent worklog"))
-      .with([true, true], () => check.ok("has recent worklog"))
+      .with([true, __, __], () => check.na("Dependencies do not need worklogs"))
+      .with([__, false, true], () => check.fail("no recent worklog"))
+      .with([__, true, true], () => check.ok("has recent worklog"))
       .otherwise(() => check.na(notInProgressReason));
   };
 
@@ -156,12 +158,16 @@ export const validateInProgressHasEstimate = (
   const originalEstimateSeconds =
     issue.fields.aggregatetimeoriginalestimate ?? 0;
 
-  return match<readonly [boolean, number]>([
+  return match<readonly [boolean, boolean, number]>([
+    issue.fields.issuetype.name.toLowerCase() === "dependency",
     issue.inProgress,
     originalEstimateSeconds,
   ])
-    .with([false, __], () => check.na(notInProgressReason))
-    .with([true, when((estimate) => estimate > 0)], () =>
+    .with([true, __, __], () =>
+      check.na("Dependencies do not require estimates")
+    )
+    .with([__, false, __], () => check.na(notInProgressReason))
+    .with([__, true, when((estimate) => estimate > 0)], () =>
       check.ok("has an estimate")
     )
     .otherwise(() => check.fail("has no estimate"));
@@ -377,7 +383,6 @@ export const issueActionRequired = (
         validateInProgressNotCloseToEstimate,
         validateNotStalledForMoreThanOneDay(now),
         validateNotStalledForMoreThanOneWeek(now),
-        validateDescription,
         validateTooLongInBacklog(now),
         validateDependenciesHaveDueDate,
         validateNotClosedDependenciesNotPassedDueDate(now),
