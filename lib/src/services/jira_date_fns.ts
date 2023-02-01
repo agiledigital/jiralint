@@ -7,6 +7,7 @@ import { ReadonlyDate } from "readonly-types";
  * @param duration duration to be formatted
  * @returns  duration in a Jira-like format.
  */
+// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
 export const jiraFormattedDuration = (duration: Duration): string => {
   const formatPart = (value: number | undefined, unit: string): string =>
     (value ?? 0) > 0 ? `${value ?? 0}${unit} ` : "";

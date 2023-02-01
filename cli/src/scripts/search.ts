@@ -144,6 +144,7 @@ const renderTable = (
       [issue.fields.assignee.name, noFormat],
       [progressGauge, noFormat],
       [
+        // eslint-disable-next-line spellcheck/spell-checker
         `${jiraFormattedSeconds(issue.fields.aggregateprogress.progress ?? 0)}`,
         noFormat,
       ],
@@ -151,16 +152,20 @@ const renderTable = (
     ];
   });
 
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
   const calculatedWidths = data.reduce((previous, current) => {
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     return current.map(([value], index) =>
       Math.max(stringLength(value) + 1, previous[index] ?? 0)
     );
   }, tableHeaderWidths);
 
   const renderRow = (
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     row: readonly (readonly [string, readonly clc.Format[]])[]
     // eslint-disable-next-line functional/no-return-void
   ): void => {
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     const columns = row.reduce((line, [text], index) => {
       const columnWidth = calculatedWidths[index] ?? 0;
       return line.column(text, columnWidth);
@@ -181,6 +186,7 @@ const renderTable = (
 };
 
 const search = async (
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
   jira: JiraClient,
   jql: string,
   output: OutputMode,
@@ -216,10 +222,12 @@ type OutputMode = "json" | "table";
 
 const DEFAULT_OUTPUT_MODE: OutputMode = "table";
 
+// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
 export default ({ command }: RootCommand): Argv<unknown> =>
   command(
     "search",
     "searches for jira issues using JQL and then lints",
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     (yargs) =>
       withQualityFieldsOption(yargs)
         .option("jql", {
@@ -248,7 +256,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           default: [],
         })
         .demandOption(["jql"]),
-    // eslint-disable-next-line functional/no-return-void
+    // eslint-disable-next-line functional/no-return-void, @typescript-eslint/prefer-readonly-parameter-types
     (args) => {
       // eslint-disable-next-line functional/no-expression-statement
       void search(

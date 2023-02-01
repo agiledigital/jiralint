@@ -1,7 +1,7 @@
 import { IssueAction } from "./issue_checks";
 
 /**
- * Derives the overall 'quality' of an issue by totalling the number of warnings
+ * Derives the overall 'quality' of an issue by totaling the number of warnings
  * and failures.
  *
  * @param issueAction the actionable info about the issue.

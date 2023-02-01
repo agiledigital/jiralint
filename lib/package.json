@@ -45,7 +45,8 @@
     "newtype-ts": "^0.3.4",
     "oauth": "^0.10.0",
     "readonly-types": "^3.0.0",
-    "ts-pattern": "^3.2.2"
+    "ts-pattern": "^3.2.2",
+    "io-ts-reporters": "2.0.1"
   },
   "devDependencies": {
     "@semantic-release/git": "9.0.1",
@@ -67,7 +68,8 @@
     "semantic-release": "19.0.5",
     "ts-jest": "28.0.8",
     "type-coverage": "2.22.0",
-    "typescript": "4.8.2"
+    "typescript": "4.8.2",
+    "ts-essentials": "9.3.0"
   },
   "typeCoverage": {
     "atLeast": 99,

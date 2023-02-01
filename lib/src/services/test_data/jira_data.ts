@@ -1,3 +1,4 @@
+/* eslint-disable spellcheck/spell-checker */
 /* eslint-disable sonarjs/no-duplicate-string */
 export const nullDescription = {
   expand:
@@ -138,6 +139,7 @@ export const regular = {
       avatarId: 11606,
     },
     subtasks: [],
+    duedate: "2023-01-27",
     created: "2014-09-08T12:50:57.000+1000",
     description: "some description",
     hierarchyLevel: 0,
