@@ -1,3 +1,4 @@
+/* eslint-disable spellcheck/spell-checker */
 import type { EnhancedIssue, Issue, IssueWorklog } from "../jira";
 import { readonlyDate } from "readonly-types";
 

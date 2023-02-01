@@ -3,6 +3,7 @@ import { Argv } from "yargs";
 import { RootCommand, withQualityFieldsOption } from "..";
 
 const rate = async (
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
   jira: JiraClient,
   key: string,
   quality: string,
@@ -22,10 +23,12 @@ const rate = async (
   console.log(`Updated [${JSON.stringify(update, null, 2)}]`);
 };
 
+// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
 export default ({ command }: RootCommand): Argv<unknown> =>
   command(
     "rate",
     "records the quality of a jira issue",
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     (yargs) =>
       withQualityFieldsOption(yargs)
         .option("key", {
@@ -43,7 +46,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           describe: "reason for assessment",
         })
         .demandOption(["key", "quality", "reason"]),
-    // eslint-disable-next-line functional/no-return-void
+    // eslint-disable-next-line functional/no-return-void, @typescript-eslint/prefer-readonly-parameter-types
     (args) => {
       // eslint-disable-next-line functional/no-expression-statement
       void rate(

@@ -1,7 +1,6 @@
 /* eslint-disable spellcheck/spell-checker */
 /* eslint-disable functional/functional-parameters */
 import { EnhancedIssue as EnhancedIssue } from "./jira";
-import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import { match, __, when, not } from "ts-pattern";
 import { ReadonlyDate } from "readonly-types";
 
@@ -13,11 +12,12 @@ import {
   differenceInCalendarMonths,
   isAfter,
 } from "date-fns";
+import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
 
 export type CheckResult = {
   readonly description: string;
   readonly outcome: "cant apply" | "not applied" | "ok" | "warn" | "fail";
-  readonly reasons: NonEmptyArray<string>;
+  readonly reasons: ReadonlyNonEmptyArray<string>;
 };
 
 export type Check = (issue: EnhancedIssue) => CheckResult;
@@ -177,9 +177,13 @@ export const validateDescription = (issue: EnhancedIssue): CheckResult => {
     : check.fail("description is empty");
 };
 
-const validateNotStalledForTooLong =
+const validateNotStalledFor =
   (at: ReadonlyDate) =>
-  (issue: EnhancedIssue): CheckResult => {
+  (
+    issue: EnhancedIssue,
+    duration: number,
+    durationDescription: string
+  ): CheckResult => {
     const check = checker("issues not stalled for too long");
 
     return match<readonly [boolean, ReadonlyDate | undefined]>([
@@ -192,12 +196,26 @@ const validateNotStalledForTooLong =
       )
       .with(
         [true, not(undefined)],
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         ([, transition]) =>
-          differenceInBusinessDays(at.valueOf(), transition.valueOf()) > 0,
-        () => check.fail("stalled for more than 1 day")
+          differenceInBusinessDays(at.valueOf(), transition.valueOf()) >
+          duration,
+        () => check.fail(`stalled for more than ${durationDescription}`)
       )
-      .otherwise(() => check.ok("stalled for less than on day"));
+      .otherwise(() =>
+        check.ok(`stalled for less than ${durationDescription}`)
+      );
   };
+
+const validateNotStalledForMoreThanOneDay =
+  (at: ReadonlyDate) =>
+  (issue: EnhancedIssue): CheckResult =>
+    validateNotStalledFor(at)(issue, 0, "one day");
+
+const validateNotStalledForMoreThanOneWeek =
+  (at: ReadonlyDate) =>
+  (issue: EnhancedIssue): CheckResult =>
+    validateNotStalledFor(at)(issue, 5, "one week");
 
 const validateInProgressNotCloseToEstimate = (
   issue: EnhancedIssue
@@ -238,6 +256,7 @@ export const validateTooLongInBacklog =
       .with([not("backlog"), __], () => check.na("not on the backlog"))
       .with(
         ["backlog", __],
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         ([, age]) => age > 3,
         () => check.fail(`in backlog for too long [${ageInMonths} months]`)
       )
@@ -274,9 +293,11 @@ export const validateComment =
       )
       .with(
         [not(undefined), __, false, __],
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         ([recentCommentTime, inProgress, , loggedTime]) =>
           isBefore(recentCommentTime, lastBusinessDay(at).valueOf()) &&
           (inProgress || loggedTime > 0),
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         ([recentCommentTime]) => {
           const commentAge = formatDistance(recentCommentTime, at.valueOf());
           return check.fail(
@@ -354,7 +375,8 @@ export const issueActionRequired = (
         validateComment(now),
         validateInProgressHasEstimate,
         validateInProgressNotCloseToEstimate,
-        validateNotStalledForTooLong(now),
+        validateNotStalledForMoreThanOneDay(now),
+        validateNotStalledForMoreThanOneWeek(now),
         validateDescription,
         validateTooLongInBacklog(now),
         validateDependenciesHaveDueDate,

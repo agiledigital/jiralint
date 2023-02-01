@@ -10,6 +10,7 @@ import { readonlyDate, ReadonlyDate } from "readonly-types/dist";
 export const readonlyDateFromDate = new T.Type<ReadonlyDate, Date, Date>(
   "readonly date",
   (u): u is ReadonlyDate => u instanceof Date,
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
   (u) => T.success(readonlyDate(u)),
   (a) => new Date(a.valueOf())
 );
@@ -25,6 +26,7 @@ export const readOnlyDateFromISOString = ITT.DateFromISOString.pipe(
 export const ReadonlyDateC = new T.Type<ReadonlyDate, Date, Date>(
   "ReadonlyDate",
   ITT.date.is,
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
   (u: Date) => E.of(readonlyDate(u)),
   (a) => new Date(a.valueOf())
 );

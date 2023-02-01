@@ -6,8 +6,6 @@ import * as ITT from "io-ts-types";
  * @param t the type of the property - if it is supplied and not null.
  * @returns a codec that will treat missing property or null value as undefined.
  */
-export const nullOrMissingToUndefined = <P, O = P>(
-  t: T.Type<P, O>
-  // eslint-disable-next-line functional/prefer-readonly-type
-): T.UnionC<[T.Type<P, O>, T.UndefinedC]> =>
-  ITT.fromNullable(T.union([t, T.undefined]), undefined);
+// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+export const nullOrMissingToUndefined = <P, O = P>(t: T.Type<P, O>) =>
+  ITT.fromNullable(T.union([t, T.readonly(T.undefined)]), undefined);

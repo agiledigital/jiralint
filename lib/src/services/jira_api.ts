@@ -20,7 +20,7 @@ import {
 import * as T from "io-ts";
 import { ReadonlyRecord } from "readonly-types";
 import { pipe, flow } from "fp-ts/lib/function";
-import { PathReporter } from "io-ts/PathReporter";
+import reporter from "io-ts-reporters";
 import { isLeft } from "fp-ts/lib/These";
 import { compareDesc } from "date-fns";
 
@@ -251,6 +251,7 @@ export const jiraClientWithUserCredentials = (
 const jiraClient = (
   jiraProtocol: "http" | "https",
   jiraHost: string,
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
   jiraApi: JiraApi
 ): JiraClient => {
   /**
@@ -260,10 +261,11 @@ const jiraClient = (
    * @returns the mapped validation.
    */
   const mapValidationError = <T>(
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     validation: T.Validation<T>
   ): Either<string, T> =>
     E.isLeft(validation)
-      ? E.left(JSON.stringify(PathReporter.report(validation)))
+      ? E.left(JSON.stringify(reporter.report(validation)))
       : validation;
 
   /**
@@ -294,7 +296,10 @@ const jiraClient = (
     );
 
   const boardDetails =
-    (jiraApi: JiraApi) =>
+    (
+      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+      jiraApi: JiraApi
+    ) =>
     (id: number): TE.TaskEither<string, Board> => {
       const fetch = (id: number): TE.TaskEither<string, JiraApi.JsonResponse> =>
         TE.tryCatch(
@@ -305,6 +310,7 @@ const jiraClient = (
         );
 
       const parsed = (
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         response: JiraApi.JsonResponse
       ): TE.TaskEither<string, Board> =>
         // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -314,7 +320,11 @@ const jiraClient = (
     };
 
   const boardsForProject =
-    (jiraApi: JiraApi, boardNamesToIgnore: readonly string[]) =>
+    (
+      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+      jiraApi: JiraApi,
+      boardNamesToIgnore: readonly string[]
+    ) =>
     (
       projectKey: string
     ): TE.TaskEither<string, ReadonlyRecord<string, readonly Board[]>> => {
@@ -335,6 +345,7 @@ const jiraClient = (
       );
 
       const parsed = (
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         response: JiraApi.JsonResponse
       ): TE.TaskEither<string, readonly BoardSummary[]> =>
         TE.fromEither(
@@ -377,6 +388,7 @@ const jiraClient = (
   ): TE.TaskEither<string, ReadonlyRecord<string, readonly Board[]>> => {
     const projectKeys: readonly string[] = issues
       .map((issue) => issue.fields.project.key)
+      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
       .filter((value, index, self) => self.indexOf(value) === index);
     const boards: TE.TaskEither<
       string,
@@ -411,6 +423,7 @@ const jiraClient = (
     );
 
     const parsed = (
+      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
       response: JiraApi.JsonResponse
     ): TE.TaskEither<string, readonly IssueWorklog[]> =>
       TE.fromEither(
@@ -445,6 +458,7 @@ const jiraClient = (
     );
 
     const parsed = (
+      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
       response: JiraApi.JsonResponse
     ): TE.TaskEither<string, readonly IssueComment[]> =>
       TE.fromEither(
@@ -503,8 +517,10 @@ const jiraClient = (
         }
       );
 
+      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
       const mapError = TE.mapLeft((error: string | JiraError) => {
         const fieldNotSettableError = (
+          // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
           jiraError: JiraError,
           fieldName: string
         ): boolean => {
@@ -590,6 +606,7 @@ const jiraClient = (
       );
 
       const convertIssueType = (
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         response: JiraApi.JsonResponse
       ): TE.TaskEither<string, readonly Issue[]> => {
         return jiraHost.includes("atlassian")
@@ -612,6 +629,7 @@ const jiraClient = (
       };
 
       const parseOnPremJira = (
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         response: JiraApi.JsonResponse
       ): TE.TaskEither<string, readonly OnPremIssue[]> =>
         TE.fromEither(
@@ -624,6 +642,7 @@ const jiraClient = (
         );
 
       const parseCloudJira = (
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         response: JiraApi.JsonResponse
       ): TE.TaskEither<string, readonly CloudIssue[]> =>
         TE.fromEither(
@@ -725,7 +744,7 @@ const jiraClient = (
 
         return pipe(
           mostRecentCommentLoaded
-            ? TE.right(issue.fields.comment?.comments)
+            ? TE.right(issue.fields.comment.comments)
             : fetchMostRecentComments(issue.key),
           TE.map((comments) => ({
             ...issue,
@@ -752,7 +771,7 @@ const jiraClient = (
 
         return pipe(
           mostRecentWorklogLoaded
-            ? TE.right(issue.fields.worklog?.worklogs)
+            ? TE.right(issue.fields.worklog.worklogs)
             : fetchMostRecentWorklogs(issue.key),
           TE.map((worklogs) => ({
             ...issue,
@@ -786,6 +805,7 @@ const jiraClient = (
       );
 
       const parsed = (
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
         fetchResult: JiraApi.JsonResponse
       ): TE.TaskEither<string, User> =>
         TE.fromEither(

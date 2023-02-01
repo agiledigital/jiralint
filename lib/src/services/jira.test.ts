@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 /* eslint-disable functional/no-return-void */
 /* eslint-disable functional/functional-parameters */
 /* eslint-disable functional/no-expression-statement */
@@ -13,7 +14,7 @@ import {
   CloudIssue,
   issueLastWorked,
 } from "./jira";
-import { PathReporter } from "io-ts/PathReporter";
+import reporter from "io-ts-reporters";
 import * as E from "fp-ts/lib/Either";
 import { isLeft } from "fp-ts/lib/These";
 
@@ -97,7 +98,7 @@ describe("decoding well-formed tickets", () => {
 
     // Then no errors should be reported.
     const actualErrors = E.isLeft(actual)
-      ? JSON.stringify(PathReporter.report(actual), null, 2)
+      ? JSON.stringify(reporter.report(actual), null, 2)
       : undefined;
     expect(actualErrors).toBeUndefined();
 
