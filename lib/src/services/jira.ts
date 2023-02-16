@@ -486,9 +486,9 @@ export const enhancedIssue = (
     descriptionField === undefined
       ? undefined
       : // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        (issue.fields[descriptionField] as string | undefined),
+        (issue.fields[descriptionField] as string | undefined | null),
     issue.fields.description,
-  ].find((s) => s !== undefined && s.length > 0);
+  ].find((s) => s !== undefined && s !== null && s.length > 0);
 
   return {
     ...issue,
@@ -504,6 +504,6 @@ export const enhancedIssue = (
     lastWorked: lastWorked,
     quality,
     qualityReason,
-    description,
+    description: description === null ? undefined : description,
   };
 };
