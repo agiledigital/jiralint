@@ -20,6 +20,7 @@ describe("calculating business hours", () => {
   const thursday = readonlyDate("2021-08-19T12:30:00.000+1000");
 
   it.each([
+    ["when the 'to' is before the 'from'", tuesday, monday, 0],
     ["when all time is before 9am", veryEarlyMonday, earlyMonday, 0],
     ["when all time is after 5pm", lateMonday, veryLateMonday, 0],
     ["within the same day", monday, laterOnMonday, 2.5],
