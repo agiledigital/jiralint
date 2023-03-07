@@ -96,6 +96,13 @@ export const jiraFormattedDistance = (
   return jiraFormattedDuration(duration);
 };
 
+/**
+ * Calculates the number of business hours (assumed 9-5, Mon-Fri) between two dates.
+ *
+ * @param to the 'end' date of the interval to measure.
+ * @param from the 'start' date of the interval to measure.
+ * @returns the number of business hours in the interval.
+ */
 export const differenceInBusinessHours = (
   to: ReadonlyDate,
   from: ReadonlyDate
