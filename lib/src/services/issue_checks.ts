@@ -13,6 +13,7 @@ import {
   isAfter,
 } from "date-fns";
 import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
+import { differenceInBusinessHours } from "./jira_date_fns";
 
 export type CheckResult = {
   readonly description: string;
@@ -222,6 +223,50 @@ const validateNotStalledForMoreThanOneWeek =
   (issue: EnhancedIssue): CheckResult =>
     validateNotStalledFor(at)(issue, 5, "one week");
 
+const vaildateNotWaitingForReviewForMoreThanHalfADay =
+  (at: ReadonlyDate) =>
+  (issue: EnhancedIssue): CheckResult => {
+    const check = checker("issues not waiting for review for too long");
+
+    return match<readonly [boolean, ReadonlyDate | undefined]>([
+      issue.waitingForReview,
+      issue.mostRecentTransition?.created,
+    ])
+      .with([false, __], () =>
+        check.na(`not waiting for review (${issue.fields.status.name})`)
+      )
+      .with([true, undefined], () =>
+        check.cantApply("can not determine transition date")
+      )
+      .with(
+        [true, not(undefined)],
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+        ([, transition]) => differenceInBusinessHours(at, transition) > 4,
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+        ([, transition]) =>
+          check.fail(
+            `waiting for review for more than half a day (${differenceInBusinessHours(
+              at,
+              transition
+            )})`
+          )
+      )
+      .with(
+        [true, not(undefined)],
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+        ([, transition]) => differenceInBusinessHours(at, transition) <= 4,
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+        ([, transition]) =>
+          check.ok(
+            `waiting for review for less than half a day (${differenceInBusinessHours(
+              at,
+              transition
+            )})`
+          )
+      )
+      .otherwise(() => check.ok(`waiting for review for less than half a day`));
+  };
+
 const validateInProgressNotCloseToEstimate = (
   issue: EnhancedIssue
 ): CheckResult => {
@@ -383,6 +428,7 @@ export const issueActionRequired = (
         validateInProgressNotCloseToEstimate,
         validateNotStalledForMoreThanOneDay(now),
         validateNotStalledForMoreThanOneWeek(now),
+        vaildateNotWaitingForReviewForMoreThanHalfADay(now),
         validateTooLongInBacklog(now),
         validateDependenciesHaveDueDate,
         validateNotClosedDependenciesNotPassedDueDate(now),

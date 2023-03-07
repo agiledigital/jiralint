@@ -1,4 +1,12 @@
-import { intervalToDuration } from "date-fns";
+import {
+  intervalToDuration,
+  differenceInBusinessDays,
+  differenceInMinutes,
+  min,
+  max,
+  setHours,
+  setMinutes,
+} from "date-fns";
 import { ReadonlyDate } from "readonly-types";
 
 /**
@@ -85,4 +93,37 @@ export const jiraFormattedDistance = (
     end: to.getTime(),
   });
   return jiraFormattedDuration(duration);
+};
+
+export const differenceInBusinessHours = (
+  to: ReadonlyDate,
+  from: ReadonlyDate
+) => {
+  const businessDays = differenceInBusinessDays(to.getTime(), from.getTime());
+
+  return (
+    (businessDays === 0
+      ? Math.max(
+          0,
+          differenceInMinutes(
+            min([to.getTime(), setMinutes(setHours(to.getTime(), 17), 0)]),
+            max([from.getTime(), setMinutes(setHours(from.getTime(), 9), 0)])
+          )
+        )
+      : Math.max(
+          0,
+          differenceInMinutes(
+            setMinutes(setHours(from.getTime(), 17), 0),
+            max([from.getTime(), setMinutes(setHours(from.getTime(), 9), 0)])
+          )
+        ) +
+        Math.max(
+          0,
+          differenceInMinutes(
+            min([to.getTime(), setMinutes(setHours(to.getTime(), 17), 0)]),
+            setMinutes(setHours(to.getTime(), 9), 0)
+          )
+        ) +
+        (businessDays - 1) * 8 * 60) / 60
+  );
 };
