@@ -20,11 +20,6 @@ module.exports = {
     "total-functions",
   ],
   rules: {
-    "functional/prefer-immutable-types": [
-      "error",
-      { enforcement: "Immutable" },
-    ],
-    "functional/no-return-void": "warn",
     // https://github.com/aotaduy/eslint-plugin-spellcheck
     "spellcheck/spell-checker": [
       "warn",
@@ -69,83 +64,9 @@ module.exports = {
       },
     ],
   },
-  overrides: [
-    {
-      "files": ["*.test.ts"],
-      "rules": {
-        "functional/no-return-void": "off",
-        "functional/functional-parameters": "off",
-        "functional/no-expression-statements": "off",
-        "functional/no-throw-statements": "off",
-        "functional/no-conditional-statements": "off",
-        "functional/prefer-immutable-types": ["error", { "enforcement": "ReadonlyDeep" }],
-      },
-    },
-  ],
   settings: {
     jest: {
       version: 28,
-    },
-    immutability: {
-      overrides: [
-        // https://github.com/RebeccaStevens/is-immutable-type#default-overrides
-        // Note: When providing custom overrides, the default ones will not be used.
-        // Be sure to include the default overrides in your custom overrides if you
-        // don't want to lose them. You can obtain them with getDefaultOverrides().
-        { name: "Map", to: "Mutable" },
-        { name: "Set", to: "Mutable" },
-        { name: "Date", to: "Mutable" },
-        { name: "URL", to: "Mutable" },
-        { name: "URLSearchParams", to: "Mutable" },
-        {
-          name: "ReadonlyArray",
-          to: "Immutable",
-          from: "ReadonlyDeep",
-        },
-        {
-          // From fp-ts
-          // export interface JsonArray extends ReadonlyArray<Json> {}
-          name: "JsonArray",
-          to: "Immutable",
-          from: "ReadonlyDeep",
-        },
-        {
-          // From fp-ts
-          // export declare type Json = boolean | number | string | null | JsonArray | JsonRecord
-          name: "Json",
-          to: "Immutable",
-          from: "ReadonlyShallow",
-        },
-        {
-          // From io-ts
-          // export interface Errors extends Array<ValidationError> {}
-          name: "Errors",
-          to: "Immutable", // Not actually true, we should raise a PR against io-ts to make Errors use a readonly array
-          from: "Mutable",
-        },
-        {
-          // From io-ts
-          // A readonly codec. Not the type of the value represented by the codec. The type of the codec itself.
-          // I.e., the result of calling `T.readonly(...)`.
-          name: "ReadonlyC",
-          to: "Immutable", // Not actually true, we should raise a PR against io-ts to make ReadonlyC truly immutable
-          from: "Mutable",
-        },
-        {
-          // TODO work out why this is being detected wrong
-          name: "ReadonlyDate",
-          to: "Immutable",
-        },
-        {
-          name: "ReadonlyNonEmptyArray",
-          to: "Immutable",
-        },
-        {
-          name: "Promise",
-          to: "Immutable",
-          from: "ReadonlyDeep", // Sigh
-        },
-      ],
     },
   },
 };
