@@ -1,8 +1,10 @@
+// TODO Promote this to at least ReadonlyDeep
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyShallow" }] */
+
 /* eslint-disable functional/no-return-void */
 /* eslint-disable sonarjs/no-duplicate-string */
-/* eslint-disable no-restricted-globals */
 /* eslint-disable functional/functional-parameters */
-/* eslint-disable functional/no-expression-statement */
+/* eslint-disable functional/no-expression-statements */
 
 import {
   validateInProgressHasEstimate,
@@ -34,7 +36,12 @@ describe("checking that in progress tickets have worklogs", () => {
       tuesday,
       { outcome: "fail", reasons: ["no recent worklog"] },
     ],
-    [true, monday, tuesday, { outcome: "ok", reasons: ["has recent worklog"] }],
+    [
+      true,
+      monday,
+      tuesday,
+      { outcome: "ok", reasons: ["has recent worklog"] },
+    ] as const,
     [
       false,
       undefined,
@@ -47,9 +54,10 @@ describe("checking that in progress tickets have worklogs", () => {
       tuesday,
       { outcome: "not applied", reasons: ["not in progress"] },
     ],
-  ])(
+  ] as const)(
     "checks as expected %#",
     (inProgress, lastWorklogCreated, checkTime, expected) => {
+      // eslint-disable-next-line functional/prefer-immutable-types
       const mostRecentWorklog =
         lastWorklogCreated === undefined
           ? undefined
@@ -58,6 +66,7 @@ describe("checking that in progress tickets have worklogs", () => {
               started: lastWorklogCreated,
             };
 
+      // eslint-disable-next-line functional/prefer-immutable-types
       const input = {
         ...IssueData.enhancedIssue,
         inProgress,
@@ -77,7 +86,8 @@ describe("checking that in progress tickets have estimates", () => {
     [true, 10, { outcome: "ok", reasons: ["has an estimate"] }],
     [false, 0, { outcome: "not applied", reasons: ["not in progress"] }],
     [false, 10, { outcome: "not applied", reasons: ["not in progress"] }],
-  ])("checks as expected", (inProgress, estimate, expected) => {
+  ] as const)("checks as expected", (inProgress, estimate, expected) => {
+    // eslint-disable-next-line functional/prefer-immutable-types
     const input = {
       ...IssueData.enhancedIssue,
       inProgress,
@@ -98,7 +108,8 @@ describe("checking that tickets have a description", () => {
     ["", { outcome: "fail", reasons: ["description is empty"] }],
     [undefined, { outcome: "fail", reasons: ["description is empty"] }],
     ["description", { outcome: "ok", reasons: ["description isn't empty"] }],
-  ])("checks as expected", (description, expected) => {
+  ] as const)("checks as expected", (description, expected) => {
+    // eslint-disable-next-line functional/prefer-immutable-types
     const input = {
       ...IssueData.enhancedIssue,
       fields: {
@@ -117,20 +128,20 @@ describe("checking comments", () => {
   it.each([
     [
       "a recent comment",
-      new Date("2020/12/1"),
+      readonlyDate("2020/12/1"),
       true,
       false,
       0,
-      new Date("2020/12/1"),
+      readonlyDate("2020/12/1"),
       { outcome: "ok", reasons: ["has recent comments"] },
     ],
     [
       "an old comment, in progress",
-      new Date("2019/10/1"),
+      readonlyDate("2019/10/1"),
       true,
       false,
       0,
-      new Date("2020/12/1"),
+      readonlyDate("2020/12/1"),
       {
         outcome: "fail",
         reasons: [
@@ -140,11 +151,11 @@ describe("checking comments", () => {
     ],
     [
       "an old comment, time logged",
-      new Date("2019/10/1"),
+      readonlyDate("2019/10/1"),
       false,
       false,
       10000000,
-      new Date("2020/12/1"),
+      readonlyDate("2020/12/1"),
       {
         outcome: "fail",
         reasons: [
@@ -154,11 +165,11 @@ describe("checking comments", () => {
     ],
     [
       "an old comment, time logged, closed",
-      new Date("2019/10/1"),
+      readonlyDate("2019/10/1"),
       false,
       true,
       10000000,
-      new Date("2020/12/1"),
+      readonlyDate("2020/12/1"),
       {
         outcome: "not applied",
         reasons: ["closed"],
@@ -166,14 +177,14 @@ describe("checking comments", () => {
     ],
     [
       undefined,
-      new Date("2020/10/1"),
+      readonlyDate("2020/10/1"),
       true,
       false,
       0,
-      new Date("2020/12/1"),
+      readonlyDate("2020/12/1"),
       { outcome: "fail", reasons: ["no comments, in progress"] },
     ],
-  ])(
+  ] as const)(
     "checks as expected",
     (
       commentText,
@@ -186,7 +197,7 @@ describe("checking comments", () => {
     ) => {
       const mostRecentComment =
         commentText !== undefined
-          ? {
+          ? ({
               id: "id",
               author: {
                 name: "some guy",
@@ -194,9 +205,10 @@ describe("checking comments", () => {
               body: commentText,
               created: date,
               updated: date,
-            }
+            } as const)
           : undefined;
 
+      // eslint-disable-next-line functional/prefer-immutable-types
       const input = {
         ...IssueData.enhancedIssue,
         fields: {
@@ -206,8 +218,9 @@ describe("checking comments", () => {
         mostRecentComment,
         inProgress,
         closed,
-      };
+      } as const;
 
+      // eslint-disable-next-line total-functions/no-unsafe-readonly-mutable-assignment
       const actual = validateComment(now)(input);
 
       expect(actual).toEqual(expect.objectContaining(expected));
@@ -218,30 +231,31 @@ describe("checking comments", () => {
 describe("checking for tickets languishing in the backlog", () => {
   it.each([
     [
-      new Date("2020/11/1"),
+      readonlyDate("2020/11/1"),
       "backlog",
-      new Date("2020/12/1"),
+      readonlyDate("2020/12/1"),
       { outcome: "ok", reasons: ["not too long in backlog"] },
     ],
     [
-      new Date("2019/06/1"),
+      readonlyDate("2019/06/1"),
       "backlog",
-      new Date("2020/12/1"),
+      readonlyDate("2020/12/1"),
       {
         outcome: "fail",
         reasons: ["in backlog for too long [18 months]"],
       },
     ],
     [
-      new Date("2019/10/1"),
+      readonlyDate("2019/10/1"),
       "not backlog",
-      new Date("2020/12/1"),
+      readonlyDate("2020/12/1"),
       {
         outcome: "not applied",
         reasons: ["not on the backlog"],
       },
     ],
-  ])("checks as expected", (created, column, now, expected) => {
+  ] as const)("checks as expected", (created, column, now, expected) => {
+    // eslint-disable-next-line functional/prefer-immutable-types
     const input = {
       ...IssueData.enhancedIssue,
       fields: {
@@ -266,7 +280,7 @@ describe("checking that dependencies have a due date", () => {
     ],
     [
       "not a dependency",
-      new Date("2019/06/1"),
+      readonlyDate("2019/06/1"),
       { outcome: "not applied", reasons: ["not a dependency"] },
     ],
     [
@@ -276,10 +290,11 @@ describe("checking that dependencies have a due date", () => {
     ],
     [
       "dependency",
-      new Date("2019/06/1"),
+      readonlyDate("2019/06/1"),
       { outcome: "ok", reasons: ["has a due date"] },
     ],
-  ])("checks as expected", (issueTypeName, duedate, expected) => {
+  ] as const)("checks as expected", (issueTypeName, duedate, expected) => {
+    // eslint-disable-next-line functional/prefer-immutable-types
     const input = {
       ...IssueData.enhancedIssue,
       fields: {
@@ -290,8 +305,9 @@ describe("checking that dependencies have a due date", () => {
         },
         duedate,
       },
-    };
+    } as const;
 
+    // eslint-disable-next-line total-functions/no-unsafe-readonly-mutable-assignment
     const actual = validateDependenciesHaveDueDate(input);
 
     expect(actual).toEqual(expect.objectContaining(expected));
@@ -303,68 +319,72 @@ describe("checking that dependencies have not blown past the due date", () => {
     [
       "not a dependency",
       undefined,
-      new Date("2018/06/1"),
+      readonlyDate("2018/06/1"),
       false,
       { outcome: "not applied", reasons: ["not a dependency"] },
     ],
     [
       "not a dependency",
-      new Date("2019/06/1"),
-      new Date("2018/06/1"),
+      readonlyDate("2019/06/1"),
+      readonlyDate("2018/06/1"),
       false,
       { outcome: "not applied", reasons: ["not a dependency"] },
     ],
     [
       "dependency",
       undefined,
-      new Date("2018/06/1"),
+      readonlyDate("2018/06/1"),
       false,
       { outcome: "not applied", reasons: ["dependency has no due date"] },
     ],
     [
       "dependency",
-      new Date("2019/06/1"),
-      new Date("2018/06/1"),
+      readonlyDate("2019/06/1"),
+      readonlyDate("2018/06/1"),
       false,
       { outcome: "fail", reasons: ["due date has passed"] },
     ],
     [
       "dependency",
-      new Date("2019/06/1"),
-      new Date("2018/06/1"),
+      readonlyDate("2019/06/1"),
+      readonlyDate("2018/06/1"),
       true,
       { outcome: "not applied", reasons: ["dependency is closed"] },
     ],
     [
       "dependency",
-      new Date("2017/06/1"),
-      new Date("2018/06/1"),
+      readonlyDate("2017/06/1"),
+      readonlyDate("2018/06/1"),
       false,
       { outcome: "ok", reasons: ["due date has not passed"] },
     ],
     [
       "dependency",
-      new Date("2017/06/1"),
-      new Date("2018/06/1"),
+      readonlyDate("2017/06/1"),
+      readonlyDate("2018/06/1"),
       true,
       { outcome: "not applied", reasons: ["dependency is closed"] },
     ],
-  ])("checks as expected", (issueTypeName, duedate, now, closed, expected) => {
-    const input = {
-      ...IssueData.enhancedIssue,
-      fields: {
-        ...IssueData.enhancedIssue.fields,
-        issuetype: {
-          ...IssueData.enhancedIssue.fields.issuetype,
-          name: issueTypeName,
+  ] as const)(
+    "checks as expected",
+    (issueTypeName, duedate, now, closed, expected) => {
+      // eslint-disable-next-line functional/prefer-immutable-types
+      const input = {
+        ...IssueData.enhancedIssue,
+        fields: {
+          ...IssueData.enhancedIssue.fields,
+          issuetype: {
+            ...IssueData.enhancedIssue.fields.issuetype,
+            name: issueTypeName,
+          },
+          duedate,
         },
-        duedate,
-      },
-      closed,
-    };
+        closed,
+      };
 
-    const actual = validateNotClosedDependenciesNotPassedDueDate(now)(input);
+      const actual = validateNotClosedDependenciesNotPassedDueDate(now)(input);
 
-    expect(actual).toEqual(expect.objectContaining(expected));
-  });
+      expect(actual).toEqual(expect.objectContaining(expected));
+    }
+  );
 });

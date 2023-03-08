@@ -1,3 +1,7 @@
+// TODO enforce at least readonly shallow
+/* eslint-disable functional/prefer-immutable-types */
+/* eslint-disable functional/type-declaration-immutability */
+
 import { pipe, flow } from "fp-ts/lib/function";
 import {
   JiraClient,
@@ -88,7 +92,6 @@ const configIfExists = (dir: string): CliConfig | undefined => {
         E.chain(decodeJson(jiralintConfigFileName, CliConfig.decode)),
         E.fold(
           (error) => {
-            // eslint-disable-next-line functional/no-expression-statement
             console.error(
               `\n${clc.red.bold(
                 jiralintConfigFileName
@@ -281,7 +284,7 @@ const verifyClient = (builder: JiraClientBuilder): JiraClient =>
     ? (() => {
         // we throw an error here as it's the only way to communicate these
         // errors with yargs at this point.
-        // eslint-disable-next-line functional/no-throw-statement
+        // eslint-disable-next-line functional/no-throw-statements
         throw new Error(
           `Missing required argument${
             builder.missingParameters.length === 1 ? ":" : "s:\n"
@@ -415,11 +418,11 @@ export const withQualityFieldsOption = <C extends RootCommand>(command: C) =>
     })
     .demandOption(["qualityFieldName", "qualityReasonFieldName"]);
 
-/* eslint-disable functional/no-expression-statement */
+/* eslint-disable functional/no-expression-statements */
 auth(rootCommand);
 rate(rootCommand);
 search(rootCommand);
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 rootCommand.demandCommand().strict().help().argv;
-/* eslint-enable functional/no-expression-statement */
+/* eslint-enable functional/no-expression-statements */

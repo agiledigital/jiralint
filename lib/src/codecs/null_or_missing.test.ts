@@ -1,7 +1,10 @@
+// TODO Promote this to at least ReadonlyDeep
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyShallow" }] */
+
 /* eslint-disable functional/functional-parameters */
-/* eslint-disable functional/no-expression-statement */
-/* eslint-disable functional/no-throw-statement */
-/* eslint-disable functional/no-conditional-statement */
+/* eslint-disable functional/no-expression-statements */
+/* eslint-disable functional/no-throw-statements */
+/* eslint-disable functional/no-conditional-statements */
 /* eslint-disable jest/no-conditional-expect */
 import * as T from "io-ts";
 import { nullOrMissingToUndefined } from "./null_or_missing";
@@ -11,16 +14,16 @@ import { isLeft } from "fp-ts/lib/These";
 const nullValue = {
   a: 10,
   b: null,
-};
+} as const;
 
 const missingValue = {
   a: 10,
-};
+} as const;
 
 const presentValue = {
   a: 10,
   b: "hi",
-};
+} as const;
 
 describe("null or missing codec", () => {
   it.each([

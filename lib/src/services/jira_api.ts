@@ -1,3 +1,6 @@
+// TODO Promote this to at least ReadonlyDeep
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyShallow" }] */
+/* eslint-disable functional/type-declaration-immutability */
 /* eslint-disable functional/functional-parameters */
 import { Either } from "fp-ts/lib/Either";
 import * as E from "fp-ts/lib/Either";
@@ -41,7 +44,7 @@ type FieldNotEditable = {
 // FIXME:  turn this into a class so your editor "go to source" works and you
 // only need to document the functions in one place
 export type JiraClient = {
-  readonly jiraApi: JiraApi;
+  readonly jiraApi: Readonly<JiraApi>;
   readonly updateIssueQuality: (
     key: string,
     quality: string,
@@ -55,7 +58,7 @@ export type JiraClient = {
     qualityField: string,
     qualityReasonField: string,
     customFieldNames: readonly string[]
-  ) => Promise<Either<string, ReadonlyArray<EnhancedIssue>>>;
+  ) => Promise<Either<string, ReadonlyArray<Readonly<EnhancedIssue>>>>;
   readonly currentUser: () => Promise<Either<string, User>>;
 };
 
@@ -82,7 +85,7 @@ export const getOAuthAccessToken = async (
   jiraConsumerSecret: string,
   secretCallback: (requestUrl: string) => Promise<string>
 ): Promise<Authorised> => {
-  const oauth = new OAuth(
+  const oauth: Readonly<OAuth> = new OAuth(
     `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/request-token`,
     `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/access-token`,
     jiraConsumerKey,
@@ -96,15 +99,15 @@ export const getOAuthAccessToken = async (
     readonly requestSecret: string;
     readonly requestToken: string;
   }>((resolve, reject) => {
-    // eslint-disable-next-line functional/no-expression-statement
+    // eslint-disable-next-line functional/no-expression-statements
     oauth.getOAuthRequestToken(
       (err: unknown, requestToken: string, requestSecret: string) => {
-        // eslint-disable-next-line functional/no-conditional-statement
+        // eslint-disable-next-line functional/no-conditional-statements
         if (err !== null) {
-          // eslint-disable-next-line functional/no-expression-statement
+          // eslint-disable-next-line functional/no-expression-statements
           reject(`Failed to get request token [${JSON.stringify(err)}].`);
         } else {
-          // eslint-disable-next-line functional/no-expression-statement
+          // eslint-disable-next-line functional/no-expression-statements
           resolve({
             requestSecret,
             requestToken,
@@ -122,18 +125,18 @@ export const getOAuthAccessToken = async (
   // Exchanges the temporary request token and secret for an access token and secret, using
   //the verification code to prove that the user authorised the application to use the API.
   return new Promise<Authorised>((resolve, reject) => {
-    // eslint-disable-next-line functional/no-expression-statement
+    // eslint-disable-next-line functional/no-expression-statements
     oauth.getOAuthAccessToken(
       requestToken,
       requestSecret,
       verificationCode,
       (err: unknown, accessToken: string, accessSecret: string) => {
-        // eslint-disable-next-line functional/no-conditional-statement
+        // eslint-disable-next-line functional/no-conditional-statements
         if (err !== null) {
-          // eslint-disable-next-line functional/no-expression-statement
+          // eslint-disable-next-line functional/no-expression-statements
           reject(JSON.stringify(err, null, 2));
         } else {
-          // eslint-disable-next-line functional/no-expression-statement
+          // eslint-disable-next-line functional/no-expression-statements
           resolve({
             status: "authorised",
             accessToken,
@@ -167,7 +170,7 @@ export const jiraClientWithOAuth = (
   accessToken: string,
   accessSecret: string
 ): JiraClient => {
-  const jiraApi: JiraApi = new JiraApi({
+  const jiraApi: Readonly<JiraApi> = new JiraApi({
     protocol: jiraProtocol,
     host: jiraHost,
     oauth: {
@@ -199,7 +202,7 @@ export const jiraClientWithPersonnelAccessToken = (
   jiraHost: string,
   personalAccessToken: string
 ): JiraClient => {
-  const jiraApi: JiraApi = new JiraApi({
+  const jiraApi: Readonly<JiraApi> = new JiraApi({
     protocol: jiraProtocol,
     host: jiraHost,
     bearer: personalAccessToken,
@@ -223,7 +226,7 @@ export const jiraClientWithUserCredentials = (
   username: string,
   password: string
 ): JiraClient => {
-  const jiraApi: JiraApi = new JiraApi({
+  const jiraApi: Readonly<JiraApi> = new JiraApi({
     protocol: jiraProtocol,
     host: jiraHost,
     username,
@@ -244,7 +247,7 @@ export const jiraClientWithUserCredentials = (
 const jiraClient = (
   jiraProtocol: "http" | "https",
   jiraHost: string,
-  jiraApi: JiraApi
+  jiraApi: Readonly<JiraApi>
 ): JiraClient => {
   /**
    * Maps the left side of a validation error into a human readable form. Leaves the right as is.
@@ -287,7 +290,7 @@ const jiraClient = (
     );
 
   const boardDetails =
-    (jiraApi: JiraApi) =>
+    (jiraApi: Readonly<JiraApi>) =>
     (id: number): TE.TaskEither<string, Board> => {
       const fetch = (id: number): TE.TaskEither<string, JiraApi.JsonResponse> =>
         TE.tryCatch(
@@ -306,7 +309,7 @@ const jiraClient = (
     };
 
   const boardsForProject =
-    (jiraApi: JiraApi, boardNamesToIgnore: readonly string[]) =>
+    (jiraApi: Readonly<JiraApi>, boardNamesToIgnore: readonly string[]) =>
     (
       projectKey: string
     ): TE.TaskEither<string, ReadonlyRecord<string, ReadonlyArray<Board>>> => {
@@ -338,7 +341,7 @@ const jiraClient = (
         );
 
       const boardIds = (
-        boards: ReadonlyArray<BoardSummary>
+        boards: ReadonlyArray<Readonly<BoardSummary>>
       ): TE.TaskEither<string, ReadonlyArray<number>> => {
         const ids: ReadonlyArray<number> = boards
           .filter(
@@ -363,12 +366,14 @@ const jiraClient = (
     };
 
   const boardsByProject = (
-    issues: ReadonlyArray<Issue>,
+    issues: ReadonlyArray<Readonly<Issue>>,
     boardNamesToIgnore: readonly string[]
   ): TE.TaskEither<string, ReadonlyRecord<string, ReadonlyArray<Board>>> => {
     const projectKeys: readonly string[] = issues
       .map((issue) => issue.fields.project.key)
-      .filter((value, index, self) => self.indexOf(value) === index);
+      .filter(
+        (value, index, self: readonly string[]) => self.indexOf(value) === index
+      );
     const boards: TE.TaskEither<
       string,
       ReadonlyArray<ReadonlyRecord<string, ReadonlyArray<Board>>>
@@ -449,7 +454,7 @@ const jiraClient = (
     return pipe(fetch, TE.chain(parsed));
   };
 
-  const issueLink = (issue: Issue): string =>
+  const issueLink = (issue: Readonly<Issue>): string =>
     `${jiraProtocol}://${jiraHost}/browse/${encodeURIComponent(issue.key)}`;
 
   return {
@@ -480,6 +485,7 @@ const jiraClient = (
               [qualityReasonField]: reason,
             },
           }),
+        // eslint-disable-next-line functional/prefer-immutable-types
         (error: unknown) => {
           const jiraError = JiraError.decode(error);
           return isLeft(jiraError)
@@ -492,9 +498,10 @@ const jiraClient = (
         }
       );
 
+      // eslint-disable-next-line functional/prefer-immutable-types
       const mapError = TE.mapLeft((error: string | JiraError) => {
         const fieldNotSettableError = (
-          jiraError: JiraError,
+          jiraError: Readonly<JiraError>,
           fieldName: string
         ): boolean => {
           const field = jiraError.error.errors[fieldName];
@@ -592,12 +599,16 @@ const jiraClient = (
         issues: ReadonlyArray<Issue>
       ): TE.TaskEither<string, ReadonlyArray<EnhancedIssue>> => {
         return TE.map(
-          (boards: ReadonlyRecord<string, ReadonlyArray<Board>>) => {
+          // eslint-disable-next-line functional/prefer-immutable-types
+          (boards: ReadonlyRecord<string, ReadonlyArray<Readonly<Board>>>) => {
+            // eslint-disable-next-line functional/prefer-immutable-types
             return issues.map((issue) => {
               const issueBoards = boards[issue.fields.project.key] ?? [];
               const boardByStatus = issueBoards.find((board) =>
+                // eslint-disable-next-line functional/prefer-immutable-types
                 board.columnConfig.columns.some((column) =>
                   column.statuses.some(
+                    // eslint-disable-next-line functional/prefer-immutable-types
                     (status) => status.id === issue.fields.status.id
                   )
                 )
@@ -615,7 +626,7 @@ const jiraClient = (
       };
 
       const issueWithComment = (
-        issue: EnhancedIssue
+        issue: Readonly<EnhancedIssue>
       ): TE.TaskEither<string, EnhancedIssue> => {
         const mostRecentCommentLoaded =
           issue.fields.comment !== undefined &&
@@ -623,10 +634,11 @@ const jiraClient = (
 
         const recentComment = (
           worklogs: ReadonlyArray<IssueComment> | undefined
-        ): IssueComment | undefined =>
+        ): Readonly<IssueComment> | undefined =>
           worklogs === undefined
             ? undefined
-            : [...worklogs].sort((w1, w2) =>
+            : // eslint-disable-next-line functional/prefer-immutable-types
+              [...worklogs].sort((w1, w2) =>
                 compareDesc(w1.created.valueOf(), w2.created.valueOf())
               )[0];
 
@@ -634,6 +646,7 @@ const jiraClient = (
           mostRecentCommentLoaded
             ? TE.right(issue.fields.comment?.comments)
             : fetchMostRecentComments(issue.key),
+          // eslint-disable-next-line functional/prefer-immutable-types
           TE.map((comments) => ({
             ...issue,
             mostRecentComment: recentComment(comments),
@@ -642,15 +655,15 @@ const jiraClient = (
       };
 
       const issueWithWorklog = (
-        issue: EnhancedIssue
+        issue: Readonly<EnhancedIssue>
       ): TE.TaskEither<string, EnhancedIssue> => {
         const mostRecentWorklogLoaded =
           issue.fields.worklog !== undefined &&
           issue.fields.worklog.total === issue.fields.worklog.worklogs.length;
 
         const recentWorklog = (
-          worklogs: ReadonlyArray<IssueWorklog> | undefined
-        ): IssueWorklog | undefined =>
+          worklogs: ReadonlyArray<Readonly<IssueWorklog>> | undefined
+        ): Readonly<IssueWorklog> | undefined =>
           worklogs === undefined
             ? undefined
             : [...worklogs].sort((w1, w2) =>
@@ -661,6 +674,7 @@ const jiraClient = (
           mostRecentWorklogLoaded
             ? TE.right(issue.fields.worklog?.worklogs)
             : fetchMostRecentWorklogs(issue.key),
+          // eslint-disable-next-line functional/prefer-immutable-types
           TE.map((worklogs) => ({
             ...issue,
             mostRecentWorklog: recentWorklog(worklogs),
@@ -672,7 +686,9 @@ const jiraClient = (
         fetchIssues,
         TE.chain(parsed),
         TE.chain(enhancedIssues),
+        // eslint-disable-next-line functional/prefer-immutable-types
         TE.chain(TE.traverseSeqArray((issue) => issueWithComment(issue))),
+        // eslint-disable-next-line functional/prefer-immutable-types
         TE.chain(TE.traverseSeqArray((issue) => issueWithWorklog(issue)))
       )();
     },

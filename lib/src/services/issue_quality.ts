@@ -1,3 +1,6 @@
+// TODO Promote this to at least ReadonlyDeep
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyShallow" }] */
+
 import { IssueAction } from "./issue_checks";
 
 /**

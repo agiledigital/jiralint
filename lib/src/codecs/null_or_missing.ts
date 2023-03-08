@@ -1,3 +1,5 @@
+// TODO Promote this to at least ReadonlyDeep
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyShallow" }] */
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";
 
@@ -8,6 +10,5 @@ import * as ITT from "io-ts-types";
  */
 export const nullOrMissingToUndefined = <P, O = P>(
   t: T.Type<P, O>
-  // eslint-disable-next-line functional/prefer-readonly-type
 ): T.UnionC<[T.Type<P, O, unknown>, T.UndefinedC]> =>
   ITT.fromNullable(T.union([t, T.undefined]), undefined);

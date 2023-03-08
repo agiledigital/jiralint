@@ -1,9 +1,12 @@
+// TODO Promote this to at least ReadonlyDeep
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyShallow" }] */
+
 /* eslint-disable functional/functional-parameters */
-/* eslint-disable functional/no-expression-statement */
+/* eslint-disable functional/no-expression-statements */
 import { IssueAction } from "./issue_checks";
 import { quality } from "./issue_quality";
 
-const allGood: IssueAction = {
+const allGood: Readonly<IssueAction> = {
   actionRequired: "none",
   checks: [
     {

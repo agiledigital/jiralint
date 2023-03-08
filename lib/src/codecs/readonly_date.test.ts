@@ -1,7 +1,11 @@
+// TODO Promote this to at least ReadonlyDeep
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyShallow" }] */
+
+/* eslint-disable functional/no-return-void */
 /* eslint-disable functional/functional-parameters */
-/* eslint-disable functional/no-expression-statement */
-/* eslint-disable functional/no-throw-statement */
-/* eslint-disable functional/no-conditional-statement */
+/* eslint-disable functional/no-expression-statements */
+/* eslint-disable functional/no-throw-statements */
+/* eslint-disable functional/no-conditional-statements */
 /* eslint-disable jest/no-conditional-expect */
 import { isLeft } from "fp-ts/lib/These";
 import {
@@ -14,6 +18,7 @@ import fc from "fast-check";
 describe("decoding a Date", () => {
   it("should decode a date to a readonly date", () => {
     fc.assert(
+      // eslint-disable-next-line functional/prefer-immutable-types
       fc.property(fc.date(), (d) => {
         // Given a date,
 
@@ -37,6 +42,7 @@ describe("decoding a Date", () => {
 describe("decoding a string", () => {
   it("should always pass issues in review or completed that have a non-empty statement", () => {
     fc.assert(
+      // eslint-disable-next-line functional/prefer-immutable-types
       fc.property(fc.date(), (d) => {
         // Given a date,
 

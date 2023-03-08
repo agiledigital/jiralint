@@ -1,3 +1,6 @@
+// TODO Promote this to at least ReadonlyDeep
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyShallow" }] */
+
 /* eslint-disable sonarjs/no-duplicate-string */
 export const nullDescription = {
   expand:
@@ -114,7 +117,7 @@ export const nullDescription = {
     total: 5,
     histories: [],
   },
-};
+} as const;
 
 export const regular = {
   expand:
@@ -231,7 +234,7 @@ export const regular = {
     total: 5,
     histories: [],
   },
-};
+} as const;
 
 export const withParent = {
   expand:
@@ -409,4 +412,4 @@ export const withParent = {
       },
     ],
   },
-};
+} as const;

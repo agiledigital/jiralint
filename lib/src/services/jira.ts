@@ -1,3 +1,8 @@
+// TODO re-enable this
+/* eslint-disable functional/type-declaration-immutability */
+// TODO Promote this to at least ReadonlyDeep
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyShallow" }] */
+
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";
 import { compareDesc } from "date-fns";
@@ -29,14 +34,16 @@ export const ChangeLog = T.type({
   author: Author,
   created: readOnlyDateFromISOString,
   items: T.readonlyArray(
-    T.type({
-      field: T.string,
-      fieldtype: T.string,
-      from: T.union([T.string, T.null]),
-      fromString: T.union([T.string, T.null]),
-      to: T.union([T.string, T.null]),
-      toString: T.union([T.string, T.null]),
-    })
+    T.readonly(
+      T.type({
+        field: T.string,
+        fieldtype: T.string,
+        from: T.union([T.string, T.null]),
+        fromString: T.union([T.string, T.null]),
+        to: T.union([T.string, T.null]),
+        toString: T.union([T.string, T.null]),
+      })
+    )
   ),
 });
 
@@ -75,11 +82,13 @@ export const Issue = T.type({
         }
       ),
       fixVersions: T.readonlyArray(
-        T.type({
-          id: T.string,
-          name: T.string,
-          released: T.boolean,
-        })
+        T.readonly(
+          T.type({
+            id: T.string,
+            name: T.string,
+            released: T.boolean,
+          })
+        )
       ),
       aggregateprogress: T.type({
         progress: nullOrMissingToUndefined(T.number),
@@ -122,7 +131,7 @@ export const Issue = T.type({
           ])
         )
       ),
-      duedate: nullOrMissingToUndefined(ITT.DateFromISOString),
+      duedate: nullOrMissingToUndefined(readOnlyDateFromISOString),
     }),
     T.partial({
       aggregatetimeestimate: nullOrMissingToUndefined(T.number),
@@ -225,21 +234,29 @@ export const JiraError = T.type({
 export type JiraError = T.TypeOf<typeof JiraError>;
 
 const columnForIssue = (
-  issue: Issue,
-  board: Board
-): BoardColumn | undefined => {
+  issue: Readonly<Issue>,
+  board: Readonly<Board>
+): Readonly<BoardColumn | undefined> => {
+  // eslint-disable-next-line functional/prefer-immutable-types
   return board.columnConfig.columns.find((column) =>
+    // eslint-disable-next-line functional/prefer-immutable-types
     column.statuses.some((status) => status.id === issue.fields.status.id)
   );
 };
 
-const issueInProgress = (issue: Issue, board?: Board): boolean => {
+const issueInProgress = (
+  issue: Readonly<Issue>,
+  board?: Readonly<Board>
+): boolean => {
   return board !== undefined
     ? columnForIssue(issue, board)?.name.toLowerCase() === "in progress"
     : issue.fields.status.name.toLowerCase() === "in progress";
 };
 
-const issueStalled = (issue: Issue, board?: Board): boolean => {
+const issueStalled = (
+  issue: Readonly<Issue>,
+  board?: Readonly<Board>
+): boolean => {
   return board !== undefined
     ? (columnForIssue(issue, board)?.name ?? "")
         .toLowerCase()
@@ -247,7 +264,10 @@ const issueStalled = (issue: Issue, board?: Board): boolean => {
     : issue.fields.status.name.toLowerCase().startsWith("stalled");
 };
 
-const issueClosed = (issue: Issue, board?: Board): boolean => {
+const issueClosed = (
+  issue: Readonly<Issue>,
+  board?: Readonly<Board>
+): boolean => {
   return board !== undefined
     ? columnForIssue(issue, board)?.name.toLowerCase() === "release ready"
     : issue.fields.status.statusCategory.name?.toLowerCase() === "done";
@@ -259,9 +279,11 @@ const issueClosed = (issue: Issue, board?: Board): boolean => {
  * @returns the changelogs where the status changed.
  */
 export const issueTransitions = (
-  issue: Issue
+  issue: Readonly<Issue>
 ): ReadonlyArray<IssueChangeLog> => {
-  const changelogs: readonly IssueChangeLog[] = [...issue.changelog.histories];
+  const changelogs: readonly Readonly<IssueChangeLog>[] = [
+    ...issue.changelog.histories,
+  ];
 
   return changelogs.filter((changelog) =>
     changelog.items.some(
@@ -276,10 +298,11 @@ export const issueTransitions = (
  * @returns the most recent transition, or undefined if no transitions have occurred.
  */
 export const mostRecentIssueTransition = (
-  issue: Issue
-): IssueChangeLog | undefined => {
+  issue: Readonly<Issue>
+): Readonly<IssueChangeLog | undefined> => {
   const transitions = issueTransitions(issue);
 
+  // eslint-disable-next-line functional/prefer-immutable-types
   return [...transitions].sort((a, b) =>
     compareDesc(a.created.valueOf(), b.created.valueOf())
   )[0];
@@ -291,11 +314,12 @@ export const mostRecentIssueTransition = (
  * @returns the most recent comment, or undefined if no comments have been made.
  */
 export const mostRecentIssueComment = (
-  issue: Issue
-): IssueComment | undefined => {
+  issue: Readonly<Issue>
+): Readonly<IssueComment | undefined> => {
   const comments =
     issue.fields.comment === undefined ? [] : issue.fields.comment.comments;
 
+  // eslint-disable-next-line functional/prefer-immutable-types
   return [...comments].sort((a, b) =>
     compareDesc(a.created.valueOf(), b.created.valueOf())
   )[0];
@@ -307,11 +331,12 @@ export const mostRecentIssueComment = (
  * @returns the most recent worklog, or undefined if no work has been logged.
  */
 export const mostRecentIssueWorklog = (
-  issue: Issue
-): IssueWorklog | undefined => {
+  issue: Readonly<Issue>
+): Readonly<IssueWorklog | undefined> => {
   const worklogs =
     issue.fields.worklog === undefined ? [] : issue.fields.worklog.worklogs;
 
+  // eslint-disable-next-line functional/prefer-immutable-types
   return [...worklogs].sort((a, b) =>
     compareDesc(a.started.valueOf(), b.started.valueOf())
   )[0];
@@ -323,7 +348,9 @@ export const mostRecentIssueWorklog = (
  * @param issue the issue.
  * @returns the time that the issue was last worked, or undefined if it has never been worked.
  */
-export const issueLastWorked = (issue: Issue): ReadonlyDate | undefined => {
+export const issueLastWorked = (
+  issue: Readonly<Issue>
+): ReadonlyDate | undefined => {
   const mostRecentTransition = mostRecentIssueTransition(issue);
 
   const mostRecentComment = mostRecentIssueComment(issue);
@@ -340,12 +367,12 @@ export const issueLastWorked = (issue: Issue): ReadonlyDate | undefined => {
 };
 
 export const enhancedIssue = (
-  issue: Issue,
+  issue: Readonly<Issue>,
   viewLink: string,
   qualityFieldName: string,
   qualityReasonFieldName: string,
-  board?: Board
-): EnhancedIssue => {
+  board?: Readonly<Board>
+): Readonly<EnhancedIssue> => {
   const mostRecentTransition = mostRecentIssueTransition(issue);
 
   const mostRecentComment = mostRecentIssueComment(issue);
@@ -362,6 +389,7 @@ export const enhancedIssue = (
     | string
     | undefined;
 
+  // eslint-disable-next-line total-functions/no-unsafe-readonly-mutable-assignment
   return {
     ...issue,
     inProgress: issueInProgress(issue, board),
@@ -376,5 +404,5 @@ export const enhancedIssue = (
     lastWorked: lastWorked,
     quality,
     qualityReason,
-  };
+  } as const;
 };

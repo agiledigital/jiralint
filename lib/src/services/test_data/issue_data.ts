@@ -1,7 +1,10 @@
+// TODO Promote this to at least ReadonlyDeep
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyShallow" }] */
+
 import type { EnhancedIssue, Issue, IssueWorklog } from "../jira";
 import { readonlyDate } from "readonly-types";
 
-export const issue: Issue = {
+export const issue: Readonly<Issue> = {
   key: "ABC-123",
   self: "self",
   fields: {
@@ -53,7 +56,7 @@ export const issue: Issue = {
   },
 };
 
-export const enhancedIssue: EnhancedIssue = {
+export const enhancedIssue: Readonly<EnhancedIssue> = {
   ...issue,
   inProgress: true,
   stalled: false,
@@ -65,7 +68,7 @@ export const enhancedIssue: EnhancedIssue = {
   qualityReason: "for a good reason",
 };
 
-export const worklog: IssueWorklog = {
+export const worklog: Readonly<IssueWorklog> = {
   author: {
     name: "danixon",
   },
