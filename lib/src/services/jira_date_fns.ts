@@ -7,8 +7,7 @@ import { ReadonlyDate } from "readonly-types";
  * @param duration duration to be formatted
  * @returns  duration in a Jira-like format.
  */
-// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-export const jiraFormattedDuration = (duration: Duration): string => {
+export const jiraFormattedDuration = (duration: Readonly<Duration>): string => {
   const formatPart = (value: number | undefined, unit: string): string =>
     (value ?? 0) > 0 ? `${value ?? 0}${unit} ` : "";
 
@@ -64,7 +63,7 @@ export const jiraFormattedSeconds = (seconds: number): string => {
     hours,
     minutes,
     secondsAfterMinutes,
-  };
+  } as const;
 
   return jiraFormattedDuration(duration);
 };
@@ -80,7 +79,7 @@ export const jiraFormattedDistance = (
   from: ReadonlyDate,
   to: ReadonlyDate
 ): string => {
-  const duration = intervalToDuration({
+  const duration: Readonly<Duration> = intervalToDuration({
     start: from.getTime(),
     end: to.getTime(),
   });

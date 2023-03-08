@@ -16,7 +16,7 @@ import stringLength from "string-length";
 import * as CLUI from "clui";
 import * as clc from "cli-color";
 
-// eslint-disable-next-line functional/no-expression-statement
+// eslint-disable-next-line functional/no-expression-statements
 require("cli-color");
 
 type CheckedIssue = EnhancedIssue & {
@@ -30,12 +30,14 @@ const checkedIssues = (
 ): readonly CheckedIssue[] => {
   // eslint-disable-next-line no-restricted-globals
   const now = readonlyDate(new Date());
+  // eslint-disable-next-line functional/prefer-immutable-types
   return issues.map((issue) => {
     const customChecks = [] as const; // TODO ability to dynamically load custom checks
     const issueAction = issueActionRequired(issue, now, customChecks);
 
     const issueQuality = quality(issueAction);
 
+    // eslint-disable-next-line functional/prefer-immutable-types
     const reasons: readonly string[] = issueAction.checks.flatMap((check) =>
       check.outcome === "warn" || check.outcome === "fail" ? check.reasons : []
     );
@@ -50,8 +52,9 @@ const checkedIssues = (
 
 // eslint-disable-next-line functional/no-return-void
 const renderJson = (issues: readonly EnhancedIssue[]): void => {
-  // eslint-disable-next-line functional/no-expression-statement, functional/no-return-void
+  // eslint-disable-next-line functional/no-return-void
   checkedIssues(issues).forEach((issue) =>
+    // eslint-disable-next-line no-console
     console.log(JSON.stringify(issue, null, 2))
   );
 };
@@ -61,7 +64,7 @@ const renderTable = (
   qualityFieldName: string
   // eslint-disable-next-line functional/no-return-void
 ): void => {
-  // eslint-disable-next-line functional/no-expression-statement
+  // eslint-disable-next-line functional/no-expression-statements, no-console
   console.clear();
 
   const tableHeaders: readonly string[] = [
@@ -101,6 +104,7 @@ const renderTable = (
   const data: readonly (readonly (readonly [
     string,
     readonly clc.Format[]
+    // eslint-disable-next-line functional/prefer-immutable-types
   ])[])[] = checkedIssues(issues).map((issue) => {
     const originalEstimateSeconds =
       issue.fields.timetracking.originalEstimateSeconds ?? 0;
@@ -152,41 +156,37 @@ const renderTable = (
     ];
   });
 
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+  // eslint-disable-next-line functional/prefer-immutable-types
   const calculatedWidths = data.reduce((previous, current) => {
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     return current.map(([value], index) =>
       Math.max(stringLength(value) + 1, previous[index] ?? 0)
     );
   }, tableHeaderWidths);
 
   const renderRow = (
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     row: readonly (readonly [string, readonly clc.Format[]])[]
     // eslint-disable-next-line functional/no-return-void
   ): void => {
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     const columns = row.reduce((line, [text], index) => {
       const columnWidth = calculatedWidths[index] ?? 0;
       return line.column(text, columnWidth);
     }, new CLUI.Line(outputBuffer));
 
-    // eslint-disable-next-line functional/no-expression-statement
+    // eslint-disable-next-line functional/no-expression-statements
     columns.fill().store();
   };
 
-  // eslint-disable-next-line functional/no-expression-statement
+  // eslint-disable-next-line functional/no-expression-statements, functional/prefer-immutable-types
   renderRow(tableHeaders.map((header) => [header, [clc.cyan]]));
 
-  // eslint-disable-next-line functional/no-expression-statement
+  // eslint-disable-next-line functional/no-expression-statements
   data.forEach(renderRow);
 
-  // eslint-disable-next-line functional/no-expression-statement
+  // eslint-disable-next-line functional/no-expression-statements
   outputBuffer.output();
 };
 
 const search = async (
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
   jira: JiraClient,
   jql: string,
   output: OutputMode,
@@ -196,7 +196,7 @@ const search = async (
   qualityReasonFieldName: string
 ): Promise<void> => {
   const countdown = new CLUI.Spinner("Searching the things...  ");
-  // eslint-disable-next-line functional/no-expression-statement
+  // eslint-disable-next-line functional/no-expression-statements
   countdown.start();
 
   const issues = await jira.searchIssues(
@@ -208,12 +208,11 @@ const search = async (
     {}
   );
 
-  // eslint-disable-next-line functional/no-expression-statement
+  // eslint-disable-next-line functional/no-expression-statements
   countdown.stop();
 
   const render = output === "table" ? renderTable : renderJson;
 
-  // eslint-disable-next-line functional/no-expression-statement
   isLeft(issues)
     ? console.error(issues)
     : render(issues.right, qualityFieldName);
@@ -223,12 +222,12 @@ type OutputMode = "json" | "table";
 
 const DEFAULT_OUTPUT_MODE: OutputMode = "table";
 
-// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+// eslint-disable-next-line functional/prefer-immutable-types
 export default ({ command }: RootCommand): Argv<unknown> =>
   command(
     "search",
     "searches for jira issues using JQL and then lints",
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+    // eslint-disable-next-line functional/prefer-immutable-types
     (yargs) =>
       withQualityFieldsOption(yargs)
         .option("jql", {
@@ -257,13 +256,15 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           default: [],
         })
         .demandOption(["jql"]),
-    // eslint-disable-next-line functional/no-return-void, @typescript-eslint/prefer-readonly-parameter-types
+    // eslint-disable-next-line functional/no-return-void, functional/prefer-immutable-types
     (args) => {
-      // eslint-disable-next-line functional/no-expression-statement
+      // eslint-disable-next-line functional/no-expression-statements
       void search(
         args.jira,
         args.jql,
-        args.output,
+        args.output === "table" || args.output === "json"
+          ? args.output
+          : DEFAULT_OUTPUT_MODE,
         args.boardNamesToIgnore,
         args.customFieldNames,
         args.qualityFieldName,

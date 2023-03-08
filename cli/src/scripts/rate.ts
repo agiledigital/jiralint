@@ -3,7 +3,6 @@ import { Argv } from "yargs";
 import { RootCommand, withQualityFieldsOption } from "..";
 
 const rate = async (
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
   jira: JiraClient,
   key: string,
   quality: string,
@@ -19,16 +18,16 @@ const rate = async (
     reasonFieldName
   );
 
-  // eslint-disable-next-line functional/no-expression-statement
+  // eslint-disable-next-line no-console
   console.log(`Updated [${JSON.stringify(update, null, 2)}]`);
 };
 
-// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+// eslint-disable-next-line functional/prefer-immutable-types
 export default ({ command }: RootCommand): Argv<unknown> =>
   command(
     "rate",
     "records the quality of a jira issue",
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+    // eslint-disable-next-line functional/prefer-immutable-types
     (yargs) =>
       withQualityFieldsOption(yargs)
         .option("key", {
@@ -46,9 +45,9 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           describe: "reason for assessment",
         })
         .demandOption(["key", "quality", "reason"]),
-    // eslint-disable-next-line functional/no-return-void, @typescript-eslint/prefer-readonly-parameter-types
+    // eslint-disable-next-line functional/prefer-immutable-types, functional/no-return-void
     (args) => {
-      // eslint-disable-next-line functional/no-expression-statement
+      // eslint-disable-next-line functional/no-expression-statements
       void rate(
         args.jira,
         args.key,

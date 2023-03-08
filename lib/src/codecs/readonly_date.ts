@@ -9,7 +9,6 @@ import { readonlyDate, ReadonlyDate } from "readonly-types/dist";
 export const readonlyDateFromDate = new T.Type<ReadonlyDate, string, unknown>(
   "readonly date",
   (u): u is ReadonlyDate => u instanceof Date,
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
   (u, context) =>
     typeof u === "string"
       ? ITT.DateFromISOString.decode(u)

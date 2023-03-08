@@ -27,9 +27,9 @@ const auth = async (
       return secret;
     }
   );
-  // eslint-disable-next-line functional/no-expression-statement
+  // eslint-disable-next-line no-console
   console.log(`Access token:  ${accessToken}`);
-  // eslint-disable-next-line functional/no-expression-statement
+  // eslint-disable-next-line no-console
   console.log(`Access secret: ${accessSecret}`);
 
   const jiraClient = jiraClientWithOAuth(
@@ -43,24 +43,23 @@ const auth = async (
 
   const user = await jiraClient.currentUser();
 
-  // eslint-disable-next-line functional/no-expression-statement
   isLeft(user)
     ? console.error(`Failed to get current user after auth [${user.left}]`)
     : console.info(JSON.stringify(user.right, null, 2));
 };
 
-// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+// eslint-disable-next-line functional/prefer-immutable-types
 export default ({ command }: RootCommand): Argv<unknown> =>
   command(
     "auth",
     // eslint-disable-next-line spellcheck/spell-checker
     "authorises the linter to call Jira APIs and outputs the access token and secret",
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+    // eslint-disable-next-line functional/prefer-immutable-types
     (yargs) => withAuthenticationOptions(yargs),
-    // eslint-disable-next-line functional/no-return-void, @typescript-eslint/prefer-readonly-parameter-types
+    // eslint-disable-next-line functional/no-return-void, functional/prefer-immutable-types
     (args) => {
       const protocol = args["jira.protocol"];
-      // eslint-disable-next-line functional/no-expression-statement
+      // eslint-disable-next-line functional/no-expression-statements
       void auth(
         // yargs ensures that this is always 'http' or 'https'
         protocol === "http" || protocol === "https" ? protocol : "https",

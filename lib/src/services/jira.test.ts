@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 /* eslint-disable functional/no-return-void */
 /* eslint-disable functional/functional-parameters */
-/* eslint-disable functional/no-expression-statement */
-/* eslint-disable functional/no-throw-statement */
-/* eslint-disable functional/no-conditional-statement */
+/* eslint-disable functional/no-expression-statements */
+/* eslint-disable functional/no-throw-statements */
+/* eslint-disable functional/no-conditional-statements */
 /* eslint-disable jest/no-conditional-expect */
 import {
   mostRecentIssueComment,
@@ -29,7 +28,7 @@ const commentFrom2021 = {
   body: "new comment",
   created: readonlyDate("2021-04-03"),
   updated: readonlyDate("2000-04-03"),
-};
+} as const;
 
 const commentFrom2000 = {
   id: "1",
@@ -37,7 +36,7 @@ const commentFrom2000 = {
   body: "old comment",
   created: readonlyDate("2000-02-03"),
   updated: readonlyDate("2030-04-03"),
-};
+} as const;
 
 const descriptionChangeItem = {
   field: "description",
@@ -46,7 +45,7 @@ const descriptionChangeItem = {
   fromString: "",
   to: "description",
   toString: "description",
-};
+} as const;
 
 const statusChangeItem = {
   field: "status",
@@ -55,35 +54,35 @@ const statusChangeItem = {
   fromString: "Ready for Estimation",
   to: "2",
   toString: "In Progress",
-};
+} as const;
 
 const descriptionHistoryFrom2021 = {
   id: "1",
   author: { name: IssueData.issue.fields.assignee?.name },
   created: readonlyDate("2021-06-03"),
   items: [descriptionChangeItem],
-};
+} as const;
 
 const statusChangeFrom2000 = {
   id: "2",
   author: { name: IssueData.issue.fields.assignee?.name },
   created: readonlyDate("2000-03-03"),
   items: [statusChangeItem],
-};
+} as const;
 
 const mixedChangeFrom2022 = {
   id: "4",
   author: { name: IssueData.issue.fields.assignee?.name },
   created: readonlyDate("2022-03-03"),
   items: [statusChangeItem, descriptionChangeItem],
-};
+} as const;
 
 const worklogFrom2019 = {
   author: { name: IssueData.issue.fields.assignee?.name },
   started: readonlyDate("2019-03-03"),
   timeSpentSeconds: 1000,
   comment: "no comment",
-};
+} as const;
 
 describe("decoding well-formed tickets", () => {
   it.each([
@@ -115,13 +114,15 @@ describe("decoding well-formed tickets", () => {
 });
 
 describe("finding the most recent work date", () => {
+  // eslint-disable-next-line functional/prefer-immutable-types
   const issueWithTransition = {
     ...IssueData.issue,
     changelog: {
       histories: [mixedChangeFrom2022],
     },
-  };
+  } as const;
 
+  // eslint-disable-next-line functional/prefer-immutable-types
   const issueWithComment = {
     ...IssueData.issue,
     fields: {
@@ -133,8 +134,9 @@ describe("finding the most recent work date", () => {
         startAt: 0,
       },
     },
-  };
+  } as const;
 
+  // eslint-disable-next-line functional/prefer-immutable-types
   const issueWithWorklog = {
     ...IssueData.issue,
     fields: {
@@ -146,8 +148,9 @@ describe("finding the most recent work date", () => {
         startAt: 0,
       },
     },
-  };
+  } as const;
 
+  // eslint-disable-next-line functional/prefer-immutable-types
   const issueWithEverything = {
     ...IssueData.issue,
     fields: {
@@ -168,7 +171,7 @@ describe("finding the most recent work date", () => {
     changelog: {
       histories: [mixedChangeFrom2022],
     },
-  };
+  } as const;
 
   it.each([
     ["not worked", IssueData.issue, undefined],
@@ -176,8 +179,9 @@ describe("finding the most recent work date", () => {
     ["with a comment", issueWithComment, commentFrom2000.created],
     ["with a worklog", issueWithWorklog, worklogFrom2019.started],
     ["with all three", issueWithEverything, mixedChangeFrom2022.created],
-  ])(
+  ] as const)(
     "should returned for expected result for an issue %s",
+    // eslint-disable-next-line functional/prefer-immutable-types
     (_desc, issue, expected) => {
       // Given an issue.
 
@@ -196,8 +200,9 @@ describe("finding the most recent comment", () => {
     [[commentFrom2000], commentFrom2000],
     [[commentFrom2000, commentFrom2021], commentFrom2021],
     [[commentFrom2000, commentFrom2021, commentFrom2000], commentFrom2021],
-  ])("should be found as expected", (comments, expected) => {
+  ] as const)("should be found as expected", (comments, expected) => {
     // Given an issue with the provided comments
+    // eslint-disable-next-line functional/prefer-immutable-types
     const issue = {
       ...IssueData.issue,
       fields: {
@@ -234,8 +239,9 @@ describe("finding transitions", () => {
       [statusChangeFrom2000, mixedChangeFrom2022, descriptionHistoryFrom2021],
       [statusChangeFrom2000, mixedChangeFrom2022],
     ],
-  ])("should filter %s as expected", (_desc, histories, expected) => {
+  ] as const)("should filter %s as expected", (_desc, histories, expected) => {
     // Given some change histories.
+    // eslint-disable-next-line functional/prefer-immutable-types
     const issue = {
       ...IssueData.issue,
       changelog: {
@@ -273,8 +279,9 @@ describe("finding the most recent transition", () => {
       [statusChangeFrom2000, mixedChangeFrom2022, statusChangeFrom2000],
       mixedChangeFrom2022,
     ],
-  ])("should be found as expected", (histories, expected) => {
+  ] as const)("should be found as expected", (histories, expected) => {
     // Given an issue with the provided changelogs
+    // eslint-disable-next-line functional/prefer-immutable-types
     const issue = {
       ...IssueData.issue,
       changelog: {
@@ -298,6 +305,7 @@ describe("enhancing issues", () => {
         fc.string({ minLength: 1 }).filter((s) => s.trim().length > 0),
         (fieldName, value) => {
           // Given an issue that has the provided value
+          // eslint-disable-next-line functional/prefer-immutable-types
           const issue = {
             ...IssueData.issue,
             fields: {
@@ -328,6 +336,7 @@ describe("enhancing issues", () => {
         fc.string({ minLength: 1 }).filter((s) => s.trim().length > 0),
         (fieldName, value) => {
           // Given an issue that has the provided value
+          // eslint-disable-next-line functional/prefer-immutable-types
           const issue = {
             ...IssueData.issue,
             fields: {
