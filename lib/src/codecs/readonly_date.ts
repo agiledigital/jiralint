@@ -1,8 +1,7 @@
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";
-import { readonlyDate, ReadonlyDate } from "readonly-types/dist";
+import { readonlyDate, ReadonlyDate } from "readonly-types";
 
-/* eslint-disable no-restricted-globals*/
 /**
  * Codec to convert between a `Date` and a `ReadonlyDate`.
  */
@@ -20,5 +19,3 @@ export const readonlyDateFromDate = new T.Type<ReadonlyDate, string, unknown>(
   // eslint-disable-next-line functional/prefer-immutable-types
   (a) => a.toISOString()
 );
-
-/* eslint-enable no-restricted-globals*/

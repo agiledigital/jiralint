@@ -13,7 +13,7 @@ import { isLeft } from "fp-ts/lib/These";
 
 import * as TestData from "./test_data/jira_data";
 import * as IssueData from "./test_data/issue_data";
-import { readonlyDate } from "readonly-types/dist";
+import { readonlyDate } from "readonly-types";
 import fc from "fast-check";
 
 const commentFrom2021 = {

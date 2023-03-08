@@ -11,7 +11,7 @@ import {
   Check,
 } from "@agiledigital/jiralint-lib";
 import { isLeft } from "fp-ts/lib/Either";
-import { readonlyDate } from "readonly-types/dist";
+import { readonlyDate, readonlyNow } from "readonly-types";
 import stringLength from "string-length";
 
 import * as CLUI from "clui";
@@ -29,8 +29,8 @@ type CheckedIssue = EnhancedIssue & {
 const checkedIssues = (
   issues: readonly EnhancedIssue[]
 ): readonly CheckedIssue[] => {
-  // eslint-disable-next-line no-restricted-globals
-  const now = readonlyDate(new Date());
+  const now = readonlyDate(readonlyNow());
+
   // eslint-disable-next-line functional/prefer-immutable-types
   return issues.map((issue) => {
     const customChecks: readonly Check[] = [] as const; // TODO ability to dynamically load custom checks
@@ -100,8 +100,7 @@ const renderTable = (
     height: "console",
   });
 
-  // eslint-disable-next-line no-restricted-globals
-  const now = readonlyDate(new Date());
+  const now = readonlyDate(readonlyNow());
 
   const data: readonly (readonly (readonly [
     string,

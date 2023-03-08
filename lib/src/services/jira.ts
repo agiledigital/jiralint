@@ -3,7 +3,7 @@
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";
 import { compareDesc } from "date-fns";
-import { ReadonlyDate, ReadonlyRecord } from "readonly-types/dist";
+import { ReadonlyDate, ReadonlyRecord } from "readonly-types";
 import { nullOrMissingToUndefined, readonlyDateFromDate } from "../codecs";
 
 export const PaginatedResults = T.readonly(
