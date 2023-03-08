@@ -70,7 +70,6 @@ const decodeJson =
         flow(
           decoder,
           E.mapLeft(
-            // eslint-disable-next-line functional/prefer-immutable-types
             (error) =>
               `Failed to decode ${name} [${JSON.stringify(
                 PathReporter.report(E.left(error))

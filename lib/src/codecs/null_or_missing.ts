@@ -7,4 +7,4 @@ import * as ITT from "io-ts-types";
  * @returns a codec that will treat missing property or null value as undefined.
  */
 export const nullOrMissingToUndefined = <P, O = P>(t: T.Type<P, O>) =>
-  ITT.fromNullable(T.union([t, T.undefined]), undefined);
+  T.readonly(ITT.fromNullable(T.union([t, T.undefined]), undefined));

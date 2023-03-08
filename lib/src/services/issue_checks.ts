@@ -26,7 +26,6 @@ export type Check = (issue: EnhancedIssue) => CheckResult;
 
 export type Action = "none" | "inspect";
 
-// eslint-disable-next-line functional/type-declaration-immutability
 export type IssueAction = {
   readonly actionRequired: Action;
   readonly checks: readonly CheckResult[];

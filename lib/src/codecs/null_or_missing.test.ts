@@ -30,10 +30,12 @@ describe("null or missing codec", () => {
     [presentValue, "hi"],
   ])("should decode as expected", (value, expected) => {
     // Given a codec that expects an `a` and is tolerant of 'missing' `b`.
-    const codec = T.type({
-      a: T.number,
-      b: nullOrMissingToUndefined(T.string),
-    });
+    const codec = T.readonly(
+      T.type({
+        a: T.number,
+        b: nullOrMissingToUndefined(T.string),
+      })
+    );
 
     // When the test data is decoded.
     const actual = codec.decode(value);
@@ -59,7 +61,9 @@ describe("null or missing codec", () => {
     // Then it should have failed decoding.
     if (isLeft(actual)) {
       const error = JSON.stringify(PathReporter.report(actual), null, 2);
-      expect(error).toContain("Invalid value false supplied to : fromNullable");
+      expect(error).toContain(
+        "Invalid value false supplied to : Readonly<fromNullable"
+      );
     } else {
       throw new Error(
         `[${JSON.stringify(actual, null, 2)}] is unexpectedly left.`

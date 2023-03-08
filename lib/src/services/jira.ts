@@ -293,6 +293,7 @@ export const Board = T.readonly(
   })
 );
 
+// eslint-disable-next-line functional/type-declaration-immutability
 export type Board = Readonly<T.TypeOf<typeof Board>>;
 
 export const BoardSummary = T.readonly(
