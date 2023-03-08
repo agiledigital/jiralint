@@ -1,3 +1,5 @@
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
+
 import { IssueAction } from "./issue_checks";
 
 /**

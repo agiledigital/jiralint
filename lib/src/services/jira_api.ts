@@ -1,3 +1,4 @@
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
 /* eslint-disable spellcheck/spell-checker */
 import { Either } from "fp-ts/lib/Either";
 import * as E from "fp-ts/lib/Either";

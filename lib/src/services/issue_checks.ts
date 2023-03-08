@@ -1,3 +1,4 @@
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
 /* eslint-disable spellcheck/spell-checker */
 /* eslint-disable functional/functional-parameters */
 import { EnhancedIssue as EnhancedIssue } from "./jira";

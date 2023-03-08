@@ -6,9 +6,11 @@ import { readonlyDate, ReadonlyDate } from "readonly-types/dist";
 /**
  * Codec to convert between a `Date` and a `ReadonlyDate`.
  */
+// eslint-disable-next-line functional/prefer-immutable-types
 export const readonlyDateFromDate = new T.Type<ReadonlyDate, string, unknown>(
   "readonly date",
   (u): u is ReadonlyDate => u instanceof Date,
+  // eslint-disable-next-line functional/prefer-immutable-types
   (u, context) =>
     typeof u === "string"
       ? ITT.DateFromISOString.decode(u)

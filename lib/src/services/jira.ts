@@ -1,3 +1,4 @@
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
 /* eslint-disable spellcheck/spell-checker */
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";

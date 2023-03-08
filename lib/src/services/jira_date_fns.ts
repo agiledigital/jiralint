@@ -1,3 +1,5 @@
+/* eslint-next-line functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
+
 import { intervalToDuration } from "date-fns";
 import { ReadonlyDate } from "readonly-types";
 
@@ -38,6 +40,7 @@ export const jiraFormattedDuration = (duration: Readonly<Duration>): string => {
  * @returns duration in a Jira-like format.
  */
 export const jiraFormattedSeconds = (seconds: number): string => {
+  // eslint-disable-next-line functional/prefer-immutable-types
   const units = (n: number, unit: number): readonly [number, number] => {
     const numberOfUnits = Math.floor(n / unit);
     const remainder = n - numberOfUnits * unit;
