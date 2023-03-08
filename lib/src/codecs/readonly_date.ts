@@ -17,6 +17,7 @@ export const readonlyDateFromDate = new T.Type<ReadonlyDate, string, unknown>(
       : u instanceof Date
       ? T.success(readonlyDate(u))
       : T.failure(u, context, "Not a Date or string"),
+  // eslint-disable-next-line functional/prefer-immutable-types
   (a) => a.toISOString()
 );
 

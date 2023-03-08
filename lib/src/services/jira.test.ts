@@ -1,10 +1,3 @@
-/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
-/* eslint-disable functional/no-return-void */
-/* eslint-disable functional/functional-parameters */
-/* eslint-disable functional/no-expression-statements */
-/* eslint-disable functional/no-throw-statements */
-/* eslint-disable functional/no-conditional-statements */
-/* eslint-disable jest/no-conditional-expect */
 import {
   mostRecentIssueComment,
   mostRecentIssueTransition,
@@ -109,6 +102,7 @@ describe("decoding well-formed tickets", () => {
         `[${JSON.stringify(actual, null, 2)}] is unexpectedly left.`
       );
     } else {
+      // eslint-disable-next-line jest/no-conditional-expect
       expect(actual.right.key).toEqual(expectedKey);
     }
   });

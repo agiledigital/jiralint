@@ -1,9 +1,3 @@
-/* eslint-disable functional/no-return-void */
-/* eslint-disable functional/functional-parameters */
-/* eslint-disable functional/no-expression-statements */
-/* eslint-disable functional/no-throw-statements */
-/* eslint-disable functional/no-conditional-statements */
-/* eslint-disable jest/no-conditional-expect */
 import { isLeft } from "fp-ts/lib/These";
 import { readonlyDateFromDate } from "./readonly_date";
 import * as ITT from "io-ts-types";
@@ -26,6 +20,7 @@ describe("decoding a Date", () => {
           );
         } else {
           // And be equivalent to the the original date.
+          // eslint-disable-next-line jest/no-conditional-expect
           expect(actual.right.valueOf()).toEqual(d.valueOf());
         }
       })
@@ -53,6 +48,7 @@ describe("decoding a string", () => {
           );
         } else {
           // And be equivalent to the the original date.
+          // eslint-disable-next-line jest/no-conditional-expect
           expect(actual.right.valueOf()).toEqual(d.valueOf());
         }
       })

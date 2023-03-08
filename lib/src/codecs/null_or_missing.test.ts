@@ -1,9 +1,3 @@
-/* eslint-disable functional/no-return-void */
-/* eslint-disable functional/functional-parameters */
-/* eslint-disable functional/no-expression-statements */
-/* eslint-disable functional/no-throw-statements */
-/* eslint-disable functional/no-conditional-statements */
-/* eslint-disable jest/no-conditional-expect */
 import * as T from "io-ts";
 import { nullOrMissingToUndefined } from "./null_or_missing";
 import { PathReporter } from "io-ts/PathReporter";
@@ -47,6 +41,7 @@ describe("null or missing codec", () => {
         `[${JSON.stringify(actual, null, 2)}] is unexpectedly left.`
       );
     } else {
+      // eslint-disable-next-line jest/no-conditional-expect
       expect(actual.right.b).toEqual(expected);
     }
   });
@@ -61,6 +56,7 @@ describe("null or missing codec", () => {
     // Then it should have failed decoding.
     if (isLeft(actual)) {
       const error = JSON.stringify(PathReporter.report(actual), null, 2);
+      // eslint-disable-next-line jest/no-conditional-expect
       expect(error).toContain(
         "Invalid value false supplied to : Readonly<fromNullable"
       );

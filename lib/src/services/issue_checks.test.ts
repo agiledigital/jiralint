@@ -1,10 +1,4 @@
-/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
-/* eslint-disable spellcheck/spell-checker */
-/* eslint-disable functional/no-return-void */
 /* eslint-disable sonarjs/no-duplicate-string */
-/* eslint-disable functional/functional-parameters */
-/* eslint-disable functional/no-expression-statements */
-
 import {
   validateInProgressHasEstimate,
   validateInProgressHasWorklog,

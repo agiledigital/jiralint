@@ -79,7 +79,9 @@ export const jiraFormattedSeconds = (seconds: number): string => {
  * @returns duration in a Jira-like format.
  */
 export const jiraFormattedDistance = (
+  // eslint-disable-next-line functional/prefer-immutable-types
   from: ReadonlyDate,
+  // eslint-disable-next-line functional/prefer-immutable-types
   to: ReadonlyDate
 ): string => {
   const duration: Readonly<Duration> = intervalToDuration({
