@@ -8,6 +8,7 @@ import {
   IssueAction,
   jiraFormattedDistance,
   jiraFormattedSeconds,
+  Check,
 } from "@agiledigital/jiralint-lib";
 import { isLeft } from "fp-ts/lib/Either";
 import { readonlyDate } from "readonly-types/dist";
@@ -32,7 +33,7 @@ const checkedIssues = (
   const now = readonlyDate(new Date());
   // eslint-disable-next-line functional/prefer-immutable-types
   return issues.map((issue) => {
-    const customChecks = [] as const; // TODO ability to dynamically load custom checks
+    const customChecks: readonly Check[] = [] as const; // TODO ability to dynamically load custom checks
     const issueAction = issueActionRequired(issue, now, customChecks);
 
     const issueQuality = quality(issueAction);
@@ -85,13 +86,14 @@ const renderTable = (
   // Simple visual representation of the degree of alarm a viewer should feel.
   // More whimsical emoji (e.g. 👀) raise some issues with rendering of wide
   // unicode characters.
+  // eslint-disable-next-line functional/prefer-immutable-types
   const alarm = ["⠀", "⠁", "⠉", "⠋", "⠛", "⣿"] as const;
 
   const tableHeaderWidths: readonly number[] = tableHeaders.map(
     (header) => stringLength(header) + 1
   );
 
-  const outputBuffer = new CLUI.LineBuffer({
+  const outputBuffer: Readonly<CLUI.LineBuffer> = new CLUI.LineBuffer({
     x: 0,
     y: 0,
     width: "console",
@@ -158,6 +160,7 @@ const renderTable = (
 
   // eslint-disable-next-line functional/prefer-immutable-types
   const calculatedWidths = data.reduce((previous, current) => {
+    // eslint-disable-next-line functional/prefer-immutable-types
     return current.map(([value], index) =>
       Math.max(stringLength(value) + 1, previous[index] ?? 0)
     );
@@ -167,10 +170,12 @@ const renderTable = (
     row: readonly (readonly [string, readonly clc.Format[]])[]
     // eslint-disable-next-line functional/no-return-void
   ): void => {
-    const columns = row.reduce((line, [text], index) => {
+    const initialValue: Readonly<CLUI.Line> = new CLUI.Line(outputBuffer);
+    // eslint-disable-next-line functional/prefer-immutable-types
+    const columns: Readonly<CLUI.Line> = row.reduce((line, [text], index) => {
       const columnWidth = calculatedWidths[index] ?? 0;
       return line.column(text, columnWidth);
-    }, new CLUI.Line(outputBuffer));
+    }, initialValue);
 
     // eslint-disable-next-line functional/no-expression-statements
     columns.fill().store();
@@ -195,7 +200,9 @@ const search = async (
   qualityFieldName: string,
   qualityReasonFieldName: string
 ): Promise<void> => {
-  const countdown = new CLUI.Spinner("Searching the things...  ");
+  const countdown: Readonly<CLUI.Spinner> = new CLUI.Spinner(
+    "Searching the things...  "
+  );
   // eslint-disable-next-line functional/no-expression-statements
   countdown.start();
 
