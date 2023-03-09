@@ -2,6 +2,7 @@ name: Build, test, lint and release JiraLint
 on: [push]
 jobs:
   build_and_test_and_release:
+    name: Build, Test and Release
     runs-on: self-hosted-ubuntu-22-04
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
