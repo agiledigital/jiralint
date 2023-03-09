@@ -1,3 +1,4 @@
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
 /* eslint-disable spellcheck/spell-checker */
 /* eslint-disable functional/functional-parameters */
 import { EnhancedIssue as EnhancedIssue } from "./jira";
@@ -15,6 +16,8 @@ import {
 import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
 import { differenceInBusinessHours } from "./jira_date_fns";
 
+// TODO unclear why ReadonlyNonEmptyArray is not judged to be Immutable
+// eslint-disable-next-line functional/type-declaration-immutability
 export type CheckResult = {
   readonly description: string;
   readonly outcome: "cant apply" | "not applied" | "ok" | "warn" | "fail";
@@ -38,21 +41,25 @@ export type Checker = {
 };
 
 export const checker = (check: string): Checker => ({
+  // eslint-disable-next-line functional/prefer-immutable-types
   fail: (reason: string) => ({
     outcome: "fail",
     description: check,
     reasons: [reason],
   }),
+  // eslint-disable-next-line functional/prefer-immutable-types
   ok: (reason: string) => ({
     outcome: "ok",
     description: check,
     reasons: [reason],
   }),
+  // eslint-disable-next-line functional/prefer-immutable-types
   na: (reason: string) => ({
     outcome: "not applied",
     description: check,
     reasons: [reason],
   }),
+  // eslint-disable-next-line functional/prefer-immutable-types
   cantApply: (reason: string) => ({
     outcome: "cant apply",
     description: check,
@@ -202,7 +209,7 @@ const validateNotStalledFor =
       )
       .with(
         [true, not(undefined)],
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+        // eslint-disable-next-line functional/prefer-immutable-types
         ([, transition]) =>
           differenceInBusinessDays(at.valueOf(), transition.valueOf()) >
           duration,
@@ -240,9 +247,9 @@ const vaildateNotWaitingForReviewForMoreThanHalfADay =
       )
       .with(
         [true, not(undefined)],
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+        // eslint-disable-next-line functional/prefer-immutable-types
         ([, transition]) => differenceInBusinessHours(at, transition) > 4,
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+        // eslint-disable-next-line functional/prefer-immutable-types
         ([, transition]) =>
           check.fail(
             `waiting for review for more than half a day (${differenceInBusinessHours(
@@ -253,9 +260,9 @@ const vaildateNotWaitingForReviewForMoreThanHalfADay =
       )
       .with(
         [true, not(undefined)],
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+        // eslint-disable-next-line functional/prefer-immutable-types
         ([, transition]) => differenceInBusinessHours(at, transition) <= 4,
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+        // eslint-disable-next-line functional/prefer-immutable-types
         ([, transition]) =>
           check.ok(
             `waiting for review for less than half a day (${differenceInBusinessHours(
@@ -306,7 +313,7 @@ export const validateTooLongInBacklog =
       .with([not("backlog"), __], () => check.na("not on the backlog"))
       .with(
         ["backlog", __],
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+        // eslint-disable-next-line functional/prefer-immutable-types
         ([, age]) => age > 3,
         () => check.fail(`in backlog for too long [${ageInMonths} months]`)
       )
@@ -343,11 +350,11 @@ export const validateComment =
       )
       .with(
         [not(undefined), __, false, __],
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+        // eslint-disable-next-line functional/prefer-immutable-types
         ([recentCommentTime, inProgress, , loggedTime]) =>
           isBefore(recentCommentTime, lastBusinessDay(at).valueOf()) &&
           (inProgress || loggedTime > 0),
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+        // eslint-disable-next-line functional/prefer-immutable-types
         ([recentCommentTime]) => {
           const commentAge = formatDistance(recentCommentTime, at.valueOf());
           return check.fail(
@@ -367,6 +374,7 @@ const check = (
     checks: [],
   };
 
+  // eslint-disable-next-line functional/prefer-immutable-types
   return checks.reduceRight((issueAction, check) => {
     const result = check(issue);
 

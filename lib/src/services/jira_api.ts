@@ -1,3 +1,4 @@
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
 /* eslint-disable spellcheck/spell-checker */
 import { Either } from "fp-ts/lib/Either";
 import * as E from "fp-ts/lib/Either";
@@ -40,17 +41,17 @@ type FieldNotEditable = {
   readonly fields: readonly string[];
 };
 
-// FIXME:  turn this into a class so your editor "go to source" works and you
-// only need to document the functions in one place
 export type JiraClient = {
-  readonly jiraApi: JiraApi;
+  readonly jiraApi: Readonly<JiraApi>;
   readonly updateIssueQuality: (
     key: string,
     quality: string,
     reason: string,
     qualityField: string,
     qualityReasonField: string
-  ) => Promise<Either<string | FieldNotEditable | JiraError, JsonResponse>>;
+  ) => Promise<
+    Either<string | FieldNotEditable | JiraError, Readonly<JsonResponse>>
+  >;
   readonly searchIssues: (
     jql: string,
     boardNamesToIgnore: readonly string[],
@@ -85,6 +86,7 @@ export const getOAuthAccessToken = async (
   jiraConsumerSecret: string,
   secretCallback: (requestUrl: string) => Promise<string>
 ): Promise<Authorised> => {
+  // eslint-disable-next-line functional/prefer-immutable-types
   const oauth = new OAuth(
     `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/request-token`,
     `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/access-token`,
@@ -100,16 +102,16 @@ export const getOAuthAccessToken = async (
     readonly requestToken: string;
     // eslint-disable-next-line functional/no-return-void
   }>((resolve, reject) => {
-    // eslint-disable-next-line functional/no-expression-statement
+    // eslint-disable-next-line functional/no-expression-statements
     oauth.getOAuthRequestToken(
       // eslint-disable-next-line functional/no-return-void
       (err: unknown, requestToken: string, requestSecret: string) => {
-        // eslint-disable-next-line functional/no-conditional-statement
+        // eslint-disable-next-line functional/no-conditional-statements
         if (err !== null) {
-          // eslint-disable-next-line functional/no-expression-statement
+          // eslint-disable-next-line functional/no-expression-statements
           reject(`Failed to get request token [${JSON.stringify(err)}].`);
         } else {
-          // eslint-disable-next-line functional/no-expression-statement
+          // eslint-disable-next-line functional/no-expression-statements
           resolve({
             requestSecret,
             requestToken,
@@ -128,19 +130,19 @@ export const getOAuthAccessToken = async (
   //the verification code to prove that the user authorised the application to use the API.
   // eslint-disable-next-line functional/no-return-void
   return new Promise<Authorised>((resolve, reject) => {
-    // eslint-disable-next-line functional/no-expression-statement
+    // eslint-disable-next-line functional/no-expression-statements
     oauth.getOAuthAccessToken(
       requestToken,
       requestSecret,
       verificationCode,
       // eslint-disable-next-line functional/no-return-void
       (err: unknown, accessToken: string, accessSecret: string) => {
-        // eslint-disable-next-line functional/no-conditional-statement
+        // eslint-disable-next-line functional/no-conditional-statements
         if (err !== null) {
-          // eslint-disable-next-line functional/no-expression-statement
+          // eslint-disable-next-line functional/no-expression-statements
           reject(JSON.stringify(err, null, 2));
         } else {
-          // eslint-disable-next-line functional/no-expression-statement
+          // eslint-disable-next-line functional/no-expression-statements
           resolve({
             status: "authorised",
             accessToken,
@@ -174,7 +176,7 @@ export const jiraClientWithOAuth = (
   accessToken: string,
   accessSecret: string
 ): JiraClient => {
-  const jiraApi: JiraApi = new JiraApi({
+  const jiraApi: Readonly<JiraApi> = new JiraApi({
     protocol: jiraProtocol,
     host: jiraHost,
     oauth: {
@@ -206,7 +208,7 @@ export const jiraClientWithPersonnelAccessToken = (
   jiraHost: string,
   personalAccessToken: string
 ): JiraClient => {
-  const jiraApi: JiraApi = new JiraApi({
+  const jiraApi: Readonly<JiraApi> = new JiraApi({
     protocol: jiraProtocol,
     host: jiraHost,
     bearer: personalAccessToken,
@@ -231,7 +233,7 @@ export const jiraClientWithUserCredentials = (
   username: string,
   password: string
 ): JiraClient => {
-  const jiraApi: JiraApi = new JiraApi({
+  const jiraApi: Readonly<JiraApi> = new JiraApi({
     protocol: jiraProtocol,
     host: jiraHost,
     username,
@@ -252,8 +254,7 @@ export const jiraClientWithUserCredentials = (
 const jiraClient = (
   jiraProtocol: "http" | "https",
   jiraHost: string,
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-  jiraApi: JiraApi
+  jiraApi: Readonly<JiraApi>
 ): JiraClient => {
   /**
    * Maps the left side of a validation error into a human readable form. Leaves the right as is.
@@ -262,7 +263,6 @@ const jiraClient = (
    * @returns the mapped validation.
    */
   const mapValidationError = <T>(
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     validation: T.Validation<T>
   ): Either<string, T> =>
     E.isLeft(validation)
@@ -303,6 +303,7 @@ const jiraClient = (
   const onPremJiraToGeneric = (
     onPremIssue: OnPremIssue
   ): TE.TaskEither<string, Issue> => {
+    // eslint-disable-next-line functional/prefer-immutable-types
     const assignee =
       onPremIssue.fields.assignee === undefined
         ? undefined
@@ -333,6 +334,7 @@ const jiraClient = (
   const cloudJiraToGeneric = (
     cloudIssue: CloudIssue
   ): TE.TaskEither<string, Issue> => {
+    // eslint-disable-next-line functional/prefer-immutable-types
     const assignee =
       cloudIssue.fields.assignee === undefined
         ? undefined
@@ -357,22 +359,18 @@ const jiraClient = (
   };
 
   const boardDetails =
-    (
-      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-      jiraApi: JiraApi
-    ) =>
+    (jiraApi: Readonly<JiraApi>) =>
     (id: number): TE.TaskEither<string, Board> => {
       const fetch = (id: number): TE.TaskEither<string, JiraApi.JsonResponse> =>
         TE.tryCatch(
-          // eslint-disable-next-line functional/functional-parameters
+          // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
           () => jiraApi.getConfiguration(id.toString()),
           (reason: unknown) =>
             `Failed to fetch board [${id}] for [${JSON.stringify(reason)}].`
         );
 
       const parsed = (
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-        response: JiraApi.JsonResponse
+        response: Readonly<JiraApi.JsonResponse>
       ): TE.TaskEither<string, Board> =>
         // eslint-disable-next-line @typescript-eslint/unbound-method
         TE.fromEither(decode("board", response, Board.decode));
@@ -381,16 +379,12 @@ const jiraClient = (
     };
 
   const boardsForProject =
-    (
-      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-      jiraApi: JiraApi,
-      boardNamesToIgnore: readonly string[]
-    ) =>
+    (jiraApi: Readonly<JiraApi>, boardNamesToIgnore: readonly string[]) =>
     (
       projectKey: string
     ): TE.TaskEither<string, ReadonlyRecord<string, readonly Board[]>> => {
       const fetch = TE.tryCatch(
-        // eslint-disable-next-line functional/functional-parameters
+        // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
         () =>
           jiraApi.getAllBoards(
             undefined,
@@ -406,8 +400,7 @@ const jiraClient = (
       );
 
       const parsed = (
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-        response: JiraApi.JsonResponse
+        response: Readonly<JiraApi.JsonResponse>
       ): TE.TaskEither<string, readonly BoardSummary[]> =>
         TE.fromEither(
           decode(
@@ -437,9 +430,12 @@ const jiraClient = (
         TE.chain(parsed),
         TE.chain(boardIds),
         TE.chain(TE.traverseSeqArray(boardDetails(jiraApi))),
-        TE.map((boards) => ({
-          [projectKey]: boards,
-        }))
+        TE.map(
+          (boards) =>
+            ({
+              [projectKey]: boards,
+            } as const)
+        )
       );
     };
 
@@ -449,8 +445,9 @@ const jiraClient = (
   ): TE.TaskEither<string, ReadonlyRecord<string, readonly Board[]>> => {
     const projectKeys: readonly string[] = issues
       .map((issue) => issue.fields.project.key)
-      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-      .filter((value, index, self) => self.indexOf(value) === index);
+      .filter(
+        (value, index, self: readonly string[]) => self.indexOf(value) === index
+      );
     const boards: TE.TaskEither<
       string,
       readonly ReadonlyRecord<string, readonly Board[]>[]
@@ -460,10 +457,11 @@ const jiraClient = (
 
     return TE.map((bs: readonly ReadonlyRecord<string, readonly Board[]>[]) =>
       bs.reduce(
-        (prev, current) => ({
-          ...prev,
-          ...current,
-        }),
+        (prev, current) =>
+          ({
+            ...prev,
+            ...current,
+          } as const),
         {}
       )
     )(boards);
@@ -473,7 +471,7 @@ const jiraClient = (
     issueKey: string
   ): TE.TaskEither<string, readonly IssueWorklog[]> => {
     const fetch = TE.tryCatch(
-      // eslint-disable-next-line functional/functional-parameters
+      // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
       () => jiraApi.genericGet(`issue/${encodeURIComponent(issueKey)}/worklog`),
       (error) =>
         `Failed to fetch worklogs for [${issueKey}] - [${JSON.stringify(
@@ -484,8 +482,7 @@ const jiraClient = (
     );
 
     const parsed = (
-      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-      response: JiraApi.JsonResponse
+      response: Readonly<JiraApi.JsonResponse>
     ): TE.TaskEither<string, readonly IssueWorklog[]> =>
       TE.fromEither(
         decode(
@@ -503,7 +500,7 @@ const jiraClient = (
     issueKey: string
   ): TE.TaskEither<string, readonly IssueComment[]> => {
     const fetch = TE.tryCatch(
-      // eslint-disable-next-line functional/functional-parameters
+      // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
       () =>
         jiraApi.genericGet(
           `issue/${encodeURIComponent(
@@ -519,8 +516,7 @@ const jiraClient = (
     );
 
     const parsed = (
-      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-      response: JiraApi.JsonResponse
+      response: Readonly<JiraApi.JsonResponse>
     ): TE.TaskEither<string, readonly IssueComment[]> =>
       TE.fromEither(
         decode(
@@ -556,9 +552,11 @@ const jiraClient = (
       reason: string,
       qualityField: string,
       qualityReasonField: string
-    ): Promise<Either<string | FieldNotEditable | JiraError, JsonResponse>> => {
+    ): Promise<
+      Either<string | FieldNotEditable | JiraError, Readonly<JsonResponse>>
+    > => {
       const updateIssue = TE.tryCatch(
-        // eslint-disable-next-line functional/functional-parameters
+        // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
         () =>
           jiraApi.updateIssue(key, {
             fields: {
@@ -578,10 +576,9 @@ const jiraClient = (
         }
       );
 
-      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+      // eslint-disable-next-line functional/prefer-immutable-types
       const mapError = TE.mapLeft((error: string | JiraError) => {
         const fieldNotSettableError = (
-          // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
           jiraError: JiraError,
           fieldName: string
         ): boolean => {
@@ -633,7 +630,7 @@ const jiraClient = (
       descriptionFields: ReadonlyRecord<string, string>
     ): Promise<Either<string, readonly EnhancedIssue[]>> => {
       const fetchIssues = TE.tryCatch(
-        // eslint-disable-next-line functional/functional-parameters
+        // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
         () =>
           jiraApi.searchJira(jql, {
             fields: [
@@ -670,12 +667,11 @@ const jiraClient = (
       );
 
       const convertIssueType = (
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-        response: JiraApi.JsonResponse
+        response: Readonly<JiraApi.JsonResponse>
       ): TE.TaskEither<string, readonly Issue[]> => {
         return jiraHost.includes("atlassian")
           ? pipe(
-              parseCloudJira(response), //reponse to cloudIssueType
+              parseCloudJira(response), //response to cloudIssueType
               TE.chain(
                 TE.traverseSeqArray((cloudIssue) =>
                   cloudJiraToGeneric(cloudIssue)
@@ -693,8 +689,7 @@ const jiraClient = (
       };
 
       const parseOnPremJira = (
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-        response: JiraApi.JsonResponse
+        response: Readonly<JiraApi.JsonResponse>
       ): TE.TaskEither<string, readonly OnPremIssue[]> =>
         TE.fromEither(
           decode(
@@ -706,8 +701,7 @@ const jiraClient = (
         );
 
       const parseCloudJira = (
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-        response: JiraApi.JsonResponse
+        response: Readonly<JiraApi.JsonResponse>
       ): TE.TaskEither<string, readonly CloudIssue[]> =>
         TE.fromEither(
           decode(
@@ -721,6 +715,7 @@ const jiraClient = (
       const enhancedIssues = (
         issues: readonly Issue[]
       ): TE.TaskEither<string, readonly EnhancedIssue[]> => {
+        // eslint-disable-next-line functional/prefer-immutable-types
         return TE.map((boards: ReadonlyRecord<string, readonly Board[]>) => {
           return issues.map((issue) => {
             const issueBoards = boards[issue.fields.project.key] ?? [];
@@ -763,6 +758,7 @@ const jiraClient = (
           mostRecentCommentLoaded
             ? TE.right(issue.fields.comment.comments)
             : fetchMostRecentComments(issue.key),
+          // eslint-disable-next-line functional/prefer-immutable-types
           TE.map((comments) => ({
             ...issue,
             mostRecentComment: recentComment(comments),
@@ -790,6 +786,7 @@ const jiraClient = (
           mostRecentWorklogLoaded
             ? TE.right(issue.fields.worklog.worklogs)
             : fetchMostRecentWorklogs(issue.key),
+          // eslint-disable-next-line functional/prefer-immutable-types
           TE.map((worklogs) => ({
             ...issue,
             mostRecentWorklog: recentWorklog(worklogs),
@@ -815,15 +812,14 @@ const jiraClient = (
     // eslint-disable-next-line functional/functional-parameters
     currentUser: async (): Promise<Either<string, User>> => {
       const fetchUser = TE.tryCatch(
-        // eslint-disable-next-line functional/functional-parameters
+        // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
         () => jiraApi.getCurrentUser(),
         (error: unknown) =>
           `Error fetching current user - [${JSON.stringify(error)}]`
       );
 
       const parsed = (
-        // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-        fetchResult: JiraApi.JsonResponse
+        fetchResult: Readonly<JiraApi.JsonResponse>
       ): TE.TaskEither<string, User> =>
         TE.fromEither(
           decode(

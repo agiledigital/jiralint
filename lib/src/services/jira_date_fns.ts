@@ -1,12 +1,13 @@
+/* eslint-next-line functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
 import {
-  intervalToDuration,
   differenceInBusinessDays,
   differenceInMinutes,
-  min,
+  intervalToDuration,
+  isBefore,
   max,
+  min,
   setHours,
   setMinutes,
-  isBefore,
 } from "date-fns";
 import { ReadonlyDate } from "readonly-types";
 
@@ -16,8 +17,7 @@ import { ReadonlyDate } from "readonly-types";
  * @param duration duration to be formatted
  * @returns  duration in a Jira-like format.
  */
-// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-export const jiraFormattedDuration = (duration: Duration): string => {
+export const jiraFormattedDuration = (duration: Readonly<Duration>): string => {
   const formatPart = (value: number | undefined, unit: string): string =>
     (value ?? 0) > 0 ? `${value ?? 0}${unit} ` : "";
 
@@ -48,6 +48,7 @@ export const jiraFormattedDuration = (duration: Duration): string => {
  * @returns duration in a Jira-like format.
  */
 export const jiraFormattedSeconds = (seconds: number): string => {
+  // eslint-disable-next-line functional/prefer-immutable-types
   const units = (n: number, unit: number): readonly [number, number] => {
     const numberOfUnits = Math.floor(n / unit);
     const remainder = n - numberOfUnits * unit;
@@ -73,7 +74,7 @@ export const jiraFormattedSeconds = (seconds: number): string => {
     hours,
     minutes,
     secondsAfterMinutes,
-  };
+  } as const;
 
   return jiraFormattedDuration(duration);
 };
@@ -86,10 +87,12 @@ export const jiraFormattedSeconds = (seconds: number): string => {
  * @returns duration in a Jira-like format.
  */
 export const jiraFormattedDistance = (
+  // eslint-disable-next-line functional/prefer-immutable-types
   from: ReadonlyDate,
+  // eslint-disable-next-line functional/prefer-immutable-types
   to: ReadonlyDate
 ): string => {
-  const duration = intervalToDuration({
+  const duration: Readonly<Duration> = intervalToDuration({
     start: from.getTime(),
     end: to.getTime(),
   });
@@ -104,7 +107,9 @@ export const jiraFormattedDistance = (
  * @returns the number of business hours in the interval.
  */
 export const differenceInBusinessHours = (
+  // eslint-disable-next-line functional/prefer-immutable-types
   to: ReadonlyDate,
+  // eslint-disable-next-line functional/prefer-immutable-types
   from: ReadonlyDate
 ) => {
   const businessDays = differenceInBusinessDays(to.getTime(), from.getTime());

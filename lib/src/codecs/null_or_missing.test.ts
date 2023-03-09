@@ -1,10 +1,3 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
-/* eslint-disable functional/no-return-void */
-/* eslint-disable functional/functional-parameters */
-/* eslint-disable functional/no-expression-statement */
-/* eslint-disable functional/no-throw-statement */
-/* eslint-disable functional/no-conditional-statement */
-/* eslint-disable jest/no-conditional-expect */
 import * as T from "io-ts";
 import { nullOrMissingToUndefined } from "./null_or_missing";
 import { PathReporter } from "io-ts/PathReporter";
@@ -13,16 +6,16 @@ import { isLeft } from "fp-ts/lib/These";
 const nullValue = {
   a: 10,
   b: null,
-};
+} as const;
 
 const missingValue = {
   a: 10,
-};
+} as const;
 
 const presentValue = {
   a: 10,
   b: "hi",
-};
+} as const;
 
 describe("null or missing codec", () => {
   it.each([
@@ -31,10 +24,12 @@ describe("null or missing codec", () => {
     [presentValue, "hi"],
   ])("should decode as expected", (value, expected) => {
     // Given a codec that expects an `a` and is tolerant of 'missing' `b`.
-    const codec = T.type({
-      a: T.number,
-      b: nullOrMissingToUndefined(T.string),
-    });
+    const codec = T.readonly(
+      T.type({
+        a: T.number,
+        b: nullOrMissingToUndefined(T.string),
+      })
+    );
 
     // When the test data is decoded.
     const actual = codec.decode(value);
@@ -46,6 +41,7 @@ describe("null or missing codec", () => {
         `[${JSON.stringify(actual, null, 2)}] is unexpectedly left.`
       );
     } else {
+      // eslint-disable-next-line jest/no-conditional-expect
       expect(actual.right.b).toEqual(expected);
     }
   });
@@ -60,7 +56,10 @@ describe("null or missing codec", () => {
     // Then it should have failed decoding.
     if (isLeft(actual)) {
       const error = JSON.stringify(PathReporter.report(actual), null, 2);
-      expect(error).toContain("Invalid value false supplied to : fromNullable");
+      // eslint-disable-next-line jest/no-conditional-expect
+      expect(error).toContain(
+        "Invalid value false supplied to : Readonly<fromNullable"
+      );
     } else {
       throw new Error(
         `[${JSON.stringify(actual, null, 2)}] is unexpectedly left.`

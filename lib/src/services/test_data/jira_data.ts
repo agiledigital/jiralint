@@ -1,3 +1,4 @@
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
 /* eslint-disable spellcheck/spell-checker */
 /* eslint-disable sonarjs/no-duplicate-string */
 export const nullDescription = {
@@ -118,7 +119,7 @@ export const nullDescription = {
     total: 5,
     histories: [],
   },
-};
+} as const;
 
 export const regular = {
   expand:
@@ -239,7 +240,7 @@ export const regular = {
     total: 5,
     histories: [],
   },
-};
+} as const;
 
 export const missingAssignee = {
   ...regular,
@@ -248,7 +249,7 @@ export const missingAssignee = {
     ...regular.fields,
     assignee: null,
   },
-};
+} as const;
 
 export const withParent = {
   expand:
@@ -430,4 +431,4 @@ export const withParent = {
       },
     ],
   },
-};
+} as const;

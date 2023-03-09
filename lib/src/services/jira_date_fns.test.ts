@@ -1,7 +1,4 @@
 /* eslint-disable spellcheck/spell-checker */
-/* eslint-disable functional/no-return-void */
-/* eslint-disable functional/functional-parameters */
-/* eslint-disable functional/no-expression-statement */
 
 import { readonlyDate } from "readonly-types";
 import { differenceInBusinessHours } from "./jira_date_fns";

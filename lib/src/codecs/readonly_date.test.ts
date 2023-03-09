@@ -1,10 +1,3 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
-/* eslint-disable functional/no-return-void */
-/* eslint-disable functional/functional-parameters */
-/* eslint-disable functional/no-expression-statement */
-/* eslint-disable functional/no-throw-statement */
-/* eslint-disable functional/no-conditional-statement */
-/* eslint-disable jest/no-conditional-expect */
 import { isLeft } from "fp-ts/lib/These";
 import { readonlyDateFromDate } from "./readonly_date";
 import * as ITT from "io-ts-types";
@@ -13,6 +6,7 @@ import fc from "fast-check";
 describe("decoding a Date", () => {
   it("should decode a date to a readonly date", () => {
     fc.assert(
+      // eslint-disable-next-line functional/prefer-immutable-types
       fc.property(fc.date(), (d) => {
         // Given a date,
 
@@ -26,6 +20,7 @@ describe("decoding a Date", () => {
           );
         } else {
           // And be equivalent to the the original date.
+          // eslint-disable-next-line jest/no-conditional-expect
           expect(actual.right.valueOf()).toEqual(d.valueOf());
         }
       })
@@ -36,6 +31,7 @@ describe("decoding a Date", () => {
 describe("decoding a string", () => {
   it("should decode an ISO formatted string to a readonly date", () => {
     fc.assert(
+      // eslint-disable-next-line functional/prefer-immutable-types
       fc.property(fc.date(), (d) => {
         // Given a date,
 
@@ -52,6 +48,7 @@ describe("decoding a string", () => {
           );
         } else {
           // And be equivalent to the the original date.
+          // eslint-disable-next-line jest/no-conditional-expect
           expect(actual.right.valueOf()).toEqual(d.valueOf());
         }
       })

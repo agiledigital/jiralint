@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 import { pipe, flow } from "fp-ts/lib/function";
 import {
   JiraClient,
@@ -22,27 +21,31 @@ import clc from "cli-color";
  * Dynamic type for global arguments. This needs to be its own as we use a
  * require below to import all the commands
  */
+// eslint-disable-next-line functional/type-declaration-immutability
 export type RootCommand = typeof rootCommand;
 
 /**
  * Add global arguments here using the .option function.
  * E.g. const rootCommand = yargs.option('example', {type: 'string'});
  */
+// eslint-disable-next-line functional/prefer-immutable-types
 const rootCommand = yargs;
 
-const CliConfig = T.type({
-  jiraProtocol: T.union([T.string, T.undefined]),
-  jiraHost: T.union([T.string, T.undefined]),
-  qualityFieldName: T.union([T.string, T.undefined]),
-  qualityReasonFieldName: T.union([T.string, T.undefined]),
-  personalAccessToken: T.union([T.string, T.undefined]),
-  jiraConsumerKey: T.union([T.string, T.undefined]),
-  jiraConsumerSecret: T.union([T.string, T.undefined]),
-  accessToken: T.union([T.string, T.undefined]),
-  accessSecret: T.union([T.string, T.undefined]),
-  username: T.union([T.string, T.undefined]),
-  password: T.union([T.string, T.undefined]),
-});
+const CliConfig = T.readonly(
+  T.type({
+    jiraProtocol: T.union([T.string, T.undefined]),
+    jiraHost: T.union([T.string, T.undefined]),
+    qualityFieldName: T.union([T.string, T.undefined]),
+    qualityReasonFieldName: T.union([T.string, T.undefined]),
+    personalAccessToken: T.union([T.string, T.undefined]),
+    jiraConsumerKey: T.union([T.string, T.undefined]),
+    jiraConsumerSecret: T.union([T.string, T.undefined]),
+    accessToken: T.union([T.string, T.undefined]),
+    accessSecret: T.union([T.string, T.undefined]),
+    username: T.union([T.string, T.undefined]),
+    password: T.union([T.string, T.undefined]),
+  })
+);
 type CliConfig = T.TypeOf<typeof CliConfig>;
 
 const currentDirectory = process.cwd();
@@ -89,7 +92,6 @@ const configIfExists = (dir: string): CliConfig | undefined => {
         E.chain(decodeJson(jiralintConfigFileName, CliConfig.decode)),
         E.fold(
           (error) => {
-            // eslint-disable-next-line functional/no-expression-statement
             console.error(
               `\n${clc.red.bold(
                 jiralintConfigFileName
@@ -136,7 +138,7 @@ type JiraParameters = {
 
 type JiraClientBuilder = JiraParameters & {
   readonly missingParameters: readonly PropertyKey[];
-  readonly client?: JiraClient;
+  readonly client?: Readonly<JiraClient>;
 };
 
 /**
@@ -282,7 +284,7 @@ const verifyClient = (builder: JiraClientBuilder): JiraClient =>
     ? (() => {
         // we throw an error here as it's the only way to communicate these
         // errors with yargs at this point.
-        // eslint-disable-next-line functional/no-throw-statement
+        // eslint-disable-next-line functional/no-throw-statements
         throw new Error(
           `Missing required argument${
             builder.missingParameters.length === 1 ? ":" : "s:\n"
@@ -296,6 +298,7 @@ const verifyClient = (builder: JiraClientBuilder): JiraClient =>
  */
 const config: CliConfig | undefined = findConfig(process.cwd());
 
+// eslint-disable-next-line functional/prefer-immutable-types
 export const withCommonOptions = <C extends RootCommand>(command: C) =>
   command
     .option(jiraProtocolOptionKey, {
@@ -326,11 +329,13 @@ export const withCommonOptions = <C extends RootCommand>(command: C) =>
     })
     .group([jiraHostOptionKey, jiraProtocolOptionKey], "Common Required:");
 
+// eslint-disable-next-line functional/prefer-immutable-types
 export const withAuthenticationOptions = <C extends RootCommand>(command: C) =>
   withCommonOptions(command)
     .group([jiraConsumerKeyOptionKey, jiraConsumerSecretOptionKey], "Auth:")
     .demandOption([jiraHostOptionKey, jiraConsumerSecretOptionKey]);
 
+// eslint-disable-next-line functional/prefer-immutable-types
 export const withAuthOptions = <C extends RootCommand>(command: C) =>
   withCommonOptions(command)
     .option(jiraAccessTokenOptionKey, {
@@ -402,6 +407,7 @@ export const withAuthOptions = <C extends RootCommand>(command: C) =>
     )
     .demandOption("jira");
 
+// eslint-disable-next-line functional/prefer-immutable-types
 export const withQualityFieldsOption = <C extends RootCommand>(command: C) =>
   withAuthOptions(command)
     .option("qualityFieldName", {
@@ -417,11 +423,11 @@ export const withQualityFieldsOption = <C extends RootCommand>(command: C) =>
     })
     .demandOption(["qualityFieldName", "qualityReasonFieldName"]);
 
-/* eslint-disable functional/no-expression-statement */
+/* eslint-disable functional/no-expression-statements */
 auth(rootCommand);
 rate(rootCommand);
 search(rootCommand);
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 rootCommand.demandCommand().strict().help().argv;
-/* eslint-enable functional/no-expression-statement */
+/* eslint-enable functional/no-expression-statements */

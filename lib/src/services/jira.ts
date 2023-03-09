@@ -1,8 +1,9 @@
+/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
 /* eslint-disable spellcheck/spell-checker */
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";
 import { compareDesc } from "date-fns";
-import { ReadonlyDate, ReadonlyRecord } from "readonly-types/dist";
+import { ReadonlyDate, ReadonlyRecord } from "readonly-types";
 import { nullOrMissingToUndefined, readonlyDateFromDate } from "../codecs";
 
 export const PaginatedResults = T.readonly(
@@ -245,17 +246,24 @@ export const Issue = T.readonly(
   ])
 );
 
-export type OnPremIssue = T.TypeOf<typeof OnPremIssue>;
+// TODO make these exported types truly immutable
+// eslint-disable-next-line functional/type-declaration-immutability
+export type OnPremIssue = Readonly<T.TypeOf<typeof OnPremIssue>>;
 
-export type CloudIssue = T.TypeOf<typeof CloudIssue>;
+// eslint-disable-next-line functional/type-declaration-immutability
+export type CloudIssue = Readonly<T.TypeOf<typeof CloudIssue>>;
 
-export type Issue = T.TypeOf<typeof Issue>;
+// eslint-disable-next-line functional/type-declaration-immutability
+export type Issue = Readonly<T.TypeOf<typeof Issue>>;
 
-export type IssueComment = T.TypeOf<typeof IssueComment>;
+// eslint-disable-next-line functional/type-declaration-immutability
+export type IssueComment = Readonly<T.TypeOf<typeof IssueComment>>;
 
-export type IssueChangeLog = T.TypeOf<typeof ChangeLog>;
+// eslint-disable-next-line functional/type-declaration-immutability
+export type IssueChangeLog = Readonly<T.TypeOf<typeof ChangeLog>>;
 
-export type IssueWorklog = T.TypeOf<typeof IssueWorklog>;
+// eslint-disable-next-line functional/type-declaration-immutability
+export type IssueWorklog = Readonly<T.TypeOf<typeof IssueWorklog>>;
 
 export const BoardColumn = T.readonly(
   T.type({
@@ -270,7 +278,7 @@ export const BoardColumn = T.readonly(
   })
 );
 
-export type BoardColumn = T.TypeOf<typeof BoardColumn>;
+export type BoardColumn = Readonly<T.TypeOf<typeof BoardColumn>>;
 
 export const Board = T.readonly(
   T.type({
@@ -286,7 +294,8 @@ export const Board = T.readonly(
   })
 );
 
-export type Board = T.TypeOf<typeof Board>;
+// eslint-disable-next-line functional/type-declaration-immutability
+export type Board = Readonly<T.TypeOf<typeof Board>>;
 
 export const BoardSummary = T.readonly(
   T.type({
@@ -297,6 +306,7 @@ export const BoardSummary = T.readonly(
 
 export type BoardSummary = T.TypeOf<typeof BoardSummary>;
 
+// eslint-disable-next-line functional/type-declaration-immutability
 export type EnhancedIssue = Issue & {
   readonly board?: Board;
   readonly inProgress: boolean;
@@ -335,13 +345,15 @@ export const JiraError = T.readonly(
     name: T.string,
     statusCode: T.number,
     message: T.string,
-    error: T.type({
-      errors: T.UnknownRecord,
-    }),
+    error: T.readonly(
+      T.type({
+        errors: T.readonly(T.UnknownRecord),
+      })
+    ),
   })
 );
 
-export type JiraError = T.TypeOf<typeof JiraError>;
+export type JiraError = Readonly<T.TypeOf<typeof JiraError>>;
 
 const columnForIssue = (
   issue: Issue,

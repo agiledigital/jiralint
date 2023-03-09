@@ -2,7 +2,7 @@
 
 ![CI Status](https://github.com/agiledigital/jiralint/actions/workflows/build-test-release.yml/badge.svg)
 
-Contains simple issue checks that can be applied to individual issues and a bare-bones CLI tool for applying them.
+Contains issue checks that can be applied to individual issues and a bare-bones CLI tool for applying them.
 
 ## Build
 
