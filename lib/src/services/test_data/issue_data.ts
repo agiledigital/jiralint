@@ -59,6 +59,7 @@ export const enhancedIssue: EnhancedIssue = {
   ...issue,
   inProgress: true,
   stalled: false,
+  waitingForReview: false,
   closed: false,
   released: false,
   viewLink: "viewlink",

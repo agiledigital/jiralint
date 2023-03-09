@@ -15,7 +15,7 @@
     "lint": "eslint src --ext .ts,.tsx --report-unused-disable-directives",
     "coverage": "type-coverage",
     "format": "prettier --write 'src/**/*.{ts,tsx}'",
-    "test": "jest",
+    "test": "TZ=Australia/Canberra jest",
     "release": "semantic-release"
   },
   "release": {

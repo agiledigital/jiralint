@@ -311,6 +311,7 @@ export type EnhancedIssue = Issue & {
   readonly board?: Board;
   readonly inProgress: boolean;
   readonly stalled: boolean;
+  readonly waitingForReview: boolean;
   readonly closed: boolean;
   readonly released: boolean;
   readonly column?: string;
@@ -375,6 +376,12 @@ const issueStalled = (issue: Issue, board?: Board): boolean => {
         .toLowerCase()
         .startsWith("stalled")
     : issue.fields.status.name.toLowerCase().startsWith("stalled");
+};
+
+const issueWaitingForReview = (issue: Issue): boolean => {
+  return issue.fields.status.name
+    .toLowerCase()
+    .startsWith("waiting for review");
 };
 
 const issueClosed = (issue: Issue, board?: Board): boolean => {
@@ -507,6 +514,7 @@ export const enhancedIssue = (
     inProgress: issueInProgress(issue, board),
     stalled: issueStalled(issue, board),
     closed: issueClosed(issue, board),
+    waitingForReview: issueWaitingForReview(issue),
     column:
       board !== undefined ? columnForIssue(issue, board)?.name : undefined,
     mostRecentTransition: mostRecentTransition,
