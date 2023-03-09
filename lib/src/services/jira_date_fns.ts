@@ -1,4 +1,13 @@
-import { intervalToDuration } from "date-fns";
+import {
+  intervalToDuration,
+  differenceInBusinessDays,
+  differenceInMinutes,
+  min,
+  max,
+  setHours,
+  setMinutes,
+  isBefore,
+} from "date-fns";
 import { ReadonlyDate } from "readonly-types";
 
 /**
@@ -85,4 +94,44 @@ export const jiraFormattedDistance = (
     end: to.getTime(),
   });
   return jiraFormattedDuration(duration);
+};
+
+/**
+ * Calculates the number of business hours (assumed 9-5, Mon-Fri) between two dates.
+ *
+ * @param to the 'end' date of the interval to measure.
+ * @param from the 'start' date of the interval to measure.
+ * @returns the number of business hours in the interval.
+ */
+export const differenceInBusinessHours = (
+  to: ReadonlyDate,
+  from: ReadonlyDate
+) => {
+  const businessDays = differenceInBusinessDays(to.getTime(), from.getTime());
+
+  return isBefore(to.getTime(), from.getTime())
+    ? 0
+    : (businessDays === 0
+        ? Math.max(
+            0,
+            differenceInMinutes(
+              min([to.getTime(), setMinutes(setHours(to.getTime(), 17), 0)]),
+              max([from.getTime(), setMinutes(setHours(from.getTime(), 9), 0)])
+            )
+          )
+        : Math.max(
+            0,
+            differenceInMinutes(
+              setMinutes(setHours(from.getTime(), 17), 0),
+              max([from.getTime(), setMinutes(setHours(from.getTime(), 9), 0)])
+            )
+          ) +
+          Math.max(
+            0,
+            differenceInMinutes(
+              min([to.getTime(), setMinutes(setHours(to.getTime(), 17), 0)]),
+              setMinutes(setHours(to.getTime(), 9), 0)
+            )
+          ) +
+          (businessDays - 1) * 8 * 60) / 60;
 };
