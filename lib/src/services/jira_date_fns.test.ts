@@ -37,8 +37,6 @@ describe("calculating business hours", () => {
     ["across four days", monday, thursday, 22.5],
   ])("works as expected %s", (_description, from, to, expected) => {
     // Given two dates
-    // eslint-disable-next-line functional/immutable-data
-    process.env.TZ = "Australia/Canberra";
 
     // When the number of business hours are calculated
     const actual = differenceInBusinessHours(to, from);
