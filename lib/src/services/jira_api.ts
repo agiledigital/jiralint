@@ -1,3 +1,4 @@
+/* eslint-disable functional/prefer-immutable-types */
 /* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
 /* eslint-disable spellcheck/spell-checker */
 import { Either } from "fp-ts/lib/Either";
@@ -628,6 +629,7 @@ const jiraClient = (
       qualityReasonField: string,
       customFieldNames: readonly string[],
       descriptionFields: ReadonlyRecord<string, string>
+      // eslint-disable-next-line sonarjs/cognitive-complexity
     ): Promise<Either<string, readonly EnhancedIssue[]>> => {
       const fetchIssues = TE.tryCatch(
         // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
@@ -728,6 +730,7 @@ const jiraClient = (
             );
             return enhancedIssue(
               issue,
+              issues,
               issueLink(issue),
               qualityField,
               qualityReasonField,
@@ -782,10 +785,25 @@ const jiraClient = (
                 compareDesc(w1.started.valueOf(), w2.started.valueOf())
               )[0];
 
+        const relevantKeys: string[] = mostRecentWorklogLoaded
+          ? []
+          : issue.fields.subtasks
+              .reduce((acc: string[], cur) => acc.concat([cur.key]), [])
+              .concat([issue.key]);
+
+        const worklogs: TE.TaskEither<string, readonly IssueWorklog[]>[] =
+          relevantKeys.map((key) => fetchMostRecentWorklogs(key));
+
+        const worklog: TE.TaskEither<string, readonly IssueWorklog[]> = pipe(
+          worklogs,
+          TE.sequenceArray,
+          TE.map((x): readonly IssueWorklog[] => x.flat())
+        );
+
         return pipe(
           mostRecentWorklogLoaded
             ? TE.right(issue.fields.worklog.worklogs)
-            : fetchMostRecentWorklogs(issue.key),
+            : worklog,
           // eslint-disable-next-line functional/prefer-immutable-types
           TE.map((worklogs) => ({
             ...issue,

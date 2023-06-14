@@ -1,3 +1,4 @@
+/* eslint-disable functional/prefer-immutable-types */
 import {
   mostRecentIssueComment,
   mostRecentIssueTransition,
@@ -181,7 +182,7 @@ describe("finding the most recent work date", () => {
       // Given an issue.
 
       // When the time it was last worked is found.
-      const lastWorked = issueLastWorked(issue);
+      const lastWorked = issueLastWorked(issue, []);
 
       // Then it should match the expected value.
       expect(lastWorked).toEqual(expected);
@@ -312,6 +313,7 @@ describe("enhancing issues", () => {
           // When it is enhanced
           const enhanced = enhancedIssue(
             issue,
+            [],
             "viewlink",
             fieldName,
             "not_reason",
@@ -343,6 +345,7 @@ describe("enhancing issues", () => {
           // When it is enhanced
           const enhanced = enhancedIssue(
             issue,
+            [],
             "viewlink",
             "not_quality",
             fieldName,

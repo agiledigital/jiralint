@@ -1,4 +1,4 @@
-/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
+/* eslint-disable functional/prefer-immutable-types */
 /* eslint-disable spellcheck/spell-checker */
 import type { EnhancedIssue, Issue, IssueWorklog } from "../jira";
 import { readonlyDate } from "readonly-types";
@@ -42,6 +42,7 @@ export const issue: Issue = {
       total: 0,
       startAt: 0,
     },
+    subtasks: [],
     duedate: undefined,
     worklog: {
       worklogs: [],
