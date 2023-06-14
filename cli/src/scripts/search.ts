@@ -20,6 +20,7 @@ import * as clc from "cli-color";
 // eslint-disable-next-line functional/no-expression-statements
 require("cli-color");
 
+// eslint-disable-next-line functional/type-declaration-immutability
 type CheckedIssue = EnhancedIssue & {
   readonly action: IssueAction;
   readonly reasons: readonly string[];
@@ -27,7 +28,9 @@ type CheckedIssue = EnhancedIssue & {
 };
 
 const checkedIssues = (
+  // eslint-disable-next-line functional/prefer-immutable-types
   issues: readonly EnhancedIssue[]
+  // eslint-disable-next-line functional/prefer-immutable-types
 ): readonly CheckedIssue[] => {
   const now = readonlyDate(readonlyNow());
 
@@ -51,9 +54,9 @@ const checkedIssues = (
   });
 };
 
-// eslint-disable-next-line functional/no-return-void
+// eslint-disable-next-line functional/no-return-void, functional/prefer-immutable-types
 const renderJson = (issues: readonly EnhancedIssue[]): void => {
-  // eslint-disable-next-line functional/no-return-void
+  // eslint-disable-next-line functional/no-return-void, functional/prefer-immutable-types
   checkedIssues(issues).forEach((issue) =>
     // eslint-disable-next-line no-console
     console.log(JSON.stringify(issue, null, 2))
@@ -61,6 +64,7 @@ const renderJson = (issues: readonly EnhancedIssue[]): void => {
 };
 
 const renderTable = (
+  // eslint-disable-next-line functional/prefer-immutable-types
   issues: readonly EnhancedIssue[],
   qualityFieldName: string
   // eslint-disable-next-line functional/no-return-void
@@ -205,6 +209,7 @@ const search = async (
   // eslint-disable-next-line functional/no-expression-statements
   countdown.start();
 
+  // eslint-disable-next-line functional/prefer-immutable-types
   const issues = await jira.searchIssues(
     jql,
     boardNamesToIgnore,

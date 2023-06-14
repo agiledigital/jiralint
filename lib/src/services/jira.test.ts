@@ -88,6 +88,7 @@ describe("decoding well-formed tickets", () => {
     // Given a well-formed bit of data.
 
     // When it is decoded.
+    // eslint-disable-next-line functional/prefer-immutable-types
     const actual = CloudIssue.decode(data);
 
     // Then no errors should be reported.
@@ -181,7 +182,7 @@ describe("finding the most recent work date", () => {
       // Given an issue.
 
       // When the time it was last worked is found.
-      const lastWorked = issueLastWorked(issue);
+      const lastWorked = issueLastWorked(issue, []);
 
       // Then it should match the expected value.
       expect(lastWorked).toEqual(expected);
@@ -310,8 +311,10 @@ describe("enhancing issues", () => {
           };
 
           // When it is enhanced
+          // eslint-disable-next-line functional/prefer-immutable-types
           const enhanced = enhancedIssue(
             issue,
+            [],
             "viewlink",
             fieldName,
             "not_reason",
@@ -341,8 +344,10 @@ describe("enhancing issues", () => {
           };
 
           // When it is enhanced
+          // eslint-disable-next-line functional/prefer-immutable-types
           const enhanced = enhancedIssue(
             issue,
+            [],
             "viewlink",
             "not_quality",
             fieldName,

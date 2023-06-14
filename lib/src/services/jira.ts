@@ -1,4 +1,4 @@
-/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
+/* eslint-disable functional/prefer-immutable-types */
 /* eslint-disable spellcheck/spell-checker */
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";
@@ -152,6 +152,12 @@ export const BaseIssue = T.readonly(
             )
           ),
           duedate: nullOrMissingToUndefined(readonlyDateFromDate),
+          subtasks: T.readonlyArray(
+            T.type({
+              id: T.string,
+              key: T.string,
+            })
+          ),
         })
       ),
       T.readonly(
@@ -294,7 +300,6 @@ export const Board = T.readonly(
   })
 );
 
-// eslint-disable-next-line functional/type-declaration-immutability
 export type Board = Readonly<T.TypeOf<typeof Board>>;
 
 export const BoardSummary = T.readonly(
@@ -442,12 +447,26 @@ export const mostRecentIssueComment = (
  * @returns the most recent worklog, or undefined if no work has been logged.
  */
 export const mostRecentIssueWorklog = (
-  issue: Issue
+  issue: Issue,
+  issues: readonly Issue[]
 ): IssueWorklog | undefined => {
-  const worklogs =
-    issue.fields.worklog === undefined ? [] : issue.fields.worklog.worklogs;
+  const subtaskWorklogs = issue.fields.subtasks.reduce(
+    (acc: IssueWorklog[], subtask) => {
+      const subtaskIssue = issues.find(
+        (subtaskIssue) => subtaskIssue.key === subtask.key
+      );
+      const work = subtaskIssue?.fields.worklog?.worklogs;
 
-  return [...worklogs].sort((a, b) =>
+      return work === undefined ? acc : acc.concat(work);
+    },
+    []
+  );
+
+  const allWorklogs: IssueWorklog[] = (
+    issue.fields.worklog?.worklogs ?? []
+  ).concat(subtaskWorklogs);
+
+  return [...allWorklogs].sort((a, b) =>
     compareDesc(a.started.valueOf(), b.started.valueOf())
   )[0];
 };
@@ -458,12 +477,15 @@ export const mostRecentIssueWorklog = (
  * @param issue the issue.
  * @returns the time that the issue was last worked, or undefined if it has never been worked.
  */
-export const issueLastWorked = (issue: Issue): ReadonlyDate | undefined => {
+export const issueLastWorked = (
+  issue: Issue,
+  issues: readonly Issue[]
+): ReadonlyDate | undefined => {
   const mostRecentTransition = mostRecentIssueTransition(issue);
 
   const mostRecentComment = mostRecentIssueComment(issue);
 
-  const mostRecentWorklog = mostRecentIssueWorklog(issue);
+  const mostRecentWorklog = mostRecentIssueWorklog(issue, issues);
 
   return [
     mostRecentTransition?.created,
@@ -476,6 +498,7 @@ export const issueLastWorked = (issue: Issue): ReadonlyDate | undefined => {
 
 export const enhancedIssue = (
   issue: Issue,
+  issues: readonly Issue[],
   viewLink: string,
   qualityFieldName: string,
   qualityReasonFieldName: string,
@@ -488,7 +511,7 @@ export const enhancedIssue = (
 
   const released = issue.fields.fixVersions.some((version) => version.released);
 
-  const lastWorked = issueLastWorked(issue);
+  const lastWorked = issueLastWorked(issue, issues);
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const quality = issue.fields[qualityFieldName] as string | undefined;
