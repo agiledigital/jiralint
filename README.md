@@ -174,3 +174,14 @@ You can create a Jira API token for your account [here](https://id.atlassian.com
   "qualityReasonFieldName": "customfield_12346"
 }
 ```
+
+## Pull Requests
+### Commits
+In order to conform to the JiraLint PR standard, commits should be done with
+``` sh
+npm run commit
+```
+### Windows
+Windows users will need to make an alteration to the package.json in the lib folder in order to run this script and/or the npm run test --workspaces script.
+Change the test script to "test": "SET TZ=Australia/Canberra jest",
+
