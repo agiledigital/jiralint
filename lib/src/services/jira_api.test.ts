@@ -52,8 +52,6 @@ describe("Searching issues", () => {
   it("should account for worklogs of subtasks in the parent", async () => {
     const response = await client.searchIssues("", [], "", "", [], {});
 
-    expect(E.isRight(response)).toBeTruthy();
-
     pipe(
       response,
       E.map((issues) => {
@@ -67,8 +65,10 @@ describe("Searching issues", () => {
             expect(issue.mostRecentWorklog).toBeDefined();
         });
       }),
-      //This should always throw an error in Jest
-      E.mapLeft((message) => expect(message).toThrow())
+      E.mapLeft((error) => {
+        console.error(error);
+        expect(false).toBeTruthy();
+      })
     );
   });
 });

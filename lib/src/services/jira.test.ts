@@ -6,6 +6,7 @@ import {
   enhancedIssue,
   CloudIssue,
   issueLastWorked,
+  mostRecentIssueWorklog,
 } from "./jira";
 import reporter from "io-ts-reporters";
 import * as E from "fp-ts/lib/Either";
@@ -359,5 +360,16 @@ describe("enhancing issues", () => {
         }
       )
     );
+  });
+});
+
+describe("Getting Most Recent Issue Worklog", () => {
+  it("should take that issues subtasks into account", () => {
+    expect(
+      mostRecentIssueWorklog(IssueData.enhancedIssue, [
+        IssueData.enhancedIssue,
+        IssueData.enhancedSubtask,
+      ])
+    ).toBeDefined();
   });
 });
