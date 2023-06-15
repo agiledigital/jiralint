@@ -1,4 +1,5 @@
 /* eslint-disable spellcheck/spell-checker */
+/* eslint-disable functional/prefer-immutable-types*/
 import { Either } from "fp-ts/lib/Either";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -40,6 +41,7 @@ type FieldNotEditable = {
   readonly fields: readonly string[];
 };
 
+// eslint-disable-next-line functional/type-declaration-immutability
 export type JiraClient = {
   readonly jiraApi: Readonly<JiraApi>;
   readonly updateIssueQuality: (
@@ -58,7 +60,6 @@ export type JiraClient = {
     qualityReasonField: string,
     customFieldNames: readonly string[],
     descriptionFields: ReadonlyRecord<string, string>
-    // eslint-disable-next-line functional/prefer-immutable-types
   ) => Promise<Either<string, readonly EnhancedIssue[]>>;
   readonly currentUser: () => Promise<Either<string, User>>;
 };
@@ -86,7 +87,6 @@ export const getOAuthAccessToken = async (
   jiraConsumerSecret: string,
   secretCallback: (requestUrl: string) => Promise<string>
 ): Promise<Authorised> => {
-  // eslint-disable-next-line functional/prefer-immutable-types
   const oauth = new OAuth(
     `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/request-token`,
     `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/access-token`,
@@ -251,7 +251,7 @@ export const jiraClientWithUserCredentials = (
  * @param jiraApi
  * @returns The Jira API abstraction.
  */
-const jiraClient = (
+export const jiraClient = (
   jiraProtocol: "http" | "https",
   jiraHost: string,
   jiraApi: Readonly<JiraApi>
@@ -263,7 +263,6 @@ const jiraClient = (
    * @returns the mapped validation.
    */
   const mapValidationError = <T>(
-    // eslint-disable-next-line functional/prefer-immutable-types
     validation: T.Validation<T>
   ): Either<string, T> =>
     E.isLeft(validation)
@@ -281,7 +280,6 @@ const jiraClient = (
   const decode = <I, O>(
     name: string,
     input: I,
-    // eslint-disable-next-line functional/prefer-immutable-types
     decoder: (i: I) => T.Validation<O>
   ): Either<string, O> =>
     pipe(
@@ -303,10 +301,8 @@ const jiraClient = (
    * @returns Issue
    */
   const onPremJiraToGeneric = (
-    // eslint-disable-next-line functional/prefer-immutable-types
     onPremIssue: OnPremIssue
   ): TE.TaskEither<string, Issue> => {
-    // eslint-disable-next-line functional/prefer-immutable-types
     const assignee =
       onPremIssue.fields.assignee === undefined
         ? undefined
@@ -335,10 +331,8 @@ const jiraClient = (
    * @returns Issue
    */
   const cloudJiraToGeneric = (
-    // eslint-disable-next-line functional/prefer-immutable-types
     cloudIssue: CloudIssue
   ): TE.TaskEither<string, Issue> => {
-    // eslint-disable-next-line functional/prefer-immutable-types
     const assignee =
       cloudIssue.fields.assignee === undefined
         ? undefined
@@ -367,7 +361,7 @@ const jiraClient = (
     (id: number): TE.TaskEither<string, Board> => {
       const fetch = (id: number): TE.TaskEither<string, JiraApi.JsonResponse> =>
         TE.tryCatch(
-          // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
+          // eslint-disable-next-line functional/functional-parameters
           () => jiraApi.getConfiguration(id.toString()),
           (reason: unknown) =>
             `Failed to fetch board [${id}] for [${JSON.stringify(reason)}].`
@@ -388,7 +382,7 @@ const jiraClient = (
       projectKey: string
     ): TE.TaskEither<string, ReadonlyRecord<string, readonly Board[]>> => {
       const fetch = TE.tryCatch(
-        // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
+        // eslint-disable-next-line functional/functional-parameters
         () =>
           jiraApi.getAllBoards(
             undefined,
@@ -444,12 +438,10 @@ const jiraClient = (
     };
 
   const boardsByProject = (
-    // eslint-disable-next-line functional/prefer-immutable-types
     issues: readonly Issue[],
     boardNamesToIgnore: readonly string[]
   ): TE.TaskEither<string, ReadonlyRecord<string, readonly Board[]>> => {
     const projectKeys: readonly string[] = issues
-      // eslint-disable-next-line functional/prefer-immutable-types
       .map((issue) => issue.fields.project.key)
       .filter(
         (value, index, self: readonly string[]) => self.indexOf(value) === index
@@ -477,7 +469,7 @@ const jiraClient = (
     issueKey: string
   ): TE.TaskEither<string, readonly IssueWorklog[]> => {
     const fetch = TE.tryCatch(
-      // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
+      // eslint-disable-next-line functional/functional-parameters
       () => jiraApi.genericGet(`issue/${encodeURIComponent(issueKey)}/worklog`),
       (error) =>
         `Failed to fetch worklogs for [${issueKey}] - [${JSON.stringify(
@@ -506,7 +498,7 @@ const jiraClient = (
     issueKey: string
   ): TE.TaskEither<string, readonly IssueComment[]> => {
     const fetch = TE.tryCatch(
-      // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
+      // eslint-disable-next-line functional/functional-parameters
       () =>
         jiraApi.genericGet(
           `issue/${encodeURIComponent(
@@ -536,7 +528,6 @@ const jiraClient = (
     return pipe(fetch, TE.chain(parsed));
   };
 
-  // eslint-disable-next-line functional/prefer-immutable-types
   const issueLink = (issue: Issue): string =>
     `${jiraProtocol}://${jiraHost}/browse/${encodeURIComponent(issue.key)}`;
 
@@ -563,7 +554,7 @@ const jiraClient = (
       Either<string | FieldNotEditable | JiraError, Readonly<JsonResponse>>
     > => {
       const updateIssue = TE.tryCatch(
-        // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
+        // eslint-disable-next-line functional/functional-parameters
         () =>
           jiraApi.updateIssue(key, {
             fields: {
@@ -572,7 +563,6 @@ const jiraClient = (
             },
           }),
         (error: unknown) => {
-          // eslint-disable-next-line functional/prefer-immutable-types
           const jiraError = JiraError.decode(error);
           return isLeft(jiraError)
             ? `Unexpected error from Jira when updating quality of [${key}] to [${quality}] - [${JSON.stringify(
@@ -584,7 +574,6 @@ const jiraClient = (
         }
       );
 
-      // eslint-disable-next-line functional/prefer-immutable-types
       const mapError = TE.mapLeft((error: string | JiraError) => {
         const fieldNotSettableError = (
           jiraError: JiraError,
@@ -636,10 +625,10 @@ const jiraClient = (
       qualityReasonField: string,
       customFieldNames: readonly string[],
       descriptionFields: ReadonlyRecord<string, string>
-      // eslint-disable-next-line sonarjs/cognitive-complexity, functional/prefer-immutable-types
+      // eslint-disable-next-line sonarjs/cognitive-complexity
     ): Promise<Either<string, readonly EnhancedIssue[]>> => {
       const fetchIssues = TE.tryCatch(
-        // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
+        // eslint-disable-next-line functional/functional-parameters
         () =>
           jiraApi.searchJira(jql, {
             fields: [
@@ -682,7 +671,6 @@ const jiraClient = (
           ? pipe(
               parseCloudJira(response), //response to cloudIssueType
               TE.chain(
-                // eslint-disable-next-line functional/prefer-immutable-types
                 TE.traverseSeqArray((cloudIssue) =>
                   cloudJiraToGeneric(cloudIssue)
                 )
@@ -691,7 +679,6 @@ const jiraClient = (
           : pipe(
               parseOnPremJira(response),
               TE.chain(
-                // eslint-disable-next-line functional/prefer-immutable-types
                 TE.traverseSeqArray((onPremIssue) =>
                   onPremJiraToGeneric(onPremIssue)
                 )
@@ -724,12 +711,9 @@ const jiraClient = (
         );
 
       const enhancedIssues = (
-        // eslint-disable-next-line functional/prefer-immutable-types
         issues: readonly Issue[]
       ): TE.TaskEither<string, readonly EnhancedIssue[]> => {
-        // eslint-disable-next-line functional/prefer-immutable-types
         return TE.map((boards: ReadonlyRecord<string, readonly Board[]>) => {
-          // eslint-disable-next-line functional/prefer-immutable-types
           return issues.map((issue) => {
             const issueBoards = boards[issue.fields.project.key] ?? [];
             const boardByStatus = issueBoards.find((board) =>
@@ -753,7 +737,6 @@ const jiraClient = (
       };
 
       const issueWithComment = (
-        // eslint-disable-next-line functional/prefer-immutable-types
         issue: EnhancedIssue
       ): TE.TaskEither<string, EnhancedIssue> => {
         const mostRecentCommentLoaded =
@@ -762,12 +745,10 @@ const jiraClient = (
 
         const recentComment = (
           worklogs: readonly IssueComment[] | undefined
-          // eslint-disable-next-line functional/prefer-immutable-types
         ): IssueComment | undefined =>
           worklogs === undefined
             ? undefined
-            : // eslint-disable-next-line functional/prefer-immutable-types
-              [...worklogs].sort((w1, w2) =>
+            : [...worklogs].sort((w1, w2) =>
                 compareDesc(w1.created.valueOf(), w2.created.valueOf())
               )[0];
 
@@ -775,7 +756,6 @@ const jiraClient = (
           mostRecentCommentLoaded
             ? TE.right(issue.fields.comment.comments)
             : fetchMostRecentComments(issue.key),
-          // eslint-disable-next-line functional/prefer-immutable-types
           TE.map((comments) => ({
             ...issue,
             mostRecentComment: recentComment(comments),
@@ -784,7 +764,6 @@ const jiraClient = (
       };
 
       const issueWithWorklog = (
-        // eslint-disable-next-line functional/prefer-immutable-types
         issue: EnhancedIssue
       ): TE.TaskEither<string, EnhancedIssue> => {
         const mostRecentWorklogLoaded =
@@ -793,24 +772,19 @@ const jiraClient = (
 
         const recentWorklog = (
           worklogs: readonly IssueWorklog[] | undefined
-          // eslint-disable-next-line functional/prefer-immutable-types
         ): IssueWorklog | undefined =>
           worklogs === undefined
             ? undefined
-            : // eslint-disable-next-line functional/prefer-immutable-types
-              [...worklogs].sort((w1, w2) =>
+            : [...worklogs].sort((w1, w2) =>
                 compareDesc(w1.started.valueOf(), w2.started.valueOf())
               )[0];
 
-        // eslint-disable-next-line functional/prefer-immutable-types
         const relevantKeys: string[] = mostRecentWorklogLoaded
           ? []
           : issue.fields.subtasks
-              // eslint-disable-next-line functional/prefer-immutable-types
               .reduce((acc: string[], cur) => acc.concat([cur.key]), [])
               .concat([issue.key]);
 
-        // eslint-disable-next-line functional/prefer-immutable-types
         const worklogs: TE.TaskEither<string, readonly IssueWorklog[]>[] =
           relevantKeys.map((key) => fetchMostRecentWorklogs(key));
 
@@ -824,7 +798,6 @@ const jiraClient = (
           mostRecentWorklogLoaded
             ? TE.right(issue.fields.worklog.worklogs)
             : worklog,
-          // eslint-disable-next-line functional/prefer-immutable-types
           TE.map((worklogs) => ({
             ...issue,
             mostRecentWorklog: recentWorklog(worklogs),
@@ -836,9 +809,7 @@ const jiraClient = (
         fetchIssues,
         TE.chain(convertIssueType),
         TE.chain(enhancedIssues),
-        // eslint-disable-next-line functional/prefer-immutable-types
         TE.chain(TE.traverseSeqArray((issue) => issueWithComment(issue))),
-        // eslint-disable-next-line functional/prefer-immutable-types
         TE.chain(TE.traverseSeqArray((issue) => issueWithWorklog(issue)))
       )();
     },
@@ -852,7 +823,7 @@ const jiraClient = (
     // eslint-disable-next-line functional/functional-parameters
     currentUser: async (): Promise<Either<string, User>> => {
       const fetchUser = TE.tryCatch(
-        // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
+        // eslint-disable-next-line functional/functional-parameters
         () => jiraApi.getCurrentUser(),
         (error: unknown) =>
           `Error fetching current user - [${JSON.stringify(error)}]`
