@@ -20,6 +20,7 @@ import * as clc from "cli-color";
 // eslint-disable-next-line functional/no-expression-statements
 require("cli-color");
 
+// eslint-disable-next-line functional/type-declaration-immutability
 type CheckedIssue = EnhancedIssue & {
   readonly action: IssueAction;
   readonly reasons: readonly string[];
@@ -31,14 +32,12 @@ const checkedIssues = (
 ): readonly CheckedIssue[] => {
   const now = readonlyDate(readonlyNow());
 
-  // eslint-disable-next-line functional/prefer-immutable-types
   return issues.map((issue) => {
     const customChecks: readonly Check[] = [] as const; // TODO ability to dynamically load custom checks
     const issueAction = issueActionRequired(issue, now, customChecks);
 
     const issueQuality = quality(issueAction);
 
-    // eslint-disable-next-line functional/prefer-immutable-types
     const reasons: readonly string[] = issueAction.checks.flatMap((check) =>
       check.outcome === "warn" || check.outcome === "fail" ? check.reasons : []
     );
@@ -86,7 +85,7 @@ const renderTable = (
   // Simple visual representation of the degree of alarm a viewer should feel.
   // More whimsical emoji (e.g. 👀) raise some issues with rendering of wide
   // unicode characters.
-  // eslint-disable-next-line functional/prefer-immutable-types
+
   const alarm = ["⠀", "⠁", "⠉", "⠋", "⠛", "⣿"] as const;
 
   const tableHeaderWidths: readonly number[] = tableHeaders.map(
@@ -105,7 +104,6 @@ const renderTable = (
   const data: readonly (readonly (readonly [
     string,
     readonly clc.Format[]
-    // eslint-disable-next-line functional/prefer-immutable-types
   ])[])[] = checkedIssues(issues).map((issue) => {
     const originalEstimateSeconds =
       issue.fields.timetracking.originalEstimateSeconds ?? 0;
@@ -157,9 +155,7 @@ const renderTable = (
     ];
   });
 
-  // eslint-disable-next-line functional/prefer-immutable-types
   const calculatedWidths = data.reduce((previous, current) => {
-    // eslint-disable-next-line functional/prefer-immutable-types
     return current.map(([value], index) =>
       Math.max(stringLength(value) + 1, previous[index] ?? 0)
     );
@@ -170,7 +166,7 @@ const renderTable = (
     // eslint-disable-next-line functional/no-return-void
   ): void => {
     const initialValue: Readonly<CLUI.Line> = new CLUI.Line(outputBuffer);
-    // eslint-disable-next-line functional/prefer-immutable-types
+
     const columns: Readonly<CLUI.Line> = row.reduce((line, [text], index) => {
       const columnWidth = calculatedWidths[index] ?? 0;
       return line.column(text, columnWidth);
@@ -180,7 +176,7 @@ const renderTable = (
     columns.fill().store();
   };
 
-  // eslint-disable-next-line functional/no-expression-statements, functional/prefer-immutable-types
+  // eslint-disable-next-line functional/no-expression-statements
   renderRow(tableHeaders.map((header) => [header, [clc.cyan]]));
 
   // eslint-disable-next-line functional/no-expression-statements
@@ -228,12 +224,11 @@ type OutputMode = "json" | "table";
 
 const DEFAULT_OUTPUT_MODE: OutputMode = "table";
 
-// eslint-disable-next-line functional/prefer-immutable-types
 export default ({ command }: RootCommand): Argv<unknown> =>
   command(
     "search",
     "searches for jira issues using JQL and then lints",
-    // eslint-disable-next-line functional/prefer-immutable-types
+
     (yargs) =>
       withQualityFieldsOption(yargs)
         .option("jql", {
@@ -262,7 +257,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           default: [],
         })
         .demandOption(["jql"]),
-    // eslint-disable-next-line functional/no-return-void, functional/prefer-immutable-types
+    // eslint-disable-next-line functional/no-return-void
     (args) => {
       // eslint-disable-next-line functional/no-expression-statements
       void search(

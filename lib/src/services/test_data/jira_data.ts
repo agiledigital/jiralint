@@ -1,4 +1,3 @@
-/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
 /* eslint-disable spellcheck/spell-checker */
 /* eslint-disable sonarjs/no-duplicate-string */
 export const nullDescription = {

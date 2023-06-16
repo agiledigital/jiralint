@@ -1,4 +1,3 @@
-/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
 /* eslint-disable spellcheck/spell-checker */
 import { Either } from "fp-ts/lib/Either";
 import * as E from "fp-ts/lib/Either";
@@ -86,7 +85,6 @@ export const getOAuthAccessToken = async (
   jiraConsumerSecret: string,
   secretCallback: (requestUrl: string) => Promise<string>
 ): Promise<Authorised> => {
-  // eslint-disable-next-line functional/prefer-immutable-types
   const oauth = new OAuth(
     `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/request-token`,
     `${jiraProtocol}://${jiraHost}/plugins/servlet/oauth/access-token`,
@@ -251,7 +249,7 @@ export const jiraClientWithUserCredentials = (
  * @param jiraApi
  * @returns The Jira API abstraction.
  */
-const jiraClient = (
+export const jiraClient = (
   jiraProtocol: "http" | "https",
   jiraHost: string,
   jiraApi: Readonly<JiraApi>
@@ -303,7 +301,6 @@ const jiraClient = (
   const onPremJiraToGeneric = (
     onPremIssue: OnPremIssue
   ): TE.TaskEither<string, Issue> => {
-    // eslint-disable-next-line functional/prefer-immutable-types
     const assignee =
       onPremIssue.fields.assignee === undefined
         ? undefined
@@ -334,7 +331,6 @@ const jiraClient = (
   const cloudJiraToGeneric = (
     cloudIssue: CloudIssue
   ): TE.TaskEither<string, Issue> => {
-    // eslint-disable-next-line functional/prefer-immutable-types
     const assignee =
       cloudIssue.fields.assignee === undefined
         ? undefined
@@ -363,7 +359,7 @@ const jiraClient = (
     (id: number): TE.TaskEither<string, Board> => {
       const fetch = (id: number): TE.TaskEither<string, JiraApi.JsonResponse> =>
         TE.tryCatch(
-          // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
+          // eslint-disable-next-line functional/functional-parameters
           () => jiraApi.getConfiguration(id.toString()),
           (reason: unknown) =>
             `Failed to fetch board [${id}] for [${JSON.stringify(reason)}].`
@@ -384,7 +380,7 @@ const jiraClient = (
       projectKey: string
     ): TE.TaskEither<string, ReadonlyRecord<string, readonly Board[]>> => {
       const fetch = TE.tryCatch(
-        // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
+        // eslint-disable-next-line functional/functional-parameters
         () =>
           jiraApi.getAllBoards(
             undefined,
@@ -471,7 +467,7 @@ const jiraClient = (
     issueKey: string
   ): TE.TaskEither<string, readonly IssueWorklog[]> => {
     const fetch = TE.tryCatch(
-      // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
+      // eslint-disable-next-line functional/functional-parameters
       () => jiraApi.genericGet(`issue/${encodeURIComponent(issueKey)}/worklog`),
       (error) =>
         `Failed to fetch worklogs for [${issueKey}] - [${JSON.stringify(
@@ -500,7 +496,7 @@ const jiraClient = (
     issueKey: string
   ): TE.TaskEither<string, readonly IssueComment[]> => {
     const fetch = TE.tryCatch(
-      // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
+      // eslint-disable-next-line functional/functional-parameters
       () =>
         jiraApi.genericGet(
           `issue/${encodeURIComponent(
@@ -533,6 +529,130 @@ const jiraClient = (
   const issueLink = (issue: Issue): string =>
     `${jiraProtocol}://${jiraHost}/browse/${encodeURIComponent(issue.key)}`;
 
+  const convertIssueType = (
+    response: Readonly<JiraApi.JsonResponse>
+  ): TE.TaskEither<string, readonly Issue[]> => {
+    return jiraHost.includes("atlassian")
+      ? pipe(
+          parseCloudJira(response), //response to cloudIssueType
+          TE.chain(
+            TE.traverseSeqArray((cloudIssue) => cloudJiraToGeneric(cloudIssue))
+          )
+        )
+      : pipe(
+          parseOnPremJira(response),
+          TE.chain(
+            TE.traverseSeqArray((onPremIssue) =>
+              onPremJiraToGeneric(onPremIssue)
+            )
+          )
+        );
+  };
+
+  const parseOnPremJira = (
+    response: Readonly<JiraApi.JsonResponse>
+  ): TE.TaskEither<string, readonly OnPremIssue[]> =>
+    TE.fromEither(
+      decode(
+        "issues", //name
+        response.issues, //input
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        T.readonly(T.array(OnPremIssue)).decode //decoder
+      )
+    );
+
+  const parseCloudJira = (
+    response: Readonly<JiraApi.JsonResponse>
+  ): TE.TaskEither<string, readonly CloudIssue[]> =>
+    TE.fromEither(
+      decode(
+        "issues", //name
+        response.issues, //input
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        T.readonly(T.array(CloudIssue)).decode //decoder)
+      )
+    );
+
+  /**
+   * Adds the most recent comment to a given enhanced issue
+   * @param issue the EnhancedIssue without a comment
+   * @returns the EnhancedIssue with the mostRecentComment added
+   */
+  const issueWithComment = (
+    issue: EnhancedIssue
+  ): TE.TaskEither<string, EnhancedIssue> => {
+    const mostRecentCommentLoaded =
+      issue.fields.comment !== undefined &&
+      issue.fields.comment.total === issue.fields.comment.comments.length;
+
+    const recentComment = (
+      worklogs: readonly IssueComment[] | undefined
+    ): IssueComment | undefined =>
+      worklogs === undefined
+        ? undefined
+        : [...worklogs].sort((w1, w2) =>
+            compareDesc(w1.created.valueOf(), w2.created.valueOf())
+          )[0];
+
+    return pipe(
+      mostRecentCommentLoaded
+        ? TE.right(issue.fields.comment.comments)
+        : fetchMostRecentComments(issue.key),
+      TE.map((comments) => ({
+        ...issue,
+        mostRecentComment: recentComment(comments),
+      }))
+    );
+  };
+
+  /**
+   * Adds the most recent worklog to a given enhanced issue by either calculating
+   * that from the worklogs provided in the initial get request if that was not paginated
+   * or by making additional API requests to get all the worklogs for an issue. The worklogs
+   * for an issue also account for the worklogs of the subtasks of that issue.
+   * @param issue the EnhancedIssue to add worklogs to
+   * @returns the EnhancedIssue with the mostRecentWorklog added
+   */
+  const issueWithWorklog = (
+    issue: EnhancedIssue
+  ): TE.TaskEither<string, EnhancedIssue> => {
+    const mostRecentWorklogLoaded =
+      issue.fields.worklog !== undefined &&
+      issue.fields.worklog.total === issue.fields.worklog.worklogs.length;
+
+    const recentWorklog = (
+      worklogs: readonly IssueWorklog[] | undefined
+    ): IssueWorklog | undefined =>
+      worklogs === undefined
+        ? undefined
+        : [...worklogs].sort((w1, w2) =>
+            compareDesc(w1.started.valueOf(), w2.started.valueOf())
+          )[0];
+
+    const relevantKeys: string[] = mostRecentWorklogLoaded
+      ? []
+      : issue.fields.subtasks.map((cur) => cur.key).concat([issue.key]);
+
+    const worklogs: TE.TaskEither<string, readonly IssueWorklog[]>[] =
+      relevantKeys.map((key) => fetchMostRecentWorklogs(key));
+
+    const worklog: TE.TaskEither<string, readonly IssueWorklog[]> = pipe(
+      worklogs,
+      TE.sequenceArray,
+      TE.map((x): readonly IssueWorklog[] => x.flat())
+    );
+
+    return pipe(
+      mostRecentWorklogLoaded
+        ? TE.right(issue.fields.worklog.worklogs)
+        : worklog,
+      TE.map((worklogs) => ({
+        ...issue,
+        mostRecentWorklog: recentWorklog(worklogs),
+      }))
+    );
+  };
+
   return {
     jiraApi,
     /**
@@ -556,7 +676,7 @@ const jiraClient = (
       Either<string | FieldNotEditable | JiraError, Readonly<JsonResponse>>
     > => {
       const updateIssue = TE.tryCatch(
-        // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
+        // eslint-disable-next-line functional/functional-parameters
         () =>
           jiraApi.updateIssue(key, {
             fields: {
@@ -576,7 +696,6 @@ const jiraClient = (
         }
       );
 
-      // eslint-disable-next-line functional/prefer-immutable-types
       const mapError = TE.mapLeft((error: string | JiraError) => {
         const fieldNotSettableError = (
           jiraError: JiraError,
@@ -630,7 +749,7 @@ const jiraClient = (
       descriptionFields: ReadonlyRecord<string, string>
     ): Promise<Either<string, readonly EnhancedIssue[]>> => {
       const fetchIssues = TE.tryCatch(
-        // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
+        // eslint-disable-next-line functional/functional-parameters
         () =>
           jiraApi.searchJira(jql, {
             fields: [
@@ -666,56 +785,9 @@ const jiraClient = (
           )}].`
       );
 
-      const convertIssueType = (
-        response: Readonly<JiraApi.JsonResponse>
-      ): TE.TaskEither<string, readonly Issue[]> => {
-        return jiraHost.includes("atlassian")
-          ? pipe(
-              parseCloudJira(response), //response to cloudIssueType
-              TE.chain(
-                TE.traverseSeqArray((cloudIssue) =>
-                  cloudJiraToGeneric(cloudIssue)
-                )
-              )
-            )
-          : pipe(
-              parseOnPremJira(response),
-              TE.chain(
-                TE.traverseSeqArray((onPremIssue) =>
-                  onPremJiraToGeneric(onPremIssue)
-                )
-              )
-            );
-      };
-
-      const parseOnPremJira = (
-        response: Readonly<JiraApi.JsonResponse>
-      ): TE.TaskEither<string, readonly OnPremIssue[]> =>
-        TE.fromEither(
-          decode(
-            "issues", //name
-            response.issues, //input
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            T.readonly(T.array(OnPremIssue)).decode //decoder
-          )
-        );
-
-      const parseCloudJira = (
-        response: Readonly<JiraApi.JsonResponse>
-      ): TE.TaskEither<string, readonly CloudIssue[]> =>
-        TE.fromEither(
-          decode(
-            "issues", //name
-            response.issues, //input
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            T.readonly(T.array(CloudIssue)).decode //decoder)
-          )
-        );
-
       const enhancedIssues = (
         issues: readonly Issue[]
       ): TE.TaskEither<string, readonly EnhancedIssue[]> => {
-        // eslint-disable-next-line functional/prefer-immutable-types
         return TE.map((boards: ReadonlyRecord<string, readonly Board[]>) => {
           return issues.map((issue) => {
             const issueBoards = boards[issue.fields.project.key] ?? [];
@@ -728,6 +800,7 @@ const jiraClient = (
             );
             return enhancedIssue(
               issue,
+              issues,
               issueLink(issue),
               qualityField,
               qualityReasonField,
@@ -738,67 +811,16 @@ const jiraClient = (
         })(boardsByProject(issues, boardNamesToIgnore));
       };
 
-      const issueWithComment = (
-        issue: EnhancedIssue
-      ): TE.TaskEither<string, EnhancedIssue> => {
-        const mostRecentCommentLoaded =
-          issue.fields.comment !== undefined &&
-          issue.fields.comment.total === issue.fields.comment.comments.length;
-
-        const recentComment = (
-          worklogs: readonly IssueComment[] | undefined
-        ): IssueComment | undefined =>
-          worklogs === undefined
-            ? undefined
-            : [...worklogs].sort((w1, w2) =>
-                compareDesc(w1.created.valueOf(), w2.created.valueOf())
-              )[0];
-
-        return pipe(
-          mostRecentCommentLoaded
-            ? TE.right(issue.fields.comment.comments)
-            : fetchMostRecentComments(issue.key),
-          // eslint-disable-next-line functional/prefer-immutable-types
-          TE.map((comments) => ({
-            ...issue,
-            mostRecentComment: recentComment(comments),
-          }))
-        );
-      };
-
-      const issueWithWorklog = (
-        issue: EnhancedIssue
-      ): TE.TaskEither<string, EnhancedIssue> => {
-        const mostRecentWorklogLoaded =
-          issue.fields.worklog !== undefined &&
-          issue.fields.worklog.total === issue.fields.worklog.worklogs.length;
-
-        const recentWorklog = (
-          worklogs: readonly IssueWorklog[] | undefined
-        ): IssueWorklog | undefined =>
-          worklogs === undefined
-            ? undefined
-            : [...worklogs].sort((w1, w2) =>
-                compareDesc(w1.started.valueOf(), w2.started.valueOf())
-              )[0];
-
-        return pipe(
-          mostRecentWorklogLoaded
-            ? TE.right(issue.fields.worklog.worklogs)
-            : fetchMostRecentWorklogs(issue.key),
-          // eslint-disable-next-line functional/prefer-immutable-types
-          TE.map((worklogs) => ({
-            ...issue,
-            mostRecentWorklog: recentWorklog(worklogs),
-          }))
-        );
-      };
-
       return pipe(
+        // Get the issues from Jira that match the provided JQL query.
         fetchIssues,
+        // Then parse and convert the JSON response from the API into the Issue type.
         TE.chain(convertIssueType),
+        // Then convert the Issues into EnhancedIssues by adding information about the board
         TE.chain(enhancedIssues),
+        // Then add the most recent comment to those EnhancedIssues
         TE.chain(TE.traverseSeqArray((issue) => issueWithComment(issue))),
+        // Then add the most recent worklog to those EnhancedIssues
         TE.chain(TE.traverseSeqArray((issue) => issueWithWorklog(issue)))
       )();
     },
@@ -812,7 +834,7 @@ const jiraClient = (
     // eslint-disable-next-line functional/functional-parameters
     currentUser: async (): Promise<Either<string, User>> => {
       const fetchUser = TE.tryCatch(
-        // eslint-disable-next-line functional/functional-parameters, functional/prefer-immutable-types
+        // eslint-disable-next-line functional/functional-parameters
         () => jiraApi.getCurrentUser(),
         (error: unknown) =>
           `Error fetching current user - [${JSON.stringify(error)}]`

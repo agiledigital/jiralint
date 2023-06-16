@@ -20,6 +20,7 @@ module.exports = {
     "total-functions",
   ],
   rules: {
+    "functional/prefer-immutable-types" : "off",
     // https://github.com/aotaduy/eslint-plugin-spellcheck
     "spellcheck/spell-checker": [
       "warn",
@@ -60,6 +61,11 @@ module.exports = {
           "Worklog",
           "worklogs",
           "yargs",
+          "monday",
+          "tuesday",
+          "sunday",
+          "aggregatetimeoriginalestimate",
+          "aggregatetimespent",
         ],
       },
     ],

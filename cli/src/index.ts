@@ -28,7 +28,6 @@ export type RootCommand = typeof rootCommand;
  * Add global arguments here using the .option function.
  * E.g. const rootCommand = yargs.option('example', {type: 'string'});
  */
-// eslint-disable-next-line functional/prefer-immutable-types
 const rootCommand = yargs;
 
 const CliConfig = T.readonly(
@@ -298,7 +297,6 @@ const verifyClient = (builder: JiraClientBuilder): JiraClient =>
  */
 const config: CliConfig | undefined = findConfig(process.cwd());
 
-// eslint-disable-next-line functional/prefer-immutable-types
 export const withCommonOptions = <C extends RootCommand>(command: C) =>
   command
     .option(jiraProtocolOptionKey, {
@@ -329,13 +327,11 @@ export const withCommonOptions = <C extends RootCommand>(command: C) =>
     })
     .group([jiraHostOptionKey, jiraProtocolOptionKey], "Common Required:");
 
-// eslint-disable-next-line functional/prefer-immutable-types
 export const withAuthenticationOptions = <C extends RootCommand>(command: C) =>
   withCommonOptions(command)
     .group([jiraConsumerKeyOptionKey, jiraConsumerSecretOptionKey], "Auth:")
     .demandOption([jiraHostOptionKey, jiraConsumerSecretOptionKey]);
 
-// eslint-disable-next-line functional/prefer-immutable-types
 export const withAuthOptions = <C extends RootCommand>(command: C) =>
   withCommonOptions(command)
     .option(jiraAccessTokenOptionKey, {
@@ -407,7 +403,6 @@ export const withAuthOptions = <C extends RootCommand>(command: C) =>
     )
     .demandOption("jira");
 
-// eslint-disable-next-line functional/prefer-immutable-types
 export const withQualityFieldsOption = <C extends RootCommand>(command: C) =>
   withAuthOptions(command)
     .option("qualityFieldName", {

@@ -22,12 +22,10 @@ const rate = async (
   console.log(`Updated [${JSON.stringify(update, null, 2)}]`);
 };
 
-// eslint-disable-next-line functional/prefer-immutable-types
 export default ({ command }: RootCommand): Argv<unknown> =>
   command(
     "rate",
     "records the quality of a jira issue",
-    // eslint-disable-next-line functional/prefer-immutable-types
     (yargs) =>
       withQualityFieldsOption(yargs)
         .option("key", {
@@ -45,7 +43,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           describe: "reason for assessment",
         })
         .demandOption(["key", "quality", "reason"]),
-    // eslint-disable-next-line functional/prefer-immutable-types, functional/no-return-void
+    // eslint-disable-next-line functional/no-return-void
     (args) => {
       // eslint-disable-next-line functional/no-expression-statements
       void rate(

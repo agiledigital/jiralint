@@ -1,4 +1,3 @@
-/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
 /* eslint-disable spellcheck/spell-checker */
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";
@@ -152,6 +151,12 @@ export const BaseIssue = T.readonly(
             )
           ),
           duedate: nullOrMissingToUndefined(readonlyDateFromDate),
+          subtasks: T.readonlyArray(
+            T.type({
+              id: T.string,
+              key: T.string,
+            })
+          ),
         })
       ),
       T.readonly(
@@ -256,13 +261,10 @@ export type CloudIssue = Readonly<T.TypeOf<typeof CloudIssue>>;
 // eslint-disable-next-line functional/type-declaration-immutability
 export type Issue = Readonly<T.TypeOf<typeof Issue>>;
 
-// eslint-disable-next-line functional/type-declaration-immutability
 export type IssueComment = Readonly<T.TypeOf<typeof IssueComment>>;
 
-// eslint-disable-next-line functional/type-declaration-immutability
 export type IssueChangeLog = Readonly<T.TypeOf<typeof ChangeLog>>;
 
-// eslint-disable-next-line functional/type-declaration-immutability
 export type IssueWorklog = Readonly<T.TypeOf<typeof IssueWorklog>>;
 
 export const BoardColumn = T.readonly(
@@ -294,7 +296,6 @@ export const Board = T.readonly(
   })
 );
 
-// eslint-disable-next-line functional/type-declaration-immutability
 export type Board = Readonly<T.TypeOf<typeof Board>>;
 
 export const BoardSummary = T.readonly(
@@ -439,15 +440,30 @@ export const mostRecentIssueComment = (
 /**
  * Finds the most recent worklog on the issue (based on the started date).
  * @param issue the issue whose most recent worklog should be found.
+ * @param issueSubtasks a list of issues that must contain the subtasks of issue.
  * @returns the most recent worklog, or undefined if no work has been logged.
  */
 export const mostRecentIssueWorklog = (
-  issue: Issue
+  issue: Issue,
+  issueSubtasks: readonly Issue[]
 ): IssueWorklog | undefined => {
-  const worklogs =
-    issue.fields.worklog === undefined ? [] : issue.fields.worklog.worklogs;
+  const subtaskWorklogs = issue.fields.subtasks.reduce(
+    (acc: IssueWorklog[], subtask) => {
+      const subtaskIssue = issueSubtasks.find(
+        (subtaskIssue) => subtaskIssue.key === subtask.key
+      );
+      const work = subtaskIssue?.fields.worklog?.worklogs;
 
-  return [...worklogs].sort((a, b) =>
+      return work === undefined ? acc : acc.concat(work);
+    },
+    []
+  );
+
+  const allWorklogs: IssueWorklog[] = (
+    issue.fields.worklog?.worklogs ?? []
+  ).concat(subtaskWorklogs);
+
+  return [...allWorklogs].sort((a, b) =>
     compareDesc(a.started.valueOf(), b.started.valueOf())
   )[0];
 };
@@ -456,14 +472,18 @@ export const mostRecentIssueWorklog = (
  * Determines the time at which the issue was last worked, as evidenced by
  * comments, transitions or worklogs.
  * @param issue the issue.
+ * @param issueSubtasks a list of issues that must contain the subtasks of issue.
  * @returns the time that the issue was last worked, or undefined if it has never been worked.
  */
-export const issueLastWorked = (issue: Issue): ReadonlyDate | undefined => {
+export const issueLastWorked = (
+  issue: Issue,
+  issueSubtasks: readonly Issue[]
+): ReadonlyDate | undefined => {
   const mostRecentTransition = mostRecentIssueTransition(issue);
 
   const mostRecentComment = mostRecentIssueComment(issue);
 
-  const mostRecentWorklog = mostRecentIssueWorklog(issue);
+  const mostRecentWorklog = mostRecentIssueWorklog(issue, issueSubtasks);
 
   return [
     mostRecentTransition?.created,
@@ -476,6 +496,7 @@ export const issueLastWorked = (issue: Issue): ReadonlyDate | undefined => {
 
 export const enhancedIssue = (
   issue: Issue,
+  issueSubtasks: readonly Issue[],
   viewLink: string,
   qualityFieldName: string,
   qualityReasonFieldName: string,
@@ -488,7 +509,7 @@ export const enhancedIssue = (
 
   const released = issue.fields.fixVersions.some((version) => version.released);
 
-  const lastWorked = issueLastWorked(issue);
+  const lastWorked = issueLastWorked(issue, issueSubtasks);
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const quality = issue.fields[qualityFieldName] as string | undefined;
