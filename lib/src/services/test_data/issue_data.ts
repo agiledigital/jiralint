@@ -2,44 +2,55 @@
 import type { EnhancedIssue, Issue, IssueWorklog } from "../jira";
 import { readonlyDate } from "readonly-types";
 
+const baseFields = {
+  summary: "summary",
+  description: "description",
+  created: readonlyDate("2020-01-01"),
+  project: {
+    key: "project",
+  },
+  timetracking: {},
+  fixVersions: [],
+  aggregateprogress: {
+    progress: undefined,
+    total: undefined,
+    percent: undefined,
+  },
+  assignee: {
+    name: "assignee",
+  },
+  status: {
+    id: "id",
+    name: "status",
+    statusCategory: {
+      id: undefined,
+      name: undefined,
+      colorName: undefined,
+    },
+  },
+  comment: {
+    comments: [],
+    maxResults: 0,
+    total: 0,
+    startAt: 0,
+  },
+  duedate: undefined,
+  worklog: {
+    worklogs: [],
+    maxResults: 0,
+    total: 0,
+    startAt: 0,
+  },
+};
+
 export const issue: Issue = {
   key: "ABC-123",
   self: "self",
   fields: {
-    summary: "summary",
-    description: "description",
-    created: readonlyDate("2020-01-01"),
-    project: {
-      key: "project",
-    },
-    timetracking: {},
-    fixVersions: [],
-    aggregateprogress: {
-      progress: undefined,
-      total: undefined,
-      percent: undefined,
-    },
+    ...baseFields,
     issuetype: {
       name: "issue name",
       subtask: false,
-    },
-    assignee: {
-      name: "assignee",
-    },
-    status: {
-      id: "id",
-      name: "status",
-      statusCategory: {
-        id: undefined,
-        name: undefined,
-        colorName: undefined,
-      },
-    },
-    comment: {
-      comments: [],
-      maxResults: 0,
-      total: 0,
-      startAt: 0,
     },
     subtasks: [
       {
@@ -47,13 +58,6 @@ export const issue: Issue = {
         key: "ABC-124",
       },
     ],
-    duedate: undefined,
-    worklog: {
-      worklogs: [],
-      maxResults: 0,
-      total: 0,
-      startAt: 0,
-    },
   },
   changelog: {
     histories: [],
@@ -87,49 +91,12 @@ export const Subtask: Issue = {
   key: "ABC-124",
   self: "self",
   fields: {
-    summary: "summary",
-    description: "description",
-    created: readonlyDate("2020-01-01"),
-    project: {
-      key: "project",
-    },
-    timetracking: {},
-    fixVersions: [],
-    aggregateprogress: {
-      progress: undefined,
-      total: undefined,
-      percent: undefined,
-    },
+    ...baseFields,
     issuetype: {
       name: "issue name",
       subtask: true,
     },
-    assignee: {
-      name: "assignee",
-    },
-    status: {
-      id: "id",
-      name: "status",
-      statusCategory: {
-        id: undefined,
-        name: undefined,
-        colorName: undefined,
-      },
-    },
-    comment: {
-      comments: [],
-      maxResults: 0,
-      total: 0,
-      startAt: 0,
-    },
     subtasks: [],
-    duedate: undefined,
-    worklog: {
-      worklogs: [worklog],
-      maxResults: 1,
-      total: 1,
-      startAt: 0,
-    },
   },
   changelog: {
     histories: [],

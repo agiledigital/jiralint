@@ -529,6 +529,50 @@ export const jiraClient = (
   const issueLink = (issue: Issue): string =>
     `${jiraProtocol}://${jiraHost}/browse/${encodeURIComponent(issue.key)}`;
 
+  const convertIssueType = (
+    response: Readonly<JiraApi.JsonResponse>
+  ): TE.TaskEither<string, readonly Issue[]> => {
+    return jiraHost.includes("atlassian")
+      ? pipe(
+          parseCloudJira(response), //response to cloudIssueType
+          TE.chain(
+            TE.traverseSeqArray((cloudIssue) => cloudJiraToGeneric(cloudIssue))
+          )
+        )
+      : pipe(
+          parseOnPremJira(response),
+          TE.chain(
+            TE.traverseSeqArray((onPremIssue) =>
+              onPremJiraToGeneric(onPremIssue)
+            )
+          )
+        );
+  };
+
+  const parseOnPremJira = (
+    response: Readonly<JiraApi.JsonResponse>
+  ): TE.TaskEither<string, readonly OnPremIssue[]> =>
+    TE.fromEither(
+      decode(
+        "issues", //name
+        response.issues, //input
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        T.readonly(T.array(OnPremIssue)).decode //decoder
+      )
+    );
+
+  const parseCloudJira = (
+    response: Readonly<JiraApi.JsonResponse>
+  ): TE.TaskEither<string, readonly CloudIssue[]> =>
+    TE.fromEither(
+      decode(
+        "issues", //name
+        response.issues, //input
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        T.readonly(T.array(CloudIssue)).decode //decoder)
+      )
+    );
+
   /**
    * Adds the most recent comment to a given enhanced issue
    * @param issue the EnhancedIssue without a comment
@@ -740,52 +784,6 @@ export const jiraClient = (
             error
           )}].`
       );
-
-      const convertIssueType = (
-        response: Readonly<JiraApi.JsonResponse>
-      ): TE.TaskEither<string, readonly Issue[]> => {
-        return jiraHost.includes("atlassian")
-          ? pipe(
-              parseCloudJira(response), //response to cloudIssueType
-              TE.chain(
-                TE.traverseSeqArray((cloudIssue) =>
-                  cloudJiraToGeneric(cloudIssue)
-                )
-              )
-            )
-          : pipe(
-              parseOnPremJira(response),
-              TE.chain(
-                TE.traverseSeqArray((onPremIssue) =>
-                  onPremJiraToGeneric(onPremIssue)
-                )
-              )
-            );
-      };
-
-      const parseOnPremJira = (
-        response: Readonly<JiraApi.JsonResponse>
-      ): TE.TaskEither<string, readonly OnPremIssue[]> =>
-        TE.fromEither(
-          decode(
-            "issues", //name
-            response.issues, //input
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            T.readonly(T.array(OnPremIssue)).decode //decoder
-          )
-        );
-
-      const parseCloudJira = (
-        response: Readonly<JiraApi.JsonResponse>
-      ): TE.TaskEither<string, readonly CloudIssue[]> =>
-        TE.fromEither(
-          decode(
-            "issues", //name
-            response.issues, //input
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            T.readonly(T.array(CloudIssue)).decode //decoder)
-          )
-        );
 
       const enhancedIssues = (
         issues: readonly Issue[]
