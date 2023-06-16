@@ -66,7 +66,7 @@ const baseFields = {
   },
 };
 
-export const searchJiraReturn: CloudIssue[] = [
+export const issuesWithSubtask: CloudIssue[] = [
   {
     key: "parent key",
     self: "parent url atlassian",
