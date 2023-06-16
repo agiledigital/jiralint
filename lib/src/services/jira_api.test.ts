@@ -53,11 +53,16 @@ describe("Searching issues", () => {
 
     expect(E.isRight(worklogsFromPipe)).toBeTruthy();
 
-    //We know that worklogsFromPipe is right but to compile...
+    // We know that worklogsFromPipe is right from the above but a conditional
+    // is required to compile
     const worklogs: unknown[] = E.isRight(worklogsFromPipe)
       ? worklogsFromPipe.right
       : [];
 
+    // We should expect that both the parent and subtask's most recent
+    // work log are 'worklog' due to the fact that the worklog in subtasks
+    // should be accounted for when calculating the most recent worklog for
+    // a given task.
     worklogs.forEach((log) => expect(log).toStrictEqual(worklog));
 
     expect.assertions(3);
