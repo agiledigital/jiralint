@@ -28,20 +28,16 @@ type CheckedIssue = EnhancedIssue & {
 };
 
 const checkedIssues = (
-  // eslint-disable-next-line functional/prefer-immutable-types
   issues: readonly EnhancedIssue[]
-  // eslint-disable-next-line functional/prefer-immutable-types
 ): readonly CheckedIssue[] => {
   const now = readonlyDate(readonlyNow());
 
-  // eslint-disable-next-line functional/prefer-immutable-types
   return issues.map((issue) => {
     const customChecks: readonly Check[] = [] as const; // TODO ability to dynamically load custom checks
     const issueAction = issueActionRequired(issue, now, customChecks);
 
     const issueQuality = quality(issueAction);
 
-    // eslint-disable-next-line functional/prefer-immutable-types
     const reasons: readonly string[] = issueAction.checks.flatMap((check) =>
       check.outcome === "warn" || check.outcome === "fail" ? check.reasons : []
     );
@@ -54,9 +50,9 @@ const checkedIssues = (
   });
 };
 
-// eslint-disable-next-line functional/no-return-void, functional/prefer-immutable-types
+// eslint-disable-next-line functional/no-return-void
 const renderJson = (issues: readonly EnhancedIssue[]): void => {
-  // eslint-disable-next-line functional/no-return-void, functional/prefer-immutable-types
+  // eslint-disable-next-line functional/no-return-void
   checkedIssues(issues).forEach((issue) =>
     // eslint-disable-next-line no-console
     console.log(JSON.stringify(issue, null, 2))
@@ -64,7 +60,6 @@ const renderJson = (issues: readonly EnhancedIssue[]): void => {
 };
 
 const renderTable = (
-  // eslint-disable-next-line functional/prefer-immutable-types
   issues: readonly EnhancedIssue[],
   qualityFieldName: string
   // eslint-disable-next-line functional/no-return-void
@@ -90,7 +85,7 @@ const renderTable = (
   // Simple visual representation of the degree of alarm a viewer should feel.
   // More whimsical emoji (e.g. 👀) raise some issues with rendering of wide
   // unicode characters.
-  // eslint-disable-next-line functional/prefer-immutable-types
+
   const alarm = ["⠀", "⠁", "⠉", "⠋", "⠛", "⣿"] as const;
 
   const tableHeaderWidths: readonly number[] = tableHeaders.map(
@@ -109,7 +104,6 @@ const renderTable = (
   const data: readonly (readonly (readonly [
     string,
     readonly clc.Format[]
-    // eslint-disable-next-line functional/prefer-immutable-types
   ])[])[] = checkedIssues(issues).map((issue) => {
     const originalEstimateSeconds =
       issue.fields.timetracking.originalEstimateSeconds ?? 0;
@@ -161,9 +155,7 @@ const renderTable = (
     ];
   });
 
-  // eslint-disable-next-line functional/prefer-immutable-types
   const calculatedWidths = data.reduce((previous, current) => {
-    // eslint-disable-next-line functional/prefer-immutable-types
     return current.map(([value], index) =>
       Math.max(stringLength(value) + 1, previous[index] ?? 0)
     );
@@ -174,7 +166,7 @@ const renderTable = (
     // eslint-disable-next-line functional/no-return-void
   ): void => {
     const initialValue: Readonly<CLUI.Line> = new CLUI.Line(outputBuffer);
-    // eslint-disable-next-line functional/prefer-immutable-types
+
     const columns: Readonly<CLUI.Line> = row.reduce((line, [text], index) => {
       const columnWidth = calculatedWidths[index] ?? 0;
       return line.column(text, columnWidth);
@@ -184,7 +176,7 @@ const renderTable = (
     columns.fill().store();
   };
 
-  // eslint-disable-next-line functional/no-expression-statements, functional/prefer-immutable-types
+  // eslint-disable-next-line functional/no-expression-statements
   renderRow(tableHeaders.map((header) => [header, [clc.cyan]]));
 
   // eslint-disable-next-line functional/no-expression-statements
@@ -209,7 +201,6 @@ const search = async (
   // eslint-disable-next-line functional/no-expression-statements
   countdown.start();
 
-  // eslint-disable-next-line functional/prefer-immutable-types
   const issues = await jira.searchIssues(
     jql,
     boardNamesToIgnore,
@@ -233,12 +224,11 @@ type OutputMode = "json" | "table";
 
 const DEFAULT_OUTPUT_MODE: OutputMode = "table";
 
-// eslint-disable-next-line functional/prefer-immutable-types
 export default ({ command }: RootCommand): Argv<unknown> =>
   command(
     "search",
     "searches for jira issues using JQL and then lints",
-    // eslint-disable-next-line functional/prefer-immutable-types
+
     (yargs) =>
       withQualityFieldsOption(yargs)
         .option("jql", {
@@ -267,7 +257,7 @@ export default ({ command }: RootCommand): Argv<unknown> =>
           default: [],
         })
         .demandOption(["jql"]),
-    // eslint-disable-next-line functional/no-return-void, functional/prefer-immutable-types
+    // eslint-disable-next-line functional/no-return-void
     (args) => {
       // eslint-disable-next-line functional/no-expression-statements
       void search(

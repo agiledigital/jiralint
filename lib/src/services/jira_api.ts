@@ -1,5 +1,4 @@
 /* eslint-disable spellcheck/spell-checker */
-/* eslint-disable functional/prefer-immutable-types*/
 import { Either } from "fp-ts/lib/Either";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -41,7 +40,6 @@ type FieldNotEditable = {
   readonly fields: readonly string[];
 };
 
-// eslint-disable-next-line functional/type-declaration-immutability
 export type JiraClient = {
   readonly jiraApi: Readonly<JiraApi>;
   readonly updateIssueQuality: (

@@ -89,7 +89,7 @@ describe("decoding well-formed tickets", () => {
     // Given a well-formed bit of data.
 
     // When it is decoded.
-    // eslint-disable-next-line functional/prefer-immutable-types
+
     const actual = CloudIssue.decode(data);
 
     // Then no errors should be reported.
@@ -111,7 +111,6 @@ describe("decoding well-formed tickets", () => {
 });
 
 describe("finding the most recent work date", () => {
-  // eslint-disable-next-line functional/prefer-immutable-types
   const issueWithTransition = {
     ...IssueData.issue,
     changelog: {
@@ -119,7 +118,6 @@ describe("finding the most recent work date", () => {
     },
   } as const;
 
-  // eslint-disable-next-line functional/prefer-immutable-types
   const issueWithComment = {
     ...IssueData.issue,
     fields: {
@@ -133,7 +131,6 @@ describe("finding the most recent work date", () => {
     },
   } as const;
 
-  // eslint-disable-next-line functional/prefer-immutable-types
   const issueWithWorklog = {
     ...IssueData.issue,
     fields: {
@@ -147,7 +144,6 @@ describe("finding the most recent work date", () => {
     },
   } as const;
 
-  // eslint-disable-next-line functional/prefer-immutable-types
   const issueWithEverything = {
     ...IssueData.issue,
     fields: {
@@ -178,10 +174,9 @@ describe("finding the most recent work date", () => {
     ["with all three", issueWithEverything, mixedChangeFrom2022.created],
   ] as const)(
     "should returned for expected result for an issue %s",
-    // eslint-disable-next-line functional/prefer-immutable-types
+
     (_desc, issue, expected) => {
       // Given an issue.
-
       // When the time it was last worked is found.
       const lastWorked = issueLastWorked(issue, []);
 
@@ -199,7 +194,7 @@ describe("finding the most recent comment", () => {
     [[commentFrom2000, commentFrom2021, commentFrom2000], commentFrom2021],
   ] as const)("should be found as expected", (comments, expected) => {
     // Given an issue with the provided comments
-    // eslint-disable-next-line functional/prefer-immutable-types
+
     const issue = {
       ...IssueData.issue,
       fields: {
@@ -238,7 +233,7 @@ describe("finding transitions", () => {
     ],
   ] as const)("should filter %s as expected", (_desc, histories, expected) => {
     // Given some change histories.
-    // eslint-disable-next-line functional/prefer-immutable-types
+
     const issue = {
       ...IssueData.issue,
       changelog: {
@@ -278,7 +273,7 @@ describe("finding the most recent transition", () => {
     ],
   ] as const)("should be found as expected", (histories, expected) => {
     // Given an issue with the provided changelogs
-    // eslint-disable-next-line functional/prefer-immutable-types
+
     const issue = {
       ...IssueData.issue,
       changelog: {
@@ -302,7 +297,7 @@ describe("enhancing issues", () => {
         fc.string({ minLength: 1 }).filter((s) => s.trim().length > 0),
         (fieldName, value) => {
           // Given an issue that has the provided value
-          // eslint-disable-next-line functional/prefer-immutable-types
+
           const issue = {
             ...IssueData.issue,
             fields: {
@@ -312,7 +307,7 @@ describe("enhancing issues", () => {
           };
 
           // When it is enhanced
-          // eslint-disable-next-line functional/prefer-immutable-types
+
           const enhanced = enhancedIssue(
             issue,
             [],
@@ -335,7 +330,7 @@ describe("enhancing issues", () => {
         fc.string({ minLength: 1 }).filter((s) => s.trim().length > 0),
         (fieldName, value) => {
           // Given an issue that has the provided value
-          // eslint-disable-next-line functional/prefer-immutable-types
+
           const issue = {
             ...IssueData.issue,
             fields: {
@@ -345,7 +340,7 @@ describe("enhancing issues", () => {
           };
 
           // When it is enhanced
-          // eslint-disable-next-line functional/prefer-immutable-types
+
           const enhanced = enhancedIssue(
             issue,
             [],
@@ -365,6 +360,12 @@ describe("enhancing issues", () => {
 
 describe("Getting Most Recent Issue Worklog", () => {
   it("should take that issues subtasks into account", () => {
+    // There are no worklogs on the enhanced issue and thus should be undefined
+    expect(mostRecentIssueWorklog(IssueData.enhancedIssue, [])).toBeUndefined();
+    // There are worklogs on the subtask and thus should be defined
+    expect(mostRecentIssueWorklog(IssueData.enhancedSubtask, [])).toBeDefined();
+    // Then, when calculating the worklog for a task with no worklogs but with a
+    // subtask that has worklogs, it should be defined.
     expect(
       mostRecentIssueWorklog(IssueData.enhancedIssue, [
         IssueData.enhancedIssue,

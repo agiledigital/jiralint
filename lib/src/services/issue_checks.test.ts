@@ -45,7 +45,6 @@ describe("checking that in progress tickets have worklogs", () => {
   ] as const)(
     "checks as expected %#",
     (inProgress, lastWorklogCreated, checkTime, expected) => {
-      // eslint-disable-next-line functional/prefer-immutable-types
       const mostRecentWorklog =
         lastWorklogCreated === undefined
           ? undefined
@@ -54,7 +53,6 @@ describe("checking that in progress tickets have worklogs", () => {
               started: lastWorklogCreated,
             };
 
-      // eslint-disable-next-line functional/prefer-immutable-types
       const input = {
         ...IssueData.enhancedIssue,
         inProgress,
@@ -75,7 +73,6 @@ describe("checking that in progress tickets have estimates", () => {
     [false, 0, { outcome: "not applied", reasons: ["not in progress"] }],
     [false, 10, { outcome: "not applied", reasons: ["not in progress"] }],
   ] as const)("checks as expected", (inProgress, estimate, expected) => {
-    // eslint-disable-next-line functional/prefer-immutable-types
     const input = {
       ...IssueData.enhancedIssue,
       inProgress,
@@ -97,7 +94,6 @@ describe("checking that tickets have a description", () => {
     [undefined, { outcome: "fail", reasons: ["description is empty"] }],
     ["description", { outcome: "ok", reasons: ["description isn't empty"] }],
   ] as const)("checks as expected", (description, expected) => {
-    // eslint-disable-next-line functional/prefer-immutable-types
     const input = {
       ...IssueData.enhancedIssue,
       description,
@@ -180,7 +176,6 @@ describe("checking comments", () => {
       now,
       expected
     ) => {
-      // eslint-disable-next-line functional/prefer-immutable-types
       const mostRecentComment =
         commentText !== undefined
           ? {
@@ -194,7 +189,6 @@ describe("checking comments", () => {
             }
           : undefined;
 
-      // eslint-disable-next-line functional/prefer-immutable-types
       const input = {
         ...IssueData.enhancedIssue,
         fields: {
@@ -240,7 +234,6 @@ describe("checking for tickets languishing in the backlog", () => {
       },
     ],
   ] as const)("checks as expected", (created, column, now, expected) => {
-    // eslint-disable-next-line functional/prefer-immutable-types
     const input = {
       ...IssueData.enhancedIssue,
       fields: {
@@ -279,7 +272,6 @@ describe("checking that dependencies have a due date", () => {
       { outcome: "ok", reasons: ["has a due date"] },
     ],
   ] as const)("checks as expected", (issueTypeName, duedate, expected) => {
-    // eslint-disable-next-line functional/prefer-immutable-types
     const input = {
       ...IssueData.enhancedIssue,
       fields: {
@@ -352,7 +344,6 @@ describe("checking that dependencies have not blown past the due date", () => {
   ] as const)(
     "checks as expected",
     (issueTypeName, duedate, now, closed, expected) => {
-      // eslint-disable-next-line functional/prefer-immutable-types
       const input = {
         ...IssueData.enhancedIssue,
         fields: {

@@ -1,4 +1,3 @@
-/* eslint-disable functional/prefer-immutable-types */
 /* eslint-disable spellcheck/spell-checker */
 import * as T from "io-ts";
 import * as ITT from "io-ts-types";
@@ -262,13 +261,10 @@ export type CloudIssue = Readonly<T.TypeOf<typeof CloudIssue>>;
 // eslint-disable-next-line functional/type-declaration-immutability
 export type Issue = Readonly<T.TypeOf<typeof Issue>>;
 
-// eslint-disable-next-line functional/type-declaration-immutability
 export type IssueComment = Readonly<T.TypeOf<typeof IssueComment>>;
 
-// eslint-disable-next-line functional/type-declaration-immutability
 export type IssueChangeLog = Readonly<T.TypeOf<typeof ChangeLog>>;
 
-// eslint-disable-next-line functional/type-declaration-immutability
 export type IssueWorklog = Readonly<T.TypeOf<typeof IssueWorklog>>;
 
 export const BoardColumn = T.readonly(

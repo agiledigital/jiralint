@@ -1,4 +1,3 @@
-/* eslint functional/prefer-immutable-types: ["error", { "enforcement": "ReadonlyDeep" }] */
 /* eslint-disable spellcheck/spell-checker */
 /* eslint-disable functional/functional-parameters */
 import { EnhancedIssue as EnhancedIssue } from "./jira";
@@ -17,14 +16,12 @@ import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
 import { differenceInBusinessHours } from "./jira_date_fns";
 
 // TODO unclear why ReadonlyNonEmptyArray is not judged to be Immutable
-// eslint-disable-next-line functional/type-declaration-immutability
 export type CheckResult = {
   readonly description: string;
   readonly outcome: "cant apply" | "not applied" | "ok" | "warn" | "fail";
   readonly reasons: ReadonlyNonEmptyArray<string>;
 };
 
-// eslint-disable-next-line functional/prefer-immutable-types
 export type Check = (issue: EnhancedIssue) => CheckResult;
 
 export type Action = "none" | "inspect";
@@ -42,25 +39,24 @@ export type Checker = {
 };
 
 export const checker = (check: string): Checker => ({
-  // eslint-disable-next-line functional/prefer-immutable-types
   fail: (reason: string) => ({
     outcome: "fail",
     description: check,
     reasons: [reason],
   }),
-  // eslint-disable-next-line functional/prefer-immutable-types
+
   ok: (reason: string) => ({
     outcome: "ok",
     description: check,
     reasons: [reason],
   }),
-  // eslint-disable-next-line functional/prefer-immutable-types
+
   na: (reason: string) => ({
     outcome: "not applied",
     description: check,
     reasons: [reason],
   }),
-  // eslint-disable-next-line functional/prefer-immutable-types
+
   cantApply: (reason: string) => ({
     outcome: "cant apply",
     description: check,
@@ -85,7 +81,6 @@ const notInProgressReason = "not in progress";
  */
 export const validateInProgressHasWorklog =
   (at: ReadonlyDate) =>
-  // eslint-disable-next-line functional/prefer-immutable-types
   (issue: EnhancedIssue): CheckResult => {
     const check = checker("In progress tickets have been worked");
 
@@ -113,7 +108,6 @@ export const validateInProgressHasWorklog =
  * @returns result of checking the issue.
  */
 export const validateDependenciesHaveDueDate = (
-  // eslint-disable-next-line functional/prefer-immutable-types
   issue: EnhancedIssue
 ): CheckResult => {
   const check = checker("Dependencies have a due date");
@@ -135,7 +129,6 @@ export const validateDependenciesHaveDueDate = (
  */
 export const validateNotClosedDependenciesNotPassedDueDate =
   (at: ReadonlyDate) =>
-  // eslint-disable-next-line functional/prefer-immutable-types
   (issue: EnhancedIssue): CheckResult => {
     const check = checker("Dependencies not passed due date");
 
@@ -164,7 +157,6 @@ export const validateNotClosedDependenciesNotPassedDueDate =
   };
 
 export const validateInProgressHasEstimate = (
-  // eslint-disable-next-line functional/prefer-immutable-types
   issue: EnhancedIssue
 ): CheckResult => {
   const check = checker("In Progress issues have estimates");
@@ -187,7 +179,7 @@ export const validateInProgressHasEstimate = (
 };
 
 // TODO check whether the description is a template and fail if it is.
-// eslint-disable-next-line functional/prefer-immutable-types
+
 export const validateDescription = (issue: EnhancedIssue): CheckResult => {
   const check = checker("Tickets have a description");
 
@@ -199,7 +191,6 @@ export const validateDescription = (issue: EnhancedIssue): CheckResult => {
 const validateNotStalledFor =
   (at: ReadonlyDate) =>
   (
-    // eslint-disable-next-line functional/prefer-immutable-types
     issue: EnhancedIssue,
     duration: number,
     durationDescription: string
@@ -216,7 +207,7 @@ const validateNotStalledFor =
       )
       .with(
         [true, not(undefined)],
-        // eslint-disable-next-line functional/prefer-immutable-types
+
         ([, transition]) =>
           differenceInBusinessDays(at.valueOf(), transition.valueOf()) >
           duration,
@@ -229,19 +220,16 @@ const validateNotStalledFor =
 
 const validateNotStalledForMoreThanOneDay =
   (at: ReadonlyDate) =>
-  // eslint-disable-next-line functional/prefer-immutable-types
   (issue: EnhancedIssue): CheckResult =>
     validateNotStalledFor(at)(issue, 0, "one day");
 
 const validateNotStalledForMoreThanOneWeek =
   (at: ReadonlyDate) =>
-  // eslint-disable-next-line functional/prefer-immutable-types
   (issue: EnhancedIssue): CheckResult =>
     validateNotStalledFor(at)(issue, 5, "one week");
 
 const vaildateNotWaitingForReviewForMoreThanHalfADay =
   (at: ReadonlyDate) =>
-  // eslint-disable-next-line functional/prefer-immutable-types
   (issue: EnhancedIssue): CheckResult => {
     const check = checker("issues not waiting for review for too long");
 
@@ -257,9 +245,9 @@ const vaildateNotWaitingForReviewForMoreThanHalfADay =
       )
       .with(
         [true, not(undefined)],
-        // eslint-disable-next-line functional/prefer-immutable-types
+
         ([, transition]) => differenceInBusinessHours(at, transition) > 4,
-        // eslint-disable-next-line functional/prefer-immutable-types
+
         ([, transition]) =>
           check.fail(
             `waiting for review for more than half a day (${differenceInBusinessHours(
@@ -270,9 +258,9 @@ const vaildateNotWaitingForReviewForMoreThanHalfADay =
       )
       .with(
         [true, not(undefined)],
-        // eslint-disable-next-line functional/prefer-immutable-types
+
         ([, transition]) => differenceInBusinessHours(at, transition) <= 4,
-        // eslint-disable-next-line functional/prefer-immutable-types
+
         ([, transition]) =>
           check.ok(
             `waiting for review for less than half a day (${differenceInBusinessHours(
@@ -285,7 +273,6 @@ const vaildateNotWaitingForReviewForMoreThanHalfADay =
   };
 
 const validateInProgressNotCloseToEstimate = (
-  // eslint-disable-next-line functional/prefer-immutable-types
   issue: EnhancedIssue
 ): CheckResult => {
   const check = checker(
@@ -310,7 +297,6 @@ const validateInProgressNotCloseToEstimate = (
  */
 export const validateTooLongInBacklog =
   (at: ReadonlyDate) =>
-  // eslint-disable-next-line functional/prefer-immutable-types
   (issue: EnhancedIssue): CheckResult => {
     const check = checker("issues don't stay in the backlog for too long");
     const ageInMonths = differenceInCalendarMonths(
@@ -325,7 +311,7 @@ export const validateTooLongInBacklog =
       .with([not("backlog"), __], () => check.na("not on the backlog"))
       .with(
         ["backlog", __],
-        // eslint-disable-next-line functional/prefer-immutable-types
+
         ([, age]) => age > 3,
         () => check.fail(`in backlog for too long [${ageInMonths} months]`)
       )
@@ -335,7 +321,6 @@ export const validateTooLongInBacklog =
 // TODO check sub-tasks for comments?
 export const validateComment =
   (at: ReadonlyDate) =>
-  // eslint-disable-next-line functional/prefer-immutable-types
   (issue: EnhancedIssue): CheckResult => {
     const check = checker("issues that have been worked have comments");
 
@@ -363,11 +348,11 @@ export const validateComment =
       )
       .with(
         [not(undefined), __, false, __],
-        // eslint-disable-next-line functional/prefer-immutable-types
+
         ([recentCommentTime, inProgress, , loggedTime]) =>
           isBefore(recentCommentTime, lastBusinessDay(at).valueOf()) &&
           (inProgress || loggedTime > 0),
-        // eslint-disable-next-line functional/prefer-immutable-types
+
         ([recentCommentTime]) => {
           const commentAge = formatDistance(recentCommentTime, at.valueOf());
           return check.fail(
@@ -379,9 +364,7 @@ export const validateComment =
   };
 
 const check = (
-  // eslint-disable-next-line functional/prefer-immutable-types
   issue: EnhancedIssue,
-  // eslint-disable-next-line functional/prefer-immutable-types
   checks: readonly ((t: EnhancedIssue) => CheckResult)[]
 ): IssueAction => {
   const noAction: IssueAction = {
@@ -389,17 +372,14 @@ const check = (
     checks: [],
   };
 
-  // eslint-disable-next-line functional/prefer-immutable-types
   return checks.reduceRight((issueAction, check) => {
     const result = check(issue);
-
     const actionRequired: Action = match<readonly [CheckResult], Action>([
       result,
     ])
       .with([{ outcome: "warn" }], () => "inspect")
       .with([{ outcome: "fail" }], () => "inspect")
       .otherwise(() => issueAction.actionRequired);
-
     return {
       actionRequired,
       checks: issueAction.checks.concat(result),
@@ -415,7 +395,6 @@ const check = (
  * @returns true if the issue deserves some grace, otherwise false.
  */
 export const issueDeservesGrace = (
-  // eslint-disable-next-line functional/prefer-immutable-types
   issue: EnhancedIssue,
   now: ReadonlyDate
 ): boolean => {
@@ -436,7 +415,6 @@ export const issueDeservesGrace = (
  * @returns whether action is required, and the checks that were run to form that recommendation.
  */
 export const issueActionRequired = (
-  // eslint-disable-next-line functional/prefer-immutable-types
   issue: EnhancedIssue,
   now: ReadonlyDate,
   customChecks: readonly Check[]

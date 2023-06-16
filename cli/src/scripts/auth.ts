@@ -48,15 +48,13 @@ const auth = async (
     : console.info(JSON.stringify(user.right, null, 2));
 };
 
-// eslint-disable-next-line functional/prefer-immutable-types
 export default ({ command }: RootCommand): Argv<unknown> =>
   command(
     "auth",
     // eslint-disable-next-line spellcheck/spell-checker
     "authorises the linter to call Jira APIs and outputs the access token and secret",
-    // eslint-disable-next-line functional/prefer-immutable-types
     (yargs) => withAuthenticationOptions(yargs),
-    // eslint-disable-next-line functional/no-return-void, functional/prefer-immutable-types
+    // eslint-disable-next-line functional/no-return-void
     (args) => {
       const protocol = args["jira.protocol"];
       // eslint-disable-next-line functional/no-expression-statements

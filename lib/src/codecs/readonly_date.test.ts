@@ -6,10 +6,8 @@ import fc from "fast-check";
 describe("decoding a Date", () => {
   it("should decode a date to a readonly date", () => {
     fc.assert(
-      // eslint-disable-next-line functional/prefer-immutable-types
       fc.property(fc.date(), (d) => {
         // Given a date,
-
         // When it is decoded to a readonly date.
         const actual = readonlyDateFromDate.decode(d);
 
@@ -31,10 +29,8 @@ describe("decoding a Date", () => {
 describe("decoding a string", () => {
   it("should decode an ISO formatted string to a readonly date", () => {
     fc.assert(
-      // eslint-disable-next-line functional/prefer-immutable-types
       fc.property(fc.date(), (d) => {
         // Given a date,
-
         // That has been encoded as a ISO string.
         const isoDate = ITT.DateFromISOString.encode(d);
 

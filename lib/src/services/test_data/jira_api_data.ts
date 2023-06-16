@@ -20,7 +20,6 @@ export const boardReturn: Board = {
   },
 };
 
-// eslint-disable-next-line functional/prefer-immutable-types
 export const searchJiraReturn: CloudIssue[] = [
   {
     key: "parent key",

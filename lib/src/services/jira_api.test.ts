@@ -1,4 +1,3 @@
-/* eslint-disable functional/prefer-immutable-types */
 import * as E from "fp-ts/lib/Either";
 import JiraApi from "jira-client";
 import { JiraClient, jiraClient } from "./jira_api";
