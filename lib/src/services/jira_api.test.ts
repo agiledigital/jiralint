@@ -4,6 +4,14 @@ import { JiraClient, jiraClient } from "./jira_api";
 import { boardReturn, searchJiraReturn } from "./test_data/jira_api_data";
 import { readonlyDate } from "readonly-types";
 import { pipe } from "fp-ts/lib/function";
+import { IssueWorklog } from "./jira";
+
+const worklog: IssueWorklog = {
+  author: { name: "Jim" },
+  started: readonlyDate("2023-05-31T13:46:58.132+1000"),
+  timeSpentSeconds: 1,
+  comment: "I did a thing",
+};
 
 jest.mock("jira-client", () => {
   return jest.fn().mockImplementation(() => {
@@ -13,22 +21,17 @@ jest.mock("jira-client", () => {
         .fn()
         .mockResolvedValue({ values: [{ id: 0, name: "0" }] }),
       getConfiguration: jest.fn().mockResolvedValue(boardReturn),
-      genericGet: jest.fn().mockImplementation((input: string) => {
-        if (input.includes("comment")) return Promise.resolve({ comments: [] });
-        else
-          return input.includes("parent")
-            ? Promise.resolve({ worklogs: [] })
-            : Promise.resolve({
-                worklogs: [
-                  {
-                    author: { name: "Jim" },
-                    started: readonlyDate("2023-05-31T13:46:58.132+1000"),
-                    timeSpentSeconds: 1,
-                    comment: "I did a thing",
-                  },
-                ],
-              });
-      }),
+      genericGet: jest
+        .fn()
+        .mockResolvedValueOnce({ comments: [] })
+        .mockResolvedValueOnce({ comments: [] })
+        .mockResolvedValueOnce({
+          worklogs: [worklog],
+        })
+        .mockResolvedValueOnce({ worklogs: [] })
+        .mockResolvedValueOnce({
+          worklogs: [worklog],
+        }),
     };
   });
 });
@@ -43,13 +46,20 @@ describe("Searching issues", () => {
   it("should account for worklogs of subtasks in the parent", async () => {
     const response = await client.searchIssues("", [], "", "", [], {});
 
-    pipe(
+    const worklogsFromPipe = pipe(
       response,
-      E.map((list) =>
-        list.forEach((issue) => expect(issue.mostRecentWorklog).toBeDefined())
-      )
+      E.map((list) => list.flatMap((issue) => issue.mostRecentWorklog))
     );
 
-    expect.assertions(2);
+    expect(E.isRight(worklogsFromPipe)).toBeTruthy();
+
+    //We know that worklogsFromPipe is right but to compile...
+    const worklogs: unknown[] = E.isRight(worklogsFromPipe)
+      ? worklogsFromPipe.right
+      : [];
+
+    worklogs.forEach((log) => expect(log).toStrictEqual(worklog));
+
+    expect.assertions(3);
   });
 });
