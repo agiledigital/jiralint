@@ -8,19 +8,11 @@ import { pipe } from "fp-ts/lib/function";
 jest.mock("jira-client", () => {
   return jest.fn().mockImplementation(() => {
     return {
-      searchJira: jest
-        .fn()
-        .mockImplementation(() =>
-          Promise.resolve({ issues: searchJiraReturn })
-        ),
+      searchJira: jest.fn().mockResolvedValue({ issues: searchJiraReturn }),
       getAllBoards: jest
         .fn()
-        .mockImplementation(() =>
-          Promise.resolve({ values: [{ id: 0, name: "0" }] })
-        ),
-      getConfiguration: jest
-        .fn()
-        .mockImplementation(() => Promise.resolve(boardReturn)),
+        .mockResolvedValue({ values: [{ id: 0, name: "0" }] }),
+      getConfiguration: jest.fn().mockResolvedValue(boardReturn),
       genericGet: jest.fn().mockImplementation((input: string) => {
         if (input.includes("comment")) return Promise.resolve({ comments: [] });
         else
@@ -53,21 +45,11 @@ describe("Searching issues", () => {
 
     pipe(
       response,
-      E.map((issues) => {
-        issues.forEach((issue) => {
-          if (issue.key.includes("parent"))
-            // As the worklog is not defined in the mocked JQL search call
-            // nor are they defined in the mocked worklog API call for the parent
-            // the only way this can be defined is if the worklogs
-            // of the subtask is taken into account when you call search issues.
-            // eslint-disable-next-line jest/no-conditional-expect
-            expect(issue.mostRecentWorklog).toBeDefined();
-        });
-      }),
-      E.mapLeft((error) => {
-        console.error(error);
-        expect(false).toBeTruthy();
-      })
+      E.map((list) =>
+        list.forEach((issue) => expect(issue.mostRecentWorklog).toBeDefined())
+      )
     );
+
+    expect.assertions(2);
   });
 });

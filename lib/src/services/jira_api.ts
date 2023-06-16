@@ -529,6 +529,86 @@ export const jiraClient = (
   const issueLink = (issue: Issue): string =>
     `${jiraProtocol}://${jiraHost}/browse/${encodeURIComponent(issue.key)}`;
 
+  /**
+   * Adds the most recent comment to a given enhanced issue
+   * @param issue the EnhancedIssue without a comment
+   * @returns the EnhancedIssue with the mostRecentComment added
+   */
+  const issueWithComment = (
+    issue: EnhancedIssue
+  ): TE.TaskEither<string, EnhancedIssue> => {
+    const mostRecentCommentLoaded =
+      issue.fields.comment !== undefined &&
+      issue.fields.comment.total === issue.fields.comment.comments.length;
+
+    const recentComment = (
+      worklogs: readonly IssueComment[] | undefined
+    ): IssueComment | undefined =>
+      worklogs === undefined
+        ? undefined
+        : [...worklogs].sort((w1, w2) =>
+            compareDesc(w1.created.valueOf(), w2.created.valueOf())
+          )[0];
+
+    return pipe(
+      mostRecentCommentLoaded
+        ? TE.right(issue.fields.comment.comments)
+        : fetchMostRecentComments(issue.key),
+      TE.map((comments) => ({
+        ...issue,
+        mostRecentComment: recentComment(comments),
+      }))
+    );
+  };
+
+  /**
+   * Adds the most recent worklog to a given enhanced issue by either calculating
+   * that from the worklogs provided in the initial get request if that was not paginated
+   * or by making additional API requests to get all the worklogs for an issue. The worklogs
+   * for an issue also account for the worklogs of the subtasks of that issue.
+   * @param issue the EnhancedIssue to add worklogs to
+   * @returns the EnhancedIssue with the mostRecentWorklog added
+   */
+  const issueWithWorklog = (
+    issue: EnhancedIssue
+  ): TE.TaskEither<string, EnhancedIssue> => {
+    const mostRecentWorklogLoaded =
+      issue.fields.worklog !== undefined &&
+      issue.fields.worklog.total === issue.fields.worklog.worklogs.length;
+
+    const recentWorklog = (
+      worklogs: readonly IssueWorklog[] | undefined
+    ): IssueWorklog | undefined =>
+      worklogs === undefined
+        ? undefined
+        : [...worklogs].sort((w1, w2) =>
+            compareDesc(w1.started.valueOf(), w2.started.valueOf())
+          )[0];
+
+    const relevantKeys: string[] = mostRecentWorklogLoaded
+      ? []
+      : issue.fields.subtasks.map((cur) => cur.key).concat([issue.key]);
+
+    const worklogs: TE.TaskEither<string, readonly IssueWorklog[]>[] =
+      relevantKeys.map((key) => fetchMostRecentWorklogs(key));
+
+    const worklog: TE.TaskEither<string, readonly IssueWorklog[]> = pipe(
+      worklogs,
+      TE.sequenceArray,
+      TE.map((x): readonly IssueWorklog[] => x.flat())
+    );
+
+    return pipe(
+      mostRecentWorklogLoaded
+        ? TE.right(issue.fields.worklog.worklogs)
+        : worklog,
+      TE.map((worklogs) => ({
+        ...issue,
+        mostRecentWorklog: recentWorklog(worklogs),
+      }))
+    );
+  };
+
   return {
     jiraApi,
     /**
@@ -623,7 +703,6 @@ export const jiraClient = (
       qualityReasonField: string,
       customFieldNames: readonly string[],
       descriptionFields: ReadonlyRecord<string, string>
-      // eslint-disable-next-line sonarjs/cognitive-complexity
     ): Promise<Either<string, readonly EnhancedIssue[]>> => {
       const fetchIssues = TE.tryCatch(
         // eslint-disable-next-line functional/functional-parameters
@@ -734,80 +813,16 @@ export const jiraClient = (
         })(boardsByProject(issues, boardNamesToIgnore));
       };
 
-      const issueWithComment = (
-        issue: EnhancedIssue
-      ): TE.TaskEither<string, EnhancedIssue> => {
-        const mostRecentCommentLoaded =
-          issue.fields.comment !== undefined &&
-          issue.fields.comment.total === issue.fields.comment.comments.length;
-
-        const recentComment = (
-          worklogs: readonly IssueComment[] | undefined
-        ): IssueComment | undefined =>
-          worklogs === undefined
-            ? undefined
-            : [...worklogs].sort((w1, w2) =>
-                compareDesc(w1.created.valueOf(), w2.created.valueOf())
-              )[0];
-
-        return pipe(
-          mostRecentCommentLoaded
-            ? TE.right(issue.fields.comment.comments)
-            : fetchMostRecentComments(issue.key),
-          TE.map((comments) => ({
-            ...issue,
-            mostRecentComment: recentComment(comments),
-          }))
-        );
-      };
-
-      const issueWithWorklog = (
-        issue: EnhancedIssue
-      ): TE.TaskEither<string, EnhancedIssue> => {
-        const mostRecentWorklogLoaded =
-          issue.fields.worklog !== undefined &&
-          issue.fields.worklog.total === issue.fields.worklog.worklogs.length;
-
-        const recentWorklog = (
-          worklogs: readonly IssueWorklog[] | undefined
-        ): IssueWorklog | undefined =>
-          worklogs === undefined
-            ? undefined
-            : [...worklogs].sort((w1, w2) =>
-                compareDesc(w1.started.valueOf(), w2.started.valueOf())
-              )[0];
-
-        const relevantKeys: string[] = mostRecentWorklogLoaded
-          ? []
-          : issue.fields.subtasks
-              .reduce((acc: string[], cur) => acc.concat([cur.key]), [])
-              .concat([issue.key]);
-
-        const worklogs: TE.TaskEither<string, readonly IssueWorklog[]>[] =
-          relevantKeys.map((key) => fetchMostRecentWorklogs(key));
-
-        const worklog: TE.TaskEither<string, readonly IssueWorklog[]> = pipe(
-          worklogs,
-          TE.sequenceArray,
-          TE.map((x): readonly IssueWorklog[] => x.flat())
-        );
-
-        return pipe(
-          mostRecentWorklogLoaded
-            ? TE.right(issue.fields.worklog.worklogs)
-            : worklog,
-          TE.map((worklogs) => ({
-            ...issue,
-            mostRecentWorklog: recentWorklog(worklogs),
-          }))
-        );
-      };
-
       return pipe(
+        // Get the issues from Jira that match the provided JQL query.
         fetchIssues,
+        // Then parse and convert the JSON response from the API into the Issue type.
         TE.chain(convertIssueType),
+        // Then convert the Issues into EnhancedIssues by adding information about the board
         TE.chain(enhancedIssues),
+        // Then add the most recent comment to those EnhancedIssues
         TE.chain(TE.traverseSeqArray((issue) => issueWithComment(issue))),
+        // Then add the most recent worklog to those EnhancedIssues
         TE.chain(TE.traverseSeqArray((issue) => issueWithWorklog(issue)))
       )();
     },
