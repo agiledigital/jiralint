@@ -440,15 +440,16 @@ export const mostRecentIssueComment = (
 /**
  * Finds the most recent worklog on the issue (based on the started date).
  * @param issue the issue whose most recent worklog should be found.
+ * @param issueSubtasks a list of issues that must contain the subtasks of issue.
  * @returns the most recent worklog, or undefined if no work has been logged.
  */
 export const mostRecentIssueWorklog = (
   issue: Issue,
-  issues: readonly Issue[]
+  issueSubtasks: readonly Issue[]
 ): IssueWorklog | undefined => {
   const subtaskWorklogs = issue.fields.subtasks.reduce(
     (acc: IssueWorklog[], subtask) => {
-      const subtaskIssue = issues.find(
+      const subtaskIssue = issueSubtasks.find(
         (subtaskIssue) => subtaskIssue.key === subtask.key
       );
       const work = subtaskIssue?.fields.worklog?.worklogs;
@@ -471,17 +472,18 @@ export const mostRecentIssueWorklog = (
  * Determines the time at which the issue was last worked, as evidenced by
  * comments, transitions or worklogs.
  * @param issue the issue.
+ * @param issueSubtasks a list of issues that must contain the subtasks of issue.
  * @returns the time that the issue was last worked, or undefined if it has never been worked.
  */
 export const issueLastWorked = (
   issue: Issue,
-  issues: readonly Issue[]
+  issueSubtasks: readonly Issue[]
 ): ReadonlyDate | undefined => {
   const mostRecentTransition = mostRecentIssueTransition(issue);
 
   const mostRecentComment = mostRecentIssueComment(issue);
 
-  const mostRecentWorklog = mostRecentIssueWorklog(issue, issues);
+  const mostRecentWorklog = mostRecentIssueWorklog(issue, issueSubtasks);
 
   return [
     mostRecentTransition?.created,
@@ -494,7 +496,7 @@ export const issueLastWorked = (
 
 export const enhancedIssue = (
   issue: Issue,
-  issues: readonly Issue[],
+  issueSubtasks: readonly Issue[],
   viewLink: string,
   qualityFieldName: string,
   qualityReasonFieldName: string,
@@ -507,7 +509,7 @@ export const enhancedIssue = (
 
   const released = issue.fields.fixVersions.some((version) => version.released);
 
-  const lastWorked = issueLastWorked(issue, issues);
+  const lastWorked = issueLastWorked(issue, issueSubtasks);
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const quality = issue.fields[qualityFieldName] as string | undefined;
