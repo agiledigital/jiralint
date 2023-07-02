@@ -45,7 +45,7 @@
     "newtype-ts": "^0.3.5",
     "oauth": "^0.10.0",
     "readonly-types": "^4.5.0",
-    "ts-pattern": "^3.2.2",
+    "ts-pattern": "^4.0.0",
     "io-ts-reporters": "2.0.1"
   },
   "devDependencies": {
