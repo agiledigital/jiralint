@@ -21,7 +21,7 @@
     "colors": "1.4.0",
     "date-fns": "2.29.3",
     "fp-ts": "2.13.1",
-    "inquirer": "8.2.4",
+    "inquirer": "9.3.5",
     "io-ts": "2.2.20",
     "io-ts-types": "0.5.19",
     "monocle-ts": "2.3.13",
@@ -35,7 +35,7 @@
   "devDependencies": {
     "@types/clear": "0.1.2",
     "@types/clui": "0.3.1",
-    "@types/inquirer": "7.3.3",
+    "@types/inquirer": "9.0.7",
     "@types/jest": "29.4.0",
     "@types/oauth": "0.9.1",
     "@typescript-eslint/eslint-plugin": "5.54.1",
