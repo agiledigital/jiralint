@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@types/clear": "0.1.2",
-    "@types/clui": "0.3.1",
+    "@types/clui": "0.3.4",
     "@types/inquirer": "7.3.3",
     "@types/jest": "29.4.0",
     "@types/oauth": "0.9.1",
